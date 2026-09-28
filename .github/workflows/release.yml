@@ -1,0 +1,67 @@
+name: Build and Release Cross-Platform
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            pyinstaller_args: --onefile --noconsole --add-data "translations;translations"
+            output_name: FileSyncTool_v7.5.1_Windows.exe
+          - os: macos-latest
+            pyinstaller_args: --onefile --windowed --add-data "translations:translations"
+            output_name: FileSyncTool_v7.5.1_macOS
+          - os: ubuntu-latest
+            pyinstaller_args: --onefile --windowed --add-data "translations:translations"
+            output_name: FileSyncTool_v7.5.1_Linux
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build with PyInstaller
+        run: |
+          pyinstaller ${{ matrix.pyinstaller_args }} main.py
+
+      - name: Rename output
+        run: |
+          if [ -f "dist/main.exe" ]; then mv dist/main.exe "dist/${{ matrix.output_name }}"; fi
+          if [ -f "dist/main" ]; then mv dist/main "dist/${{ matrix.output_name }}"; fi
+        shell: bash
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.os }}
+          path: dist/${{ matrix.output_name }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*/*
+          draft: false
+          generate_release_notes: true

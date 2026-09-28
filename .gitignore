@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# 虚拟环境
+.venv/
+venv/
+ENV/
+
+# 打包产物
+dist/
+build/
+*.spec
+!FileSyncTool.spec
+
+# 配置文件（包含用户数据）
+data/*.json
+sync_config*.json
+sync_config*.json.bak
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 测试
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+test_*.py
+
+# 本地开发文档
+PROJECT_OVERVIEW.md
