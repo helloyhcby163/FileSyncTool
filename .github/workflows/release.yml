@@ -16,14 +16,11 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            pyinstaller_args: --onefile --noconsole --add-data "translations;translations"
-            output_name: FileSyncTool_v7.5.1_Windows.exe
+            output_name: FileSyncTool_v7.6_Windows.exe
           - os: macos-latest
-            pyinstaller_args: --onefile --windowed --add-data "translations:translations"
-            output_name: FileSyncTool_v7.5.1_macOS
+            output_name: FileSyncTool_v7.6_macOS
           - os: ubuntu-latest
-            pyinstaller_args: --onefile --windowed --add-data "translations:translations"
-            output_name: FileSyncTool_v7.5.1_Linux
+            output_name: FileSyncTool_v7.6_Linux
 
     steps:
       - uses: actions/checkout@v4
@@ -38,9 +35,9 @@ jobs:
           pip install -r requirements.txt
           pip install pyinstaller
 
-      - name: Build with PyInstaller
+      - name: Build with PyInstaller (spec file)
         run: |
-          pyinstaller ${{ matrix.pyinstaller_args }} main.py
+          pyinstaller FileSyncTool.spec
 
       - name: Rename output
         run: |
