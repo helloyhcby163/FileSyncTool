@@ -1,11 +1,12 @@
 # -*- mode: python ; coding: utf-8 -*-
 """
-文件同步工具 v7.4 - PyInstaller 打包配置文件
+文件同步工具 v7.6 - PyInstaller 打包配置文件
 
 修复要点：
 - hiddenimports 包含 plyer 各平台通知模块，防止打包后通知功能失效
-- datas 包含 translations 目录，确保多语言文件随打包输出
+- datas 包含 translations 目录、docs 目录、图标文件
 - 使用 sys._MEIPASS 处理资源路径
+- v7.6: onefile 模式，输出 main.exe，方便 release.yml 重命名
 """
 
 import sys
@@ -32,7 +33,7 @@ plyer_extra_imports = [
     'plyer.platforms.macos',
 ]
 
-# CustomTkinter 需要的数据文件；v7.6 一并打包多语言、帮助文档与图标
+# 数据文件：多语言、帮助文档、图标
 ctk_datas = [
     (str(project_root / 'translations'), 'translations'),
     (str(project_root / 'docs'), 'docs'),
@@ -46,7 +47,6 @@ try:
     ctk_themes_dir = ctk_install_dir / 'assets' / 'themes'
     if ctk_themes_dir.exists():
         ctk_datas.append((str(ctk_themes_dir), 'customtkinter/assets/themes'))
-    # 收集所有 customtkinter 数据文件
     ctk_assets = ctk_install_dir / 'assets'
     if ctk_assets.exists():
         for item in ctk_assets.rglob('*'):
@@ -77,29 +77,22 @@ pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 exe = EXE(
     pyz,
     a.scripts,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
     [],
-    exclude_binaries=True,
-    name='FileSyncTool',
+    name='main',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=False,  # GUI 应用，不显示控制台
+    upx_exclude=[],
+    runtime_tmpdir=None,
+    console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=str(project_root / 'FileSyncTool.ico'),  # v7.6: exe 与任务栏图标
-)
-
-coll = COLLECT(
-    exe,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
-    strip=False,
-    upx=True,
-    upx_exclude=[],
-    name='FileSyncTool',
+    icon=str(project_root / 'FileSyncTool.ico'),
 )
