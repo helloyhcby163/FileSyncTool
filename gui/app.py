@@ -4,16 +4,22 @@
 """
 
 import os
+import threading
 import customtkinter as ctk
 from typing import Optional, Dict, Any
 
 from backend.config_manager import ConfigManager
-from backend.language_manager import LanguageManager, get_font
+from backend.language_manager import (
+    LanguageManager,
+    get_font,
+    ensure_user_translations_dir,
+)
 from backend.task_manager import TaskManager
 from backend.recycle_manager import RecycleManager
 from backend.sync_engine import FileSyncEngine as SyncEngine
 from backend.notification_manager import NotificationManager
 from backend.theme_manager import ThemeManager
+from backend.platform_utils import get_default_config_dir
 
 
 class FileSyncApp(ctk.CTk):
@@ -22,8 +28,9 @@ class FileSyncApp(ctk.CTk):
     # 窗口默认尺寸
     DEFAULT_WIDTH = 1200
     DEFAULT_HEIGHT = 800
-    MIN_WIDTH = 900
-    MIN_HEIGHT = 600
+    # v7.6: 增大最小尺寸，避免首页/创建任务页按钮被遮挡或截断
+    MIN_WIDTH = 1000
+    MIN_HEIGHT = 720
     
     def __init__(self):
         """初始化主窗口"""
@@ -149,7 +156,17 @@ class FileSyncApp(ctk.CTk):
         # 阶段 2：加载语言
         self._update_status("loading_language")
         language = self.config_manager.get_language()
-        self.language_manager = LanguageManager(language)
+        # v7.6: 外挂翻译目录 —— 默认 get_default_config_dir()/translations，
+        # 与「配置存储路径」相互独立；用户单独设置后持久化到 settings
+        settings = self.config_manager.get_settings()
+        user_translations_dir = settings.get("user_translations_dir") or (
+            get_default_config_dir() / "translations"
+        )
+        # 首次启动/目录为空时初始化外挂目录（复制内置语言与翻译说明，不覆盖已有文件）
+        user_translations_dir = ensure_user_translations_dir(user_translations_dir)
+        self.language_manager = LanguageManager(
+            language, user_translations_dir=str(user_translations_dir)
+        )
 
         # 语言加载后，状态栏字体切换为当前语言 meta 推荐字体
         if getattr(self, "status_label", None) is not None:
@@ -190,6 +207,15 @@ class FileSyncApp(ctk.CTk):
         
         # v7.5: 当前正在运行的同步引擎（供进度页恢复状态）
         self.current_sync_engine = None
+
+        # v7.6: 自动关机 —— 本批同步各任务的成败结果 {task_id: bool}
+        self._sync_outcomes: Dict[str, bool] = {}
+        # 本批中真正失败（非用户手动取消）的任务信息 {task_id: task_dict}
+        self._sync_failures: Dict[str, Dict[str, Any]] = {}
+        self._sync_outcomes_lock = threading.Lock()
+        # 关机倒计时
+        self._shutdown_remaining: int = 0
+        self._shutdown_after_id: Optional[str] = None
         
         # 阶段 4：启动时检查未完成的任务和残留文件
         self._update_status("checking_recovery")
@@ -230,6 +256,29 @@ class FileSyncApp(ctk.CTk):
             anchor="w"
         )
         self.status_label.grid(row=0, column=0, padx=10, pady=4, sticky="ew")
+
+        # v7.6: 自动关机倒计时区域（平时隐藏）
+        self.shutdown_frame = ctk.CTkFrame(self.status_bar, fg_color="transparent")
+        self.shutdown_frame.grid(row=0, column=1, padx=(0, 10), pady=2, sticky="e")
+        self.shutdown_label = ctk.CTkLabel(
+            self.shutdown_frame,
+            text="",
+            font=get_font(size=12, weight="bold"),
+            text_color="#C62828",
+        )
+        self.shutdown_label.pack(side="left", padx=(0, 8))
+        self.shutdown_cancel_btn = ctk.CTkButton(
+            self.shutdown_frame,
+            text="取消关机",
+            width=90,
+            height=24,
+            font=get_font(size=12),
+            fg_color="#C62828",
+            hover_color="#8E1B1B",
+            command=self._cancel_shutdown_countdown,
+        )
+        self.shutdown_cancel_btn.pack(side="left")
+        self.shutdown_frame.grid_remove()
     
     def _update_status(self, stage: str):
         """
@@ -646,7 +695,15 @@ class FileSyncApp(ctk.CTk):
         elif page_name == "settings":
             from .settings_page import SettingsPage
             return SettingsPage(self.main_container, self)
-        
+
+        elif page_name == "toolkit":
+            from .toolkit_page import ToolkitPage
+            return ToolkitPage(self.main_container, self)
+
+        elif page_name == "watch_task_select":
+            from .watch_task_select_page import WatchTaskSelectPage
+            return WatchTaskSelectPage(self.main_container, self)
+
         else:
             # 默认返回首页
             from .home_page import HomePage
@@ -717,7 +774,8 @@ class FileSyncApp(ctk.CTk):
             root_strategy=task_config.get("root_strategy", "conservative"),
             use_multithreading_scan=task_config.get("use_multithreading_scan", False),
             use_multithreading_copy=task_config.get("use_multithreading_copy", False),
-            last_snapshot=task_config.get("last_snapshot")
+            last_snapshot=task_config.get("last_snapshot"),
+            post_sync_command=task_config.get("post_sync_command", "")
         )
         self._start_sync(task_config)
     
@@ -749,26 +807,41 @@ class FileSyncApp(ctk.CTk):
         # 检查目录是否存在
         missing_dirs = []
         if source_dir and not os.path.isdir(source_dir):
-            missing_dirs.append(f"源目录「{source_dir}」")
+            missing_dirs.append("source")
         if target_dir and not os.path.isdir(target_dir):
-            missing_dirs.append(f"目标目录「{target_dir}」")
-        
+            missing_dirs.append("target")
+
         if missing_dirs:
+            # v7.6: 给出具体错误原因（未插 U 盘时常见于源/目标目录）
+            detail_lines = []
+            if "source" in missing_dirs:
+                detail_lines.append(
+                    self.get_text(
+                        "error_source_dir_missing",
+                        "同步失败：源目录不存在「{path}」\n请检查 U 盘是否已插入。"
+                    ).format(path=source_dir or self.get_text("not_configured", "（未配置）"))
+                )
+            if "target" in missing_dirs:
+                detail_lines.append(
+                    self.get_text(
+                        "error_target_dir_missing",
+                        "同步失败：目标目录不存在「{path}」\n请检查 U 盘是否已插入。"
+                    ).format(path=target_dir or self.get_text("not_configured", "（未配置）"))
+                )
+            error_msg = "\n".join(detail_lines)
+
             # 显示错误提示
             self.show_page("sync_progress", task_info={
                 "name": task_config.get("name", "同步任务"),
                 "source": source_dir,
                 "target": target_dir
             })
-            
+
             sync_progress_page = self.pages.get("sync_progress")
             if sync_progress_page:
-                error_msg = "同步中断：找不到" + "、".join(missing_dirs)
-                sync_progress_page.status_label.configure(
-                    text=error_msg,
-                    text_color="red"
-                )
+                # set_complete 先设置右上角短状态，再展示带具体路径的错误明细
                 sync_progress_page.set_complete(success=False)
+                sync_progress_page.show_error(error_msg)
             return
         
         # ===== v7.5: 同目录并发同步检测 =====
@@ -820,6 +893,10 @@ class FileSyncApp(ctk.CTk):
             "last_snapshot": last_snapshot
         }
         # 标记任务为运行中
+        # v7.6: 本批首个任务启动时清空上一批的成败记录（自动关机判定用）
+        with self._sync_outcomes_lock:
+            if not self.task_manager.get_running_tasks():
+                self._sync_outcomes.clear()
         self.task_manager.start_task(task_info)
         
         # 显示同步进度页面
@@ -852,7 +929,8 @@ class FileSyncApp(ctk.CTk):
             sync_delete_enabled=sync_delete_enabled,
             recycle_manager=self.recycle_manager,
             chunk_size=chunk_size,
-            folder_filters=folder_filters
+            folder_filters=folder_filters,
+            prevent_sleep_during_sync=settings.get("prevent_sleep_during_sync", True),
         )
         sync_engine.config_manager = self.config_manager
         
@@ -868,13 +946,13 @@ class FileSyncApp(ctk.CTk):
         def run_sync():
             try:
                 # 执行同步
-                sync_engine.sync_directories(
+                sync_success = bool(sync_engine.sync_directories(
                     source_dir=source_dir,
                     target_dir=target_dir,
                     direction=sync_direction,
                     last_snapshot=last_snapshot
-                )
-                
+                ))
+
                 # 保存本次同步的文件快照
                 if sync_engine.last_snapshot:
                     task_config["last_snapshot"] = sync_engine.last_snapshot
@@ -889,7 +967,7 @@ class FileSyncApp(ctk.CTk):
                             })
                 
                 # 同步完成
-                self._on_sync_complete(task_info.get("id"))
+                self._on_sync_complete(task_info.get("id"), sync_success=sync_success)
             except Exception as e:
                 print(f"同步错误: {e}")
                 # 更新进度页面显示错误
@@ -901,7 +979,7 @@ class FileSyncApp(ctk.CTk):
                         text_color="red"
                     )
                     sync_progress_page.set_complete(success=False)
-                self._on_sync_cancel(task_info.get("id"))
+                self._on_sync_cancel(task_info.get("id"), failure=True)
         
         # 启动后台线程执行同步
         sync_thread = threading.Thread(target=run_sync, daemon=True)
@@ -934,38 +1012,250 @@ class FileSyncApp(ctk.CTk):
         # 开始同步
         self._start_sync(task_config)
     
-    def _on_sync_complete(self, task_id=None):
-        """同步完成回调"""
-        if task_id:
-            self.task_manager.stop_task(task_id, "completed")
-        
-        # v7.5: 清除当前运行引擎引用
-        self.current_sync_engine = None
-        
+    def _on_sync_complete(self, task_id=None, sync_success=True):
+        """同步完成回调（sync_success 为 sync_directories 的返回值）"""
         # 获取当前任务信息
         sync_progress_page = self.pages.get("sync_progress")
+        blocked_files = []
+        task_config = {}
+        has_errors = False
         if sync_progress_page:
             task_name = sync_progress_page.task_info.get("name", "同步任务")
             file_count = sync_progress_page.current_file
-            
+            task_config = sync_progress_page.task_info.get("config", {}) or {}
+
             # 检查是否有错误
-            has_errors = False
             if sync_progress_page.sync_engine:
                 stats = sync_progress_page.sync_engine.get_stats()
                 has_errors = len(stats.errors) > 0 or len(stats.permission_denied) > 0
-            
+                # v7.6: 记录被安全软件（如 Defender）拦截的文件，稍后弹窗列出
+                blocked_files = list(stats.permission_denied)
+
+        # v7.6: 最终成败 = 引擎返回值 且 无逐文件错误/权限错误
+        final_success = bool(sync_success) and not has_errors
+
+        if task_id:
+            if final_success:
+                self.task_manager.stop_task(task_id, "completed")
+            else:
+                # 失败：记录失败任务信息（供自动关机判定时保存为打断任务）
+                self._record_sync_failure(task_id)
+                self.task_manager.stop_task(task_id, "failed")
+            self._mark_sync_outcome(task_id, final_success)
+
+        # v7.5: 清除当前运行引擎引用
+        self.current_sync_engine = None
+
+        if sync_progress_page:
             # 发送通知
             self.notification_manager.send_sync_complete(task_name, file_count, has_errors)
-        
+
+        # v7.6: 同步成功后执行任务配置的命令（失败只记日志，不阻断流程）
+        command = (task_config.get("post_sync_command") or "").strip()
+        if command:
+            try:
+                from backend.cli_sync import run_post_sync_command
+                run_post_sync_command(
+                    command,
+                    task_name=task_config.get("name", ""),
+                    cwd=task_config.get("source") or None,
+                )
+            except Exception as e:
+                print(f"⚠️ 同步后命令启动失败：{e}")
+
+        # v7.6: Defender/安全软件拦截提示（GUI 线程中弹窗，明确到具体文件）
+        if blocked_files:
+            self.after(0, lambda files=blocked_files: self._show_blocked_files_dialog(files))
+
         self.show_page("home")
+
+        # v7.6: 本批任务全部结束时，判定是否自动关机
+        self._maybe_auto_shutdown()
+
+    def _show_blocked_files_dialog(self, blocked_files: list):
+        """弹窗列出被安全软件拦截、未完成同步的文件"""
+        import tkinter as tk
+        from tkinter import messagebox
+
+        shown = blocked_files[:10]
+        body = "\n".join(shown)
+        if len(blocked_files) > 10:
+            body += f"\n……（另有 {len(blocked_files) - 10} 个）"
+        message = self.get_text(
+            "blocked_files_message",
+            "以下文件可能被 Windows Defender 等安全软件拦截，未能同步。\n"
+            "请检查文件是否安全；如确认无误，请在安全软件中放行后重试：\n\n"
+        ) + body
+
+        root = tk._default_root
+        messagebox.showwarning(
+            self.get_text("blocked_files_title", "安全软件拦截提示"),
+            message,
+            parent=root,
+        )
     
-    def _on_sync_cancel(self, task_id=None):
-        """同步取消回调"""
+    def _on_sync_cancel(self, task_id=None, failure: bool = False):
+        """
+        同步取消/异常回调
+
+        Args:
+            task_id: 任务 ID
+            failure: True 表示同步因异常失败（本批结束时弹窗并保存为打断任务）；
+                     False 为用户手动取消（不自动关机，打断任务由用户手动保存）
+        """
         if task_id:
+            if failure:
+                self._record_sync_failure(task_id)
             self.task_manager.stop_task(task_id, "interrupted")
+            self._mark_sync_outcome(task_id, False)
         # v7.5: 清除当前运行引擎引用
         self.current_sync_engine = None
         self.show_page("home")
+        # v7.6: 本批任务全部结束时，判定是否自动关机
+        self._maybe_auto_shutdown()
+
+    # ===================== v7.6: 同步后自动关机 =====================
+
+    def _record_sync_failure(self, task_id):
+        """记录失败任务的运行信息（必须在 stop_task 之前调用）"""
+        with self._sync_outcomes_lock:
+            info = self.task_manager.running_tasks.get(task_id)
+            if info:
+                self._sync_failures[task_id] = dict(info)
+
+    def _mark_sync_outcome(self, task_id, success: bool):
+        """记录本批中单个任务的成败结果"""
+        with self._sync_outcomes_lock:
+            self._sync_outcomes[task_id] = bool(success)
+
+    def _maybe_auto_shutdown(self):
+        """
+        本批同步任务全部结束时调用：
+        - 仍有任务运行：等待最后一个任务结束后再判定
+        - 开启了自动关机且全部成功：由系统安排延迟关机，并启动状态栏倒计时
+        - 存在失败任务：取消关机，失败任务保存为打断任务并弹窗提示
+        - 仅有用户手动取消的任务：静默不关机
+        """
+        if self.task_manager.get_running_tasks():
+            return
+
+        with self._sync_outcomes_lock:
+            outcomes = dict(self._sync_outcomes)
+            failures = dict(self._sync_failures)
+        self._sync_outcomes.clear()
+        self._sync_failures.clear()
+
+        settings = self.config_manager.get_settings()
+        if not settings.get("auto_shutdown_enabled", False) or not outcomes:
+            return
+
+        if failures:
+            # 有任务失败：保留任务状态（保存为打断任务），弹窗提示，不关机
+            self._save_failed_as_interrupted(failures)
+            self.after(0, lambda f=failures: self._show_sync_failure_dialog(f))
+            return
+
+        if not all(outcomes.values()):
+            # 存在非成功结果（如用户手动取消），不关机
+            return
+
+        # 全部成功：安排系统关机（OS 计时器在 GUI 关闭后仍然有效）
+        delay = int(settings.get("auto_shutdown_delay", 60) or 60)
+        if delay not in (30, 60, 120):
+            delay = 60
+        from backend.platform_utils import schedule_shutdown
+        if schedule_shutdown(delay):
+            self.after(0, lambda d=delay: self._start_shutdown_countdown(d))
+        # 平台不支持时静默跳过
+
+    def _save_failed_as_interrupted(self, failures: Dict[str, Dict[str, Any]]):
+        """将失败任务保存为打断任务，保留任务状态供下次继续"""
+        from datetime import datetime
+        import uuid
+        for info in failures.values():
+            try:
+                interrupted_task = {
+                    "id": str(uuid.uuid4()),
+                    "name": info.get("name", "未命名任务"),
+                    "source": info.get("source", ""),
+                    "target": info.get("target", ""),
+                    "completed_files": info.get("completed_files", 0),
+                    "total_files": info.get("total_files", 0),
+                    "percentage": info.get("progress", 0),
+                    "elapsed_time": 0,
+                    "remaining_time": 0,
+                    "interrupted_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                    "failed": True,
+                    "task_config": info.get("task_config", info),
+                }
+                self.config_manager.add_interrupted_task(interrupted_task)
+            except Exception as e:
+                print(f"❌ 保存失败任务为打断任务失败: {e}")
+        try:
+            self.after(0, self.update_interrupted_tasks)
+        except Exception:
+            pass
+
+    def _show_sync_failure_dialog(self, failures: Dict[str, Dict[str, Any]]):
+        """弹窗告知用户：因任务失败已取消自动关机，任务已保存为打断任务"""
+        import tkinter as tk
+        from tkinter import messagebox
+
+        names = "、".join(info.get("name", str(tid)) for tid, info in failures.items())
+        message = self.get_text(
+            "shutdown_aborted_failed",
+            "以下任务同步失败，已取消自动关机，任务状态已保留为打断任务：\n\n{names}",
+        ).format(names=names)
+        try:
+            messagebox.showwarning(
+                self.get_text("auto_shutdown", "同步后自动关机"),
+                message,
+                parent=tk._default_root,
+            )
+        except Exception:
+            pass
+
+    def _start_shutdown_countdown(self, delay: int):
+        """在状态栏显示关机倒计时（实际关机由系统计时器接管）"""
+        self._shutdown_remaining = max(0, int(delay))
+        self.shutdown_cancel_btn.configure(state="normal")
+        self.shutdown_frame.grid()
+        self._tick_shutdown_countdown()
+
+    def _tick_shutdown_countdown(self):
+        """每秒刷新倒计时显示"""
+        n = self._shutdown_remaining
+        if n <= 0:
+            self.shutdown_label.configure(
+                text=self.get_text("shutting_down", "正在关机…")
+            )
+            self.shutdown_cancel_btn.configure(state="disabled")
+            self._shutdown_after_id = None
+            return
+        self.shutdown_label.configure(
+            text=self.get_text("shutdown_countdown", "⏻ {n} 秒后关机").format(n=n)
+        )
+        self._shutdown_remaining = n - 1
+        self._shutdown_after_id = self.after(1000, self._tick_shutdown_countdown)
+
+    def _cancel_shutdown_countdown(self):
+        """取消关机：通知系统取消计时器并隐藏状态栏倒计时"""
+        from backend.platform_utils import cancel_scheduled_shutdown
+        cancel_scheduled_shutdown()
+
+        if self._shutdown_after_id is not None:
+            try:
+                self.after_cancel(self._shutdown_after_id)
+            except Exception:
+                pass
+            self._shutdown_after_id = None
+        self._shutdown_remaining = 0
+        try:
+            self.shutdown_frame.grid_remove()
+            self.shutdown_cancel_btn.configure(state="normal")
+            self._update_status("ready")
+        except Exception:
+            pass
     
     def _on_save_interrupted_task(self, task_info=None, progress_info=None):
         """保存打断任务回调"""
@@ -1052,6 +1342,11 @@ class FileSyncApp(ctk.CTk):
         if getattr(self, "status_label", None) is not None:
             try:
                 self.status_label.configure(font=self.language_manager.get_font(size=12))
+                self.shutdown_label.configure(font=self.language_manager.get_font(size=12, weight="bold"))
+                self.shutdown_cancel_btn.configure(
+                    text=self.get_text("cancel_shutdown", "取消关机"),
+                    font=self.language_manager.get_font(size=12),
+                )
             except Exception:
                 pass
 
@@ -1090,9 +1385,131 @@ class FileSyncApp(ctk.CTk):
         self.task_manager.remove_task_from_running(task_id)
     
     def get_running_tasks(self) -> list:
-        """获取运行中的任务列表"""
-        return self.task_manager.get_running_tasks()
-    
+        """获取运行中的任务列表（含监听子进程触发的同步）"""
+        running = list(self.task_manager.get_running_tasks())
+
+        # v7.6: 合并监听子进程触发的同步进度（跨进程状态文件）
+        try:
+            from backend import watch_process
+            config_dir = self.config_manager.get_config_dir()
+            watch_statuses = watch_process.get_watch_sync_statuses(config_dir)
+            for name, info in watch_statuses.items():
+                # 避免与 GUI 内已启动的同名任务重复
+                if any(t.get("name") == name for t in running):
+                    continue
+                running.append({
+                    "id": f"watch_{name}",
+                    "name": name,
+                    "source": info.get("source", ""),
+                    "target": info.get("target", ""),
+                    "remaining_time": info.get("estimated_remaining", 0),
+                    "percentage": info.get("percentage", 0),
+                    "current_file": info.get("current_file", ""),
+                    "current_phase": info.get("current_phase", ""),
+                    "total_files": info.get("total_files", 0),
+                    "completed_files": info.get("completed_files", 0),
+                    "origin": "watch",  # 标记为监听触发
+                })
+        except Exception:
+            pass
+
+        return running
+
+    # ===================== v7.6: 配置/语言目录迁移辅助 =====================
+
+    def has_active_sync_activity(self) -> bool:
+        """
+        是否存在同步活动：GUI 内正在运行的同步任务，或后台监听子进程
+        （list_watchers 已按 PID 清理死记录，结果可靠）。
+        """
+        if self.task_manager.get_running_tasks():
+            return True
+        try:
+            from backend import watch_process
+            config_dir = self.config_manager.get_config_dir()
+            return len(watch_process.list_watchers(config_dir)) > 0
+        except Exception:
+            return False
+
+    def interrupt_sync_for_migration(self) -> bool:
+        """
+        迁移前中断全部同步活动（含后台监听子进程触发的同步）。
+
+        中断引擎 → 停止监听子进程 → 等待 GUI 任务结束 →
+        保存打断任务 → 清理临时文件（.sync.tmp / .sync_progress.json），
+        确保不留下损坏的中间状态。
+
+        Returns:
+            是否全部成功停止（未全部停止时调用方应取消迁移）
+        """
+        import time as _time
+
+        running = self.get_running_tasks()
+        if not running:
+            return True
+
+        # 中断 GUI 内的同步引擎
+        for engine in (getattr(self, 'sync_engine', None),
+                       getattr(self, 'current_sync_engine', None)):
+            if engine:
+                try:
+                    engine.interrupt()
+                    print("✅ 同步引擎已中断")
+                except Exception as e:
+                    print(f"❌ 中断同步引擎失败: {e}")
+
+        # 停止全部后台监听子进程（其触发的同步随之终止）
+        try:
+            from backend import watch_process
+            config_dir = self.config_manager.get_config_dir()
+            for task_name in list(watch_process.list_watchers(config_dir).keys()):
+                try:
+                    result = watch_process.stop_watcher(config_dir, task_name)
+                    print(f"{'✅' if result.get('success') else '⚠️'} 停止监听 {task_name}: {result.get('message', '')}")
+                except Exception as e:
+                    print(f"❌ 停止监听失败 {task_name}: {e}")
+            # 清空监听同步进度状态，避免陈旧记录被误报为仍在运行
+            watch_process.clear_watch_sync_statuses(config_dir)
+        except Exception as e:
+            print(f"❌ 停止监听子进程失败: {e}")
+
+        # 等待 GUI 内任务结束（最多 10 秒）
+        timeout = 10
+        start = _time.time()
+        while _time.time() - start < timeout:
+            if not self.task_manager.get_running_tasks():
+                break
+            _time.sleep(0.5)
+
+        stopped = not self.task_manager.get_running_tasks()
+        if not stopped:
+            print("⚠️ 同步任务未能在限时内完全停止")
+            return False
+
+        # 保存打断任务（与退出流程一致，便于首页一键恢复）
+        for task in running:
+            try:
+                task_info = {
+                    "id": task.get("id", ""),
+                    "name": task.get("name", "未知任务"),
+                    "source": task.get("source", ""),
+                    "target": task.get("target", ""),
+                    "status": "interrupted",
+                    "interrupted_at": _time.strftime("%Y-%m-%d %H:%M:%S"),
+                }
+                self.config_manager.add_interrupted_task(task_info)
+                print(f"✅ 已保存打断任务: {task.get('name')}")
+            except Exception as e:
+                print(f"❌ 保存打断任务失败: {e}")
+
+        # 清理临时文件，确保不留损坏的中间状态
+        try:
+            self._cleanup_temp_files()
+        except Exception as e:
+            print(f"❌ 清理临时文件失败: {e}")
+
+        return True
+
     def update_interrupted_tasks(self):
         """更新打断任务列表"""
         # 刷新首页的打断任务列表

@@ -14,16 +14,17 @@ import json
 import shutil
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Set, Tuple
 
 from .platform_utils import get_default_config_dir, get_app_root_dir
+from .file_utils import delete_dir_contents, rollback_copied_files
 
 
 class ConfigManager:
     """配置管理器：处理配置文件的读写和版本升级"""
     
     # 配置文件版本
-    CURRENT_VERSION = "7.5"
+    CURRENT_VERSION = "7.6"
     CONFIG_FILE_NAME = "sync_config_v7_5.json"
     OLD_CONFIG_FILE_NAME = "sync_config_v7_3.json"
     BACKUP_SUFFIX = ".bak"
@@ -32,7 +33,7 @@ class ConfigManager:
     
     # 默认配置
     DEFAULT_CONFIG = {
-        "version": "7.5",
+        "version": "7.6",
         "tasks": [],
         "settings": {
             "language": "zh",
@@ -47,6 +48,10 @@ class ConfigManager:
             "usb_level": "auto",
             "protection_strength": "balanced",
             "chunk_size_mb": 8,
+            "auto_shutdown_enabled": False,
+            "auto_shutdown_delay": 60,
+            "prevent_sleep_during_sync": True,
+            "user_translations_dir": "",
         },
         "recent_paths": [],
         "interrupted_tasks": [],
@@ -176,6 +181,15 @@ class ConfigManager:
                     except Exception as e:
                         print(f"迁移旧版配置文件失败: {e}")
     
+    def reload_config(self):
+        """
+        从磁盘重新加载配置（用于监听子进程感知 GUI/外部对任务的增删改）
+        """
+        try:
+            self.config = self.load_config()
+        except Exception as e:
+            print(f"重新加载配置失败: {e}")
+
     def load_config(self) -> Dict[str, Any]:
         """
         加载配置文件，自动处理版本升级
@@ -571,6 +585,11 @@ class ConfigManager:
             return self._upgrade_from_v7_2(old_config)
         elif version == "7.3":
             return self._upgrade_from_v7_3(old_config)
+        elif version in ("7.4", "7.5", "7.6"):
+            # v7.4/v7.5/v7.6 配置结构向后兼容，仅刷新版本号
+            upgraded = old_config.copy()
+            upgraded["version"] = self.CURRENT_VERSION
+            return upgraded
         
         # 未知版本，使用默认配置
         return self.DEFAULT_CONFIG.copy()
@@ -929,62 +948,197 @@ class ConfigManager:
         """获取当前配置文件存储目录的绝对路径。"""
         return str(self.config_dir)
     
-    def set_custom_config_dir(self, new_dir: str) -> bool:
+    def set_custom_config_dir(self, new_dir: str) -> Tuple[bool, str]:
         """
-        将配置文件迁移到自定义目录，并写入指针文件以便下次启动识别。
-        
+        将配置目录完整迁移到自定义目录，并写入指针文件以便下次启动识别。
+
+        v7.6 增强：复制旧目录下全部文件（保留元数据，含 translations/、
+        watchers.json、watch_logs/、.log 等）→ 验证所有 .json 可正常解析
+        → 写入指针文件 → 切换内部路径变量。
+        失败时回滚：删除本次已复制的文件（目录为本次新建则整目录删除），
+        不留"一半迁移"状态。迁移用复制而非移动，旧目录默认保留作备份。
+
         Args:
             new_dir: 目标配置目录（绝对路径）
-            
+
         Returns:
-            是否迁移成功
+            (是否成功, 失败原因描述；成功时为空字符串)
         """
         try:
-            new_dir_path = Path(new_dir)
-            new_dir_path.mkdir(parents=True, exist_ok=True)
-            
-            # 复制当前配置文件到新目录
-            if self.config_file.exists():
-                shutil.copy2(str(self.config_file), str(new_dir_path / self.CONFIG_FILE_NAME))
-            
-            # 写入指针文件到默认目录
-            default_dir = Path(get_default_config_dir())
-            self._write_config_path_pointer(default_dir, str(new_dir_path))
-            
-            # 更新当前实例的路径
-            self.config_dir = new_dir_path
-            self.config_file = self.config_dir / self.CONFIG_FILE_NAME
-            
-            print(f"✅ 配置目录已切换到: {self.config_dir}")
-            return True
+            new_dir_path = Path(new_dir).resolve()
         except Exception as e:
-            print(f"❌ 切换配置目录失败: {e}")
-            return False
-    
-    def reset_config_dir_to_default(self) -> bool:
+            return (False, f"无效的目标路径: {e}")
+
+        old_dir = self.config_dir
+        try:
+            same = new_dir_path == old_dir.resolve()
+        except Exception:
+            same = str(new_dir_path) == str(old_dir)
+        if same:
+            return (True, "")
+
+        created_new_dir = False
+        try:
+            if not new_dir_path.exists():
+                new_dir_path.mkdir(parents=True, exist_ok=True)
+                created_new_dir = True
+            elif not new_dir_path.is_dir():
+                return (False, "目标路径已存在同名文件，无法用作配置目录")
+        except Exception as e:
+            return (False, f"无法创建目标目录: {e}")
+
+        # 复制前记录新路径下已存在的文件/目录（回滚时跳过）
+        preexisting_files: Set[str] = set()
+        preexisting_dirs: Set[str] = set()
+        try:
+            for p in new_dir_path.rglob("*"):
+                if p.is_dir():
+                    preexisting_dirs.add(str(p))
+                else:
+                    preexisting_files.add(str(p))
+        except Exception:
+            pass
+
+        copied_files: List[str] = []
+        try:
+            # 逐文件复制旧目录全部内容（保留元数据）
+            for src in old_dir.rglob("*"):
+                if not src.is_file():
+                    continue
+                dst = new_dir_path / src.relative_to(old_dir)
+                dst.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(str(src), str(dst))
+                copied_files.append(str(dst))
+        except Exception as e:
+            rollback_copied_files(
+                new_dir_path, copied_files, preexisting_files, preexisting_dirs, created_new_dir
+            )
+            return (False, f"复制失败，已回滚: {e}")
+
+        try:
+            # 验证：新路径下所有 .json 均可正常解析（含主配置）
+            for json_file in new_dir_path.rglob("*.json"):
+                with open(json_file, 'r', encoding='utf-8') as f:
+                    json.load(f)
+        except Exception as e:
+            rollback_copied_files(
+                new_dir_path, copied_files, preexisting_files, preexisting_dirs, created_new_dir
+            )
+            return (False, f"验证失败，已回滚: {e}")
+
+        # 写入指针文件（失败则回滚，内部路径尚未切换）
+        default_dir = Path(get_default_config_dir())
+        if not self._write_config_path_pointer(default_dir, str(new_dir_path)):
+            rollback_copied_files(
+                new_dir_path, copied_files, preexisting_files, preexisting_dirs, created_new_dir
+            )
+            return (False, "写入路径指针文件失败，已回滚")
+
+        # 切换内部路径变量
+        self.config_dir = new_dir_path
+        self.config_file = new_dir_path / self.CONFIG_FILE_NAME
+
+        print(f"✅ 配置目录已迁移到: {self.config_dir}")
+        return (True, "")
+
+    def reset_config_dir_to_default(self) -> Tuple[bool, str]:
         """
-        将配置目录恢复为默认目录，移除指针文件。
-        
+        将配置目录完整迁移回默认目录，移除指针文件。
+
+        v7.6 增强：与 set_custom_config_dir 相同的复制/验证/回滚流程。
+
         Returns:
-            是否恢复成功
+            (是否成功, 失败原因描述；成功时为空字符串)
         """
         try:
-            default_dir = Path(get_default_config_dir())
-            default_dir.mkdir(parents=True, exist_ok=True)
-            
-            # 如果当前配置不在默认目录，将配置复制回默认目录
-            if self.config_file.exists() and self.config_dir != default_dir:
-                shutil.copy2(str(self.config_file), str(default_dir / self.CONFIG_FILE_NAME))
-            
-            # 移除指针文件
-            self._remove_config_path_pointer(default_dir)
-            
-            # 更新当前实例路径
-            self.config_dir = default_dir
-            self.config_file = self.config_dir / self.CONFIG_FILE_NAME
-            
-            print(f"✅ 配置目录已恢复为默认: {self.config_dir}")
-            return True
+            default_dir = Path(get_default_config_dir()).resolve()
         except Exception as e:
-            print(f"❌ 恢复默认配置目录失败: {e}")
-            return False
+            return (False, f"无法定位默认配置目录: {e}")
+
+        old_dir = self.config_dir
+        try:
+            same = default_dir == old_dir.resolve()
+        except Exception:
+            same = str(default_dir) == str(old_dir)
+
+        created_new_dir = False
+        if not same:
+            try:
+                if not default_dir.exists():
+                    default_dir.mkdir(parents=True, exist_ok=True)
+                    created_new_dir = True
+            except Exception as e:
+                return (False, f"无法创建默认配置目录: {e}")
+
+            preexisting_files: Set[str] = set()
+            preexisting_dirs: Set[str] = set()
+            try:
+                for p in default_dir.rglob("*"):
+                    if p.is_dir():
+                        preexisting_dirs.add(str(p))
+                    else:
+                        preexisting_files.add(str(p))
+            except Exception:
+                pass
+
+            copied_files: List[str] = []
+            try:
+                for src in old_dir.rglob("*"):
+                    if not src.is_file():
+                        continue
+                    dst = default_dir / src.relative_to(old_dir)
+                    dst.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(str(src), str(dst))
+                    copied_files.append(str(dst))
+            except Exception as e:
+                rollback_copied_files(
+                    default_dir, copied_files, preexisting_files, preexisting_dirs, created_new_dir
+                )
+                return (False, f"复制失败，已回滚: {e}")
+
+            try:
+                for json_file in default_dir.rglob("*.json"):
+                    with open(json_file, 'r', encoding='utf-8') as f:
+                        json.load(f)
+            except Exception as e:
+                rollback_copied_files(
+                    default_dir, copied_files, preexisting_files, preexisting_dirs, created_new_dir
+                )
+                return (False, f"验证失败，已回滚: {e}")
+
+        # 移除指针文件（失败则回滚复制的内容）
+        if not self._remove_config_path_pointer(default_dir):
+            if not same:
+                rollback_copied_files(
+                    default_dir, copied_files, preexisting_files, preexisting_dirs, created_new_dir
+                )
+            return (False, "移除路径指针文件失败，已回滚")
+
+        # 切换内部路径变量
+        self.config_dir = default_dir
+        self.config_file = default_dir / self.CONFIG_FILE_NAME
+
+        print(f"✅ 配置目录已恢复为默认: {self.config_dir}")
+        return (True, "")
+
+    def cleanup_old_config_dir(self, old_dir: str) -> Tuple[bool, str]:
+        """
+        删除旧配置目录下的全部文件（迁移成功后由用户确认调用）。
+
+        若旧目录是默认配置目录，保留 config_path.json 指针文件
+        （否则下次启动将无法定位新目录）。
+
+        Args:
+            old_dir: 旧配置目录路径
+
+        Returns:
+            (是否完全成功, 失败摘要)
+        """
+        old_path = Path(old_dir)
+        try:
+            is_default_dir = old_path.resolve() == Path(get_default_config_dir()).resolve()
+        except Exception:
+            is_default_dir = False
+
+        exclude_names = (self.CONFIG_PATH_POINTER,) if is_default_dir else ()
+        return delete_dir_contents(old_path, exclude_names=exclude_names)

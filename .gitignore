@@ -36,4 +36,4 @@ htmlcov/
 test_*.py
 
 # 本地开发文档
-PROJECT_OVERVIEW.md
+AGENTS.md

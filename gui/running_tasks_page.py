@@ -269,9 +269,77 @@ class RunningTasksPage(ctk.CTkFrame):
         """查看详情按钮点击事件"""
         if self.selected_task is None:
             return
-        
+
+        # v7.6: 监听触发的同步（跨进程），显示进度详情对话框而非同步进度页
+        if self.selected_task.get("origin") == "watch":
+            self._show_watch_progress_dialog(self.selected_task)
+            return
+
         # 跳转到同步进度页面
         self.app.show_page("sync_progress", task_info=self.selected_task)
+
+    def _show_watch_progress_dialog(self, task: dict):
+        """监听触发同步的进度详情对话框（只读，轮询刷新）"""
+        from backend.language_manager import get_font
+
+        dialog = ctk.CTkToplevel(self)
+        dialog.title(self.app.get_text("watch_progress_detail", "监听同步进度"))
+        dialog.geometry("520x360")
+        dialog.transient(self.winfo_toplevel())
+        dialog.grab_set()
+
+        frame = ctk.CTkFrame(dialog)
+        frame.pack(fill="both", expand=True, padx=15, pady=15)
+
+        ctk.CTkLabel(
+            frame, text=task.get("name", ""),
+            font=get_font(size=16, weight="bold")
+        ).pack(anchor="w", pady=(0, 8))
+
+        info_text = ctk.CTkTextbox(frame, height=180, font=get_font(size=12))
+        info_text.pack(fill="both", expand=True, pady=5)
+        info_text.configure(state="disabled")
+
+        def refresh():
+            try:
+                from backend import watch_process
+                statuses = watch_process.get_watch_sync_statuses(
+                    self.app.config_manager.get_config_dir()
+                )
+                info = statuses.get(task.get("name", ""))
+            except Exception:
+                info = None
+
+            if info:
+                lines = [
+                    f"{self.app.get_text('info_source', '源目录')}: {info.get('source', '')}",
+                    f"{self.app.get_text('info_target', '目标目录')}: {info.get('target', '')}",
+                    f"{self.app.get_text('current_phase', '当前阶段')}: {info.get('current_phase', '')}",
+                    f"{self.app.get_text('current_file', '当前文件')}: {info.get('current_file', '')}",
+                    f"{self.app.get_text('progress', '进度')}: {info.get('completed_files', 0)}/{info.get('total_files', 0)} ({info.get('percentage', 0):.1f}%)",
+                    f"{self.app.get_text('elapsed', '已用时')}: {info.get('elapsed_time', 0):.1f}s",
+                    f"{self.app.get_text('remaining', '剩余')}: {info.get('estimated_remaining', 0):.1f}s",
+                ]
+            else:
+                lines = [self.app.get_text("watch_sync_idle", "当前未在同步（监听空闲中）")]
+
+            info_text.configure(state="normal")
+            info_text.delete("1.0", "end")
+            info_text.insert("1.0", "\n".join(lines))
+            info_text.configure(state="disabled")
+
+            # 若仍在同步状态文件中，继续轮询
+            if info and dialog.winfo_exists():
+                dialog.after(1500, refresh)
+
+        refresh()
+
+        ctk.CTkButton(
+            frame, text=self.app.get_text("close", "关闭"), height=38,
+            command=dialog.destroy
+        ).pack(pady=10)
+
+        dialog.wait_window()
     
     def _on_return_home_click(self):
         """返回首页按钮点击事件"""

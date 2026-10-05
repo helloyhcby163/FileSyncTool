@@ -257,7 +257,11 @@ class FileSyncEngine:
         recycle_manager=None,
         chunk_size: int = 8 * 1024 * 1024,
         # ===== v7.5 筛选策略（任务级配置：每个文件夹独立，未配置的文件夹不启用筛选）=====
-        folder_filters: Optional[Dict[str, Dict]] = None
+        folder_filters: Optional[Dict[str, Dict]] = None,
+        # ===== v7.6 静默模式（命令行 --silent）：抑制 info 级日志 =====
+        quiet: bool = False,
+        # ===== v7.6 同步期间阻止系统休眠（含寿命保护暂停期间）=====
+        prevent_sleep_during_sync: bool = True,
     ):
         """
         初始化同步引擎
@@ -302,6 +306,7 @@ class FileSyncEngine:
         
         # 同步删除配置
         self.sync_delete_enabled = sync_delete_enabled
+
         self.recycle_manager = recycle_manager
         
         # 分块复制块大小（字节）
@@ -309,6 +314,17 @@ class FileSyncEngine:
         
         # ===== v7.5 筛选策略（按文件夹独立配置）=====
         self.folder_filters = self._normalize_folder_filters(folder_filters)
+
+        # v7.6：静默模式（仅命令行 --silent 使用）
+        self.quiet = quiet
+        # v7.6：同步全程阻止系统休眠（寿命保护暂停期间同样保持，结束后在 finally 恢复）
+        self.prevent_sleep_during_sync = prevent_sleep_during_sync
+        # v7.6：逐文件日志节流状态（每 100 个文件或每 2 秒最多输出一条汇总）
+        self._file_log_pending = 0
+        self._file_log_last_emit = 0.0
+        self._file_log_last_msg = ""
+        self._file_log_batch = 100
+        self._file_log_interval = 2.0
         
         # 统计信息
         self.stats = SyncStats()
@@ -600,12 +616,56 @@ class FileSyncEngine:
                 "continuous_write_size": self._continuous_write_size
             }
     
-    def _log(self, message: str):
-        """输出日志"""
+    def _log(self, message: str, level: str = "info"):
+        """
+        输出日志。
+
+        Args:
+            message: 日志内容
+            level: 日志级别 info/warning/error；
+                   quiet 模式下 info 级日志被抑制，警告与错误照常输出
+        """
+        if self.quiet and level == "info":
+            return
         if self._log_callback:
             self._log_callback(message)
         else:
             print(message)
+
+    def _log_file(self, message: str):
+        """
+        逐文件操作日志（复制/跳过/续传/删除）：v7.6 节流输出。
+
+        攒够 100 条或距上次输出超过 2 秒才输出一条汇总，
+        阶段结束时由 _flush_file_log() 输出剩余条数；
+        quiet 模式下完全不输出。
+        """
+        if self.quiet:
+            return
+        now = time.time()
+        self._file_log_pending += 1
+        self._file_log_last_msg = message
+        if (
+            self._file_log_pending >= self._file_log_batch
+            or (self._file_log_last_emit
+                and now - self._file_log_last_emit >= self._file_log_interval)
+        ):
+            self._emit_file_log_batch()
+
+    def _emit_file_log_batch(self):
+        """输出一批节流后的逐文件日志"""
+        if self._file_log_pending <= 0:
+            return
+        self._log(
+            f"  ……已处理 {self._file_log_pending} 个文件，最近：{self._file_log_last_msg}"
+        )
+        self._file_log_pending = 0
+        self._file_log_last_emit = time.time()
+        self._file_log_last_msg = ""
+
+    def _flush_file_log(self):
+        """输出尚未刷出的逐文件日志（阶段结束时调用）"""
+        self._emit_file_log_batch()
     
     def _update_progress(self, **kwargs):
         """更新进度信息"""
@@ -755,7 +815,7 @@ class FileSyncEngine:
 
             # 检查U盘是否脱落（写入完成后）
             if self._target_is_removable and not self._check_disk_connected():
-                self._log("❌ 同步中断：U盘已断开")
+                self._log("❌ 同步中断：U盘已断开", level="error")
                 self._update_progress(
                     current_phase="error",
                     current_file="❌ 同步中断：U盘已断开",
@@ -796,13 +856,13 @@ class FileSyncEngine:
             if dst_exists:
                 # 目标目录优先：保留目标文件，不覆盖
                 if strategy == "target_wins":
-                    self._log(f"  ⏭️  跳过（目标目录优先）: {src}")
+                    self._log_file(f"  ⏭️  跳过（目标目录优先）: {src}")
                     self.stats.files_skipped += 1
                     return False
-                
+
                 # 保守模式：不覆盖已有文件
                 if strategy == "conservative":
-                    self._log(f"  ⏭️  跳过（保守模式）: {src}")
+                    self._log_file(f"  ⏭️  跳过（保守模式）: {src}")
                     self.stats.files_skipped += 1
                     return False
                 
@@ -816,7 +876,7 @@ class FileSyncEngine:
                     
                     if src_info and dst_info:
                         if src_info['mtime'] <= dst_info['mtime']:
-                            self._log(f"  ⏭️  跳过（目标更新）: {src}")
+                            self._log_file(f"  ⏭️  跳过（目标更新）: {src}")
                             self.stats.files_skipped += 1
                             return False
             
@@ -852,7 +912,7 @@ class FileSyncEngine:
                 elif temp_size > 0 and src_mtime <= temp_mtime:
                     # 临时文件比源文件旧或同龄 → 源文件未修改，可安全续传
                     start_offset = temp_size
-                    self._log(f"  📎 续传: {src}（从 {self._format_file_size(temp_size)} 继续）")
+                    self._log_file(f"  📎 续传: {src}（从 {self._format_file_size(temp_size)} 继续）")
                 else:
                     # 源文件比临时文件新 → 临时文件过期，重新复制
                     try:
@@ -906,13 +966,13 @@ class FileSyncEngine:
                 )
             
             if start_offset > 0:
-                self._log(f"  ✅ 复制（续传完成）: {src}")
+                self._log_file(f"  ✅ 复制（续传完成）: {src}")
             else:
-                self._log(f"  ✅ 复制: {src}")
-            
+                self._log_file(f"  ✅ 复制: {src}")
+
             # 检查U盘是否脱落
             if not self._check_disk_connected():
-                self._log("❌ 同步中断：U盘已断开")
+                self._log("❌ 同步中断：U盘已断开", level="error")
                 self._update_progress(
                     current_phase="error",
                     current_file="❌ 同步中断：U盘已断开",
@@ -928,22 +988,22 @@ class FileSyncEngine:
             self.stats.permission_denied.append(src)
             if self._is_security_interception(e):
                 msg = f"  ⚠️ 文件 {os.path.basename(src)} 被安全软件拦截，可能包含病毒，已跳过同步"
+                self._log(msg, level="warning")
             else:
-                msg = f"  ❌ 权限拒绝: {src}"
-            self._log(msg)
+                self._log(f"  ❌ 权限拒绝: {src}", level="error")
             return False
         except OSError as e:
             # OSError（含 "Invalid argument" 等）：常见于安全软件拦截或 I/O 异常
             self.stats.errors.append((src, str(e)))
             if self._is_security_interception(e):
                 msg = f"  ⚠️ 文件 {os.path.basename(src)} 被安全软件拦截，可能包含病毒，已跳过同步"
+                self._log(msg, level="warning")
             else:
-                msg = f"  ❌ I/O 错误: {src} - {e}"
-            self._log(msg)
+                self._log(f"  ❌ I/O 错误: {src} - {e}", level="error")
             return False
         except Exception as e:
             self.stats.errors.append((src, str(e)))
-            self._log(f"  ❌ 错误: {src} - {e}")
+            self._log(f"  ❌ 错误: {src} - {e}", level="error")
             return False
     
     @staticmethod
@@ -1074,25 +1134,47 @@ class FileSyncEngine:
         """
         files = {}
 
-        for root, dirs, filenames in os.walk(base_path):
+        # v7.6: 使用 os.scandir 迭代遍历（比 os.walk 少一次目录重复列举，
+        # 且 DirEntry 自带类型缓存）。显式栈替代递归，避免深层目录栈溢出。
+        base = Path(base_path)
+        # 栈元素：(当前目录 Path, 相对目录字符串)
+        stack = [(base, ".")]
+
+        while stack:
             # 检查中断
             if self._interrupted:
                 break
 
-            # 过滤隐藏目录
-            dirs[:] = [d for d in dirs if not d.startswith('.')]
-
-            # 计算相对目录，用于查找该文件夹的筛选策略
-            rel_dir = os.path.relpath(root, base_path)
+            current_dir, rel_dir = stack.pop()
             folder_filter = self._get_folder_filter_for_relpath(rel_dir)
 
-            for filename in filenames:
-                # 过滤隐藏文件
-                if filename.startswith('.'):
-                    self.stats.skipped_system_files.append(filename)
+            try:
+                entries = list(os.scandir(current_dir))
+            except (OSError, PermissionError):
+                continue
+
+            for entry in entries:
+                try:
+                    is_dir = entry.is_dir(follow_symlinks=False)
+                except OSError:
                     continue
 
-                filepath = Path(root) / filename
+                if is_dir:
+                    # 过滤隐藏目录
+                    if not entry.name.startswith('.'):
+                        child_rel = (
+                            entry.name if rel_dir == "."
+                            else os.path.join(rel_dir, entry.name)
+                        )
+                        stack.append((Path(entry.path), child_rel))
+                    continue
+
+                # 过滤隐藏文件
+                if entry.name.startswith('.'):
+                    self.stats.skipped_system_files.append(entry.name)
+                    continue
+
+                filepath = Path(entry.path)
                 info = self._get_file_info(filepath)
 
                 if not info:
@@ -1100,11 +1182,11 @@ class FileSyncEngine:
 
                 # v7.5: 该文件夹配置了筛选策略时应用过滤（扩展名 + 日期，AND 关系）
                 if folder_filter is not None and not self._file_passes_filter(
-                    filename, info, folder_filter, start_date, end_date
+                    entry.name, info, folder_filter, start_date, end_date
                 ):
                     continue
 
-                rel_path = filepath.relative_to(base_path)
+                rel_path = filepath.relative_to(base)
                 files[str(rel_path)] = info
                 self.stats.files_scanned += 1
 
@@ -1352,6 +1434,42 @@ class FileSyncEngine:
         last_snapshot: Optional[Dict] = None
     ) -> bool:
         """
+        同步两个目录（v7.6：全程阻止系统休眠，结束/异常/中断后必然恢复）。
+
+        Returns:
+            是否成功完成
+        """
+        # v7.6：同步开始即阻止系统休眠；寿命保护暂停期间不释放，
+        # 在 finally 中恢复，确保成功/失败/中断/异常所有分支都能恢复
+        from backend.platform_utils import prevent_sleep, allow_sleep
+        sleep_prevented = False
+        if getattr(self, "prevent_sleep_during_sync", True):
+            sleep_prevented = prevent_sleep()
+        try:
+            return self._sync_directories_impl(
+                source_dir=source_dir,
+                target_dir=target_dir,
+                direction=direction,
+                start_date=start_date,
+                end_date=end_date,
+                dry_run=dry_run,
+                last_snapshot=last_snapshot,
+            )
+        finally:
+            if sleep_prevented:
+                allow_sleep()
+
+    def _sync_directories_impl(
+        self,
+        source_dir: str,
+        target_dir: str,
+        direction: str = "both",
+        start_date: Optional[datetime.date] = None,
+        end_date: Optional[datetime.date] = None,
+        dry_run: bool = False,
+        last_snapshot: Optional[Dict] = None
+    ) -> bool:
+        """
         同步两个目录
         
         Args:
@@ -1376,7 +1494,7 @@ class FileSyncEngine:
         
         # 检查目录是否存在
         if not os.path.exists(source_dir):
-            self._log(f"❌ 同步中断：找不到目录「{source_dir}」")
+            self._log(f"❌ 同步中断：找不到目录「{source_dir}」", level="error")
             self._update_progress(
                 current_phase="error",
                 current_file=f"❌ 同步中断：找不到目录「{source_dir}」",
@@ -1386,7 +1504,7 @@ class FileSyncEngine:
             return False
         
         if not os.path.exists(target_dir):
-            self._log(f"❌ 同步中断：找不到目录「{target_dir}」")
+            self._log(f"❌ 同步中断：找不到目录「{target_dir}」", level="error")
             self._update_progress(
                 current_phase="error",
                 current_file=f"❌ 同步中断：找不到目录「{target_dir}」",
@@ -1401,7 +1519,7 @@ class FileSyncEngine:
         tgt_norm = os.path.normcase(os.path.abspath(target_dir))
         with FileSyncEngine._active_sync_dirs_lock:
             if src_norm in FileSyncEngine._active_sync_dirs or tgt_norm in FileSyncEngine._active_sync_dirs:
-                self._log("❌ 同步中断：该目录正在被其他任务同步，禁止并发操作同一目录")
+                self._log("❌ 同步中断：该目录正在被其他任务同步，禁止并发操作同一目录", level="error")
                 self._update_progress(
                     current_phase="error",
                     current_file="❌ 该目录正在被其他任务同步，请等待完成后再试",
@@ -1541,7 +1659,7 @@ class FileSyncEngine:
         self._log(f"  基于速度: {estimated_speed / (1024 * 1024):.2f} MB/s")
         
         if dry_run:
-            self._log("\n⚠️  模拟运行模式，不会实际复制或删除文件")
+            self._log("\n⚠️  模拟运行模式，不会实际复制或删除文件", level="warning")
             self._release_sync_dirs()
             return True
         
@@ -1636,7 +1754,8 @@ class FileSyncEngine:
         
         # 如果被中断，保存进度
         if self._interrupted:
-            self._log("\n⚠️ 同步已被中断")
+            self._flush_file_log()
+            self._log("\n⚠️ 同步已被中断", level="warning")
             if self.progress_manager:
                 self.progress_manager.save_progress(
                     self.completed_files,
@@ -1666,9 +1785,10 @@ class FileSyncEngine:
             "timestamp": time.time()
         }
         
+        self._flush_file_log()
         self._release_sync_dirs()
         return True
-    
+
     def _release_sync_dirs(self):
         """释放本次同步占用的目录（供并发检测使用）。"""
         acquired = getattr(self, "_acquired_sync_dirs", None)
@@ -1853,10 +1973,12 @@ class FileSyncEngine:
         self._log(f"\n🗑️ 检测到需要删除的文件：")
         self._log(f"  从目标删除: {len(files_to_delete['target']['files'])} 个")
         for i, rel_path in enumerate(files_to_delete['target']['files']):
-            self._log(f"    - {rel_path} ({files_to_delete['target']['reasons'][i]})")
+            self._log_file(f"    - {rel_path} ({files_to_delete['target']['reasons'][i]})")
+        self._flush_file_log()
         self._log(f"  从源删除: {len(files_to_delete['source']['files'])} 个")
         for i, rel_path in enumerate(files_to_delete['source']['files']):
-            self._log(f"    - {rel_path} ({files_to_delete['source']['reasons'][i]})")
+            self._log_file(f"    - {rel_path} ({files_to_delete['source']['reasons'][i]})")
+        self._flush_file_log()
         
         return files_to_delete
     
@@ -1893,19 +2015,19 @@ class FileSyncEngine:
                 if self.recycle_manager:
                     deleted_info = self.recycle_manager.add_deleted_file(file_path)
                     if deleted_info:
-                        self._log(f"  ✅ 已将 {rel_path} 移入最近删除")
+                        self._log_file(f"  ✅ 已将 {rel_path} 移入最近删除")
                     else:
                         try:
                             os.remove(file_path)
-                            self._log(f"  ✅ 已删除 {rel_path}")
+                            self._log_file(f"  ✅ 已删除 {rel_path}")
                         except Exception as e:
-                            self._log(f"  ❌ 删除 {rel_path} 失败: {e}")
+                            self._log(f"  ❌ 删除 {rel_path} 失败: {e}", level="error")
                 else:
                     try:
                         os.remove(file_path)
-                        self._log(f"  ✅ 已删除 {rel_path}")
+                        self._log_file(f"  ✅ 已删除 {rel_path}")
                     except Exception as e:
-                        self._log(f"  ❌ 删除 {rel_path} 失败: {e}")
+                        self._log(f"  ❌ 删除 {rel_path} 失败: {e}", level="error")
                 
                 self.completed_files.add(f"delete_source_{rel_path}")
         
@@ -1926,22 +2048,23 @@ class FileSyncEngine:
                 if self.recycle_manager:
                     deleted_info = self.recycle_manager.add_deleted_file(file_path)
                     if deleted_info:
-                        self._log(f"  ✅ 已将 {rel_path} 移入最近删除")
+                        self._log_file(f"  ✅ 已将 {rel_path} 移入最近删除")
                     else:
                         try:
                             os.remove(file_path)
-                            self._log(f"  ✅ 已删除 {rel_path}")
+                            self._log_file(f"  ✅ 已删除 {rel_path}")
                         except Exception as e:
-                            self._log(f"  ❌ 删除 {rel_path} 失败: {e}")
+                            self._log(f"  ❌ 删除 {rel_path} 失败: {e}", level="error")
                 else:
                     try:
                         os.remove(file_path)
-                        self._log(f"  ✅ 已删除 {rel_path}")
+                        self._log_file(f"  ✅ 已删除 {rel_path}")
                     except Exception as e:
-                        self._log(f"  ❌ 删除 {rel_path} 失败: {e}")
+                        self._log(f"  ❌ 删除 {rel_path} 失败: {e}", level="error")
                 
                 self.completed_files.add(f"delete_target_{rel_path}")
         
+        self._flush_file_log()
         self._log(f"📦 删除操作完成")
 
 
@@ -1957,17 +2080,30 @@ def check_recovery_files(target_dir: str) -> tuple:
     """
     temp_files = []
     progress_files = []
-    
+
     if not os.path.isdir(target_dir):
         return temp_files, progress_files
-    
-    for root, dirs, files in os.walk(target_dir):
-        for filename in files:
-            if filename.endswith(TEMP_FILE_SUFFIX):
-                temp_files.append(os.path.join(root, filename))
-            if filename == PROGRESS_FILE:
-                progress_files.append(os.path.join(root, filename))
-    
+
+    # v7.6: os.scandir 显式栈遍历，替代 os.walk
+    dirs_to_visit = [target_dir]
+    while dirs_to_visit:
+        current = dirs_to_visit.pop()
+        try:
+            entries = list(os.scandir(current))
+        except (OSError, PermissionError):
+            continue
+        for entry in entries:
+            try:
+                if entry.is_dir(follow_symlinks=False):
+                    dirs_to_visit.append(entry.path)
+                elif entry.is_file(follow_symlinks=False):
+                    if entry.name.endswith(TEMP_FILE_SUFFIX):
+                        temp_files.append(entry.path)
+                    if entry.name == PROGRESS_FILE:
+                        progress_files.append(entry.path)
+            except OSError:
+                continue
+
     return temp_files, progress_files
 
 

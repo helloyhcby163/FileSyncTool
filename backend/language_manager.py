@@ -25,10 +25,16 @@ texts 中存在非字符串键值，都会被标注为“损坏”且不允许�
 """
 
 import json
+import shutil
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Set
 
-from .platform_utils import get_resource_path, detect_system_language
+from .platform_utils import (
+    get_resource_path,
+    detect_system_language,
+    get_default_config_dir,
+)
+from .file_utils import delete_dir_contents, rollback_copied_files
 
 # 语言文件字段名
 META_KEY = "meta"
@@ -114,19 +120,30 @@ class LanguageManager:
     # 最近创建的实例，供模块级 get_font 在语言管理器创建前的极早期兜底使用
     _active_instance: Optional["LanguageManager"] = None
 
-    def __init__(self, language: str = None, translations_dir: Optional[str] = None):
+    def __init__(
+        self,
+        language: str = None,
+        translations_dir: Optional[str] = None,
+        user_translations_dir: Optional[str] = None,
+    ):
         """
         初始化多语言管理器
 
         Args:
             language: 当前语言代码，为 None 时自动检测系统语言
-            translations_dir: 翻译文件目录，为 None 时使用 get_resource_path 解析
+            translations_dir: 内置翻译文件目录，为 None 时使用 get_resource_path 解析
+            user_translations_dir: 用户外挂翻译目录，为 None 时使用
+                用户配置目录下的 translations/。同名语言以用户目录为准；
+                用户文件损坏时回退使用内置版本。
         """
         if translations_dir is None:
             # 使用 get_resource_path 兼容 PyInstaller 打包环境
             translations_dir = get_resource_path("translations")
+        if user_translations_dir is None:
+            user_translations_dir = get_default_config_dir() / "translations"
 
         self.translations_dir = Path(translations_dir)
+        self.user_translations_dir = Path(user_translations_dir)
 
         # 语言代码 -> 翻译文本
         self.translations: Dict[str, dict] = {}
@@ -151,21 +168,81 @@ class LanguageManager:
 
     # ===================== 文件加载与解析 =====================
 
+    def _collect_language_files(self) -> Dict[str, List[Tuple[Path, bool]]]:
+        """
+        收集内置与用户外挂目录下的全部语言文件。
+
+        Returns:
+            {语言代码: [(文件路径, 是否用户目录文件), ...]}，
+            每个语言的列表中内置文件在前、用户文件在后（用户优先覆盖）。
+        """
+        candidates: Dict[str, List[Tuple[Path, bool]]] = {}
+        seen_dirs = set()
+        for lang_dir, is_user_dir in (
+            (self.translations_dir, False),
+            (self.user_translations_dir, True),
+        ):
+            try:
+                resolved = lang_dir.resolve()
+            except Exception:
+                resolved = lang_dir
+            if resolved in seen_dirs or not lang_dir.is_dir():
+                continue
+            seen_dirs.add(resolved)
+            for file_path in sorted(lang_dir.glob("*.json")):
+                if file_path.is_file():
+                    candidates.setdefault(file_path.stem, []).append((file_path, is_user_dir))
+        return candidates
+
     def _load_all_translations(self):
-        """扫描 translations 目录，加载全部 *.json 语言文件"""
+        """
+        扫描内置与用户外挂 translations 目录，加载全部 *.json 语言文件。
+
+        同名语言代码：按“优先级 用户目录 > 内置目录”做按键合并——
+        用户文件中出现的键覆盖内置版本，用户文件未提供的键仍取内置；
+        用户文件损坏但内置版本可用时，打印警告并继续使用内置版本；
+        两个来源都不可用时才标注为“损坏”。
+        """
         self.translations = {}
         self.metas = {}
         self.broken_languages = {}
         self._raw_metas = {}
         self._scanned_files = []
 
-        if not self.translations_dir.is_dir():
-            return
+        candidates = self._collect_language_files()
+        self._scanned_files = sorted(candidates.keys())
 
-        for file_path in sorted(self.translations_dir.glob("*.json")):
-            lang = file_path.stem
-            self._scanned_files.append(lang)
-            self._load_one(file_path)
+        for lang in self._scanned_files:
+            loaded_texts: Optional[dict] = None
+            loaded_meta: Optional[dict] = None
+            broken_reason: Optional[str] = None
+
+            for file_path, is_user_file in candidates[lang]:
+                result = self._parse_language_file(file_path)
+                if result[0] == "ok":
+                    _, texts, raw_meta = result
+                    if loaded_texts is None:
+                        # 首个有效文件（通常是内置版本）作为基底
+                        loaded_texts = dict(texts)
+                    else:
+                        # 用户文件按键覆盖：同键以用户文件为准，缺键保留基底
+                        loaded_texts.update(texts)
+                    loaded_meta = raw_meta
+                    broken_reason = None
+                else:
+                    reason = result[1]
+                    if is_user_file and loaded_texts is not None:
+                        # 用户文件损坏：保留内置版本，仅警告
+                        print(f"用户语言文件 {file_path} 已损坏: {reason}，继续使用内置版本")
+                        broken_reason = None
+                    else:
+                        broken_reason = reason
+
+            if loaded_texts is not None and broken_reason is None:
+                self.translations[lang] = loaded_texts
+                self._raw_metas[lang] = loaded_meta or {}
+            else:
+                self._mark_broken(lang, broken_reason or "文件无法加载")
 
         # 第二遍补全 meta：先构建 en 的 meta 作为字体/字号回退基准
         if "en" in self._raw_metas:
@@ -181,27 +258,27 @@ class LanguageManager:
             else:
                 self.metas[lang] = self._build_meta(lang, self._raw_metas.get(lang, {}))
 
-    def _load_one(self, file_path: Path):
-        """加载并校验单个语言文件"""
-        lang = file_path.stem
+    def _parse_language_file(self, file_path: Path) -> Tuple[str, ...]:
+        """
+        解析并校验单个语言文件（不写入实例状态）。
 
+        Returns:
+            ("ok", texts, raw_meta) 或 ("broken", 损坏原因)
+        """
         try:
             with open(file_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
         except Exception as e:
-            self._mark_broken(lang, f"JSON 解析失败: {e}")
-            return
+            return ("broken", f"JSON 解析失败: {e}")
 
         if not isinstance(data, dict):
-            self._mark_broken(lang, "顶层结构不是 JSON 对象")
-            return
+            return ("broken", "顶层结构不是 JSON 对象")
 
         # 新格式（含 meta/texts 包裹）；旧格式为整个扁平 dict
         if TEXTS_KEY in data or META_KEY in data:
             texts = data.get(TEXTS_KEY)
             if not isinstance(texts, dict):
-                self._mark_broken(lang, f"缺少必要字段 {TEXTS_KEY} 或其值不是对象")
-                return
+                return ("broken", f"缺少必要字段 {TEXTS_KEY} 或其值不是对象")
             raw_meta = data.get(META_KEY)
             if not isinstance(raw_meta, dict):
                 # meta 允许缺失：用文件名补全，字体回退 en.json
@@ -214,11 +291,9 @@ class LanguageManager:
         # 校验翻译键值类型
         for key, value in texts.items():
             if not isinstance(key, str) or not isinstance(value, str):
-                self._mark_broken(lang, "texts 中存在非字符串的键或值")
-                return
+                return ("broken", "texts 中存在非字符串的键或值")
 
-        self.translations[lang] = texts
-        self._raw_metas[lang] = raw_meta
+        return ("ok", texts, raw_meta)
 
     def _mark_broken(self, lang: str, reason: str):
         """标注一个语言文件已损坏"""
@@ -495,6 +570,157 @@ class LanguageManager:
             font_kwargs["weight"] = weight
         font_kwargs.update(kwargs)
         return ctk.CTkFont(**font_kwargs)
+
+    # ===================== v7.6: 外挂语言目录迁移 =====================
+
+    def migrate_user_translations_dir(self, new_dir: str) -> Tuple[bool, str]:
+        """
+        将用户外挂语言目录迁移到新路径（复制而非移动）。
+
+        流程：逐文件复制（保留元数据）→ 验证所有 .json 可正常解析
+        → 切换内部目录并重新加载语言。
+        失败时回滚：删除本次已复制的文件；若目录为本次新建则整目录删除；
+        不留下"一半迁移"状态。
+
+        Returns:
+            (是否成功, 失败原因描述；成功时为空字符串)
+        """
+        try:
+            new_path = Path(new_dir).resolve()
+        except Exception as e:
+            return (False, f"无效的目标路径: {e}")
+
+        old_dir = self.user_translations_dir
+        try:
+            same = new_path == old_dir.resolve()
+        except Exception:
+            same = str(new_path) == str(old_dir)
+        if same:
+            return (True, "")
+
+        created_new_dir = False
+        try:
+            if not new_path.exists():
+                new_path.mkdir(parents=True, exist_ok=True)
+                created_new_dir = True
+            elif not new_path.is_dir():
+                return (False, "目标路径已存在同名文件，无法用作语言目录")
+        except Exception as e:
+            return (False, f"无法创建目标目录: {e}")
+
+        # 复制前记录新路径下已存在的文件/目录（回滚时跳过）
+        preexisting_files: Set[str] = set()
+        preexisting_dirs: Set[str] = set()
+        try:
+            for p in new_path.rglob("*"):
+                if p.is_dir():
+                    preexisting_dirs.add(str(p))
+                else:
+                    preexisting_files.add(str(p))
+        except Exception:
+            pass
+
+        copied_files: List[str] = []
+        try:
+            if old_dir.is_dir():
+                for src in old_dir.rglob("*"):
+                    if not src.is_file():
+                        continue
+                    dst = new_path / src.relative_to(old_dir)
+                    dst.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(str(src), str(dst))
+                    copied_files.append(str(dst))
+        except Exception as e:
+            rollback_copied_files(
+                new_path, copied_files, preexisting_files, preexisting_dirs, created_new_dir
+            )
+            return (False, f"复制失败，已回滚: {e}")
+
+        try:
+            # 验证：新路径下所有 .json 均可正常解析
+            for json_file in new_path.rglob("*.json"):
+                with open(json_file, "r", encoding="utf-8") as f:
+                    json.load(f)
+        except Exception as e:
+            rollback_copied_files(
+                new_path, copied_files, preexisting_files, preexisting_dirs, created_new_dir
+            )
+            return (False, f"验证失败，已回滚: {e}")
+
+        # 切换内部路径并重新加载语言
+        self.user_translations_dir = new_path
+        try:
+            self.reload_translations()
+        except Exception as e:
+            # 重新加载失败不视为迁移失败（文件本身已验证），仅提示
+            print(f"重新加载语言文件失败: {e}")
+
+        print(f"✅ 外挂语言目录已迁移到: {self.user_translations_dir}")
+        return (True, "")
+
+    def cleanup_old_translations_dir(self, old_dir: str) -> Tuple[bool, str]:
+        """
+        删除旧外挂语言目录下的全部文件（迁移成功后由用户确认调用）。
+
+        Returns:
+            (是否完全成功, 失败摘要)
+        """
+        return delete_dir_contents(Path(old_dir), exclude_names=())
+
+
+def ensure_user_translations_dir(
+    user_dir: Optional[Path] = None,
+    builtin_dir: Optional[Path] = None,
+) -> Path:
+    """
+    v7.6: 确保用户外挂语言目录存在；目录为空时用内置语言文件填充。
+
+    - 目录不存在：创建
+    - 目录为空：复制内置 zh/en/zh_tw.json 与 docs/TRANSLATING.md 作为起步模板
+    - 目录非空：不做任何操作（后续启动、版本升级均不覆盖，避免用户翻译丢失）
+
+    Returns:
+        外挂语言目录路径
+    """
+    if user_dir is None:
+        user_dir = get_default_config_dir() / "translations"
+    user_dir = Path(user_dir)
+
+    try:
+        if not user_dir.exists():
+            user_dir.mkdir(parents=True, exist_ok=True)
+        if any(user_dir.iterdir()):
+            return user_dir  # 目录非空：不覆盖
+    except Exception as e:
+        print(f"初始化外挂语言目录失败: {e}")
+        return user_dir
+
+    if builtin_dir is None:
+        builtin_dir = Path(get_resource_path("translations"))
+
+    copied = 0
+    try:
+        if Path(builtin_dir).is_dir():
+            for name in ("zh.json", "en.json", "zh_tw.json"):
+                src = Path(builtin_dir) / name
+                if not src.is_file():
+                    continue
+                shutil.copy2(str(src), str(user_dir / name))
+                copied += 1
+    except Exception as e:
+        print(f"复制内置语言文件失败: {e}")
+
+    # 同时复制翻译说明文档
+    try:
+        docs_file = Path(get_resource_path("docs")) / "TRANSLATING.md"
+        if docs_file.is_file():
+            shutil.copy2(str(docs_file), str(user_dir / "TRANSLATING.md"))
+    except Exception as e:
+        print(f"复制翻译说明文档失败: {e}")
+
+    if copied:
+        print(f"外挂语言目录初始化完成: {user_dir}（复制 {copied} 个语言文件）")
+    return user_dir
 
 
 def get_font(size: int = None, weight: str = "normal", **kwargs):

@@ -1,5 +1,8 @@
 customtkinter>=5.0.0
+Pillow>=10.0.0
 plyer>=2.0
 watchdog>=3.0.0
 darkdetect>=0.8.0
+pywin32>=306; sys_platform == 'win32'
+pyshortcuts>=1.9.7; sys_platform == 'darwin'
 pyinstaller>=6.0.0

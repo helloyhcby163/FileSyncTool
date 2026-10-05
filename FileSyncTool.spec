@@ -32,9 +32,11 @@ plyer_extra_imports = [
     'plyer.platforms.macos',
 ]
 
-# CustomTkinter 需要的数据文件
+# CustomTkinter 需要的数据文件；v7.6 一并打包多语言、帮助文档与图标
 ctk_datas = [
     (str(project_root / 'translations'), 'translations'),
+    (str(project_root / 'docs'), 'docs'),
+    (str(project_root / 'FileSyncTool.ico'), '.'),
 ]
 
 # 尝试收集 CustomTkinter 的主题数据
@@ -88,6 +90,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon=str(project_root / 'FileSyncTool.ico'),  # v7.6: exe 与任务栏图标
 )
 
 coll = COLLECT(

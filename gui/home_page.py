@@ -62,7 +62,7 @@ class HomePage(ctk.CTkFrame):
         # 左列容器
         self.left_panel = ctk.CTkFrame(self)
         self.left_panel.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
-        self.left_panel.grid_rowconfigure(6, weight=1)  # 底部留空
+        self.left_panel.grid_rowconfigure(8, weight=1)  # 底部留空
         
         # 标题
         self.title_label = ctk.CTkLabel(
@@ -111,6 +111,16 @@ class HomePage(ctk.CTkFrame):
             command=self._on_recycle_click
         )
         self.btn_recycle.grid(row=4, column=0, padx=20, pady=5, sticky="ew")
+
+        # v7.6: 工具包按钮（后台监听、系统菜单、导入导出、系统信息、反馈）
+        self.btn_toolkit = ctk.CTkButton(
+            self.left_panel,
+            text=self.app.get_text("btn_toolkit", "工具包"),
+            height=45,
+            font=get_font(size=14),
+            command=self._on_toolkit_click
+        )
+        self.btn_toolkit.grid(row=5, column=0, padx=20, pady=5, sticky="ew")
         
         # v7.5.1: 语言选择下拉框（动态扫描 translations 目录，替代循环切换按钮）
         self._language_options = self.app.language_manager.get_language_options()
@@ -127,7 +137,7 @@ class HomePage(ctk.CTkFrame):
             dropdown_font=get_font(size=14),
             state="readonly"
         )
-        self.language_combobox.grid(row=5, column=0, padx=20, pady=5, sticky="ew")
+        self.language_combobox.grid(row=6, column=0, padx=20, pady=5, sticky="ew")
         
         # 设置按钮
         self.btn_settings = ctk.CTkButton(
@@ -137,7 +147,7 @@ class HomePage(ctk.CTkFrame):
             font=get_font(size=14),
             command=self._on_settings_click
         )
-        self.btn_settings.grid(row=6, column=0, padx=20, pady=5, sticky="ew")
+        self.btn_settings.grid(row=7, column=0, padx=20, pady=5, sticky="ew")
         
         # 分隔线
         self.separator = ctk.CTkFrame(
@@ -145,7 +155,7 @@ class HomePage(ctk.CTkFrame):
             height=2,
             fg_color="#4a4a4a"
         )
-        self.separator.grid(row=7, column=0, padx=20, pady=15, sticky="ew")
+        self.separator.grid(row=9, column=0, padx=20, pady=15, sticky="ew")
         
         # 退出按钮
         self.btn_exit = ctk.CTkButton(
@@ -157,7 +167,7 @@ class HomePage(ctk.CTkFrame):
             hover_color="#b71c1c",
             command=self._on_exit_click
         )
-        self.btn_exit.grid(row=8, column=0, padx=20, pady=5, sticky="ew")
+        self.btn_exit.grid(row=10, column=0, padx=20, pady=5, sticky="ew")
     
     def _create_right_panel(self):
         """创建右列"""
@@ -443,6 +453,10 @@ class HomePage(ctk.CTkFrame):
     def _on_recycle_click(self):
         """最近删除按钮点击事件"""
         self.app.show_page("recycle")
+
+    def _on_toolkit_click(self):
+        """v7.6: 工具包按钮点击事件"""
+        self.app.show_page("toolkit")
     
     def _on_settings_click(self):
         """设置按钮点击事件"""
@@ -569,6 +583,7 @@ class HomePage(ctk.CTkFrame):
         self.btn_running_tasks.configure(text=self.app.get_text("btn_running_tasks"))
         self.btn_task_config.configure(text=self.app.get_text("btn_task_config"))
         self.btn_recycle.configure(text=self.app.get_text("btn_recycle"))
+        self.btn_toolkit.configure(text=self.app.get_text("btn_toolkit", "工具包"))
         # 刷新语言下拉框（重新扫描语言文件与当前选中项）
         self._language_options = self.app.language_manager.get_language_options()
         self.language_combobox.configure(

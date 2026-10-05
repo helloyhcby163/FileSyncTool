@@ -54,6 +54,8 @@ class CreateTaskPage(ctk.CTkFrame):
         self.use_multithreading_copy = False  # 是否使用多线程复制
         self.run_mode = "safe"  # fast, safe
         self.default_strategy = "conservative"  # conservative, newest_wins, source_wins, target_wins
+        # v7.6: 同步成功后执行的命令（可选，留空不执行）
+        self.post_sync_command = ""
         
         # 创建界面
         self._create_widgets()
@@ -320,8 +322,12 @@ class CreateTaskPage(ctk.CTkFrame):
             fg_color="#2CC985",
             hover_color="#229E6A"
         )
-        self.folder_config_btn.grid(row=6, column=0, columnspan=2, padx=10, pady=15, sticky="ew")
-        
+        # v7.6: 修复与「全局策略」(row=6) 的行重叠，单独配置按钮移至 row=7
+        self.folder_config_btn.grid(row=7, column=0, columnspan=2, padx=10, pady=15, sticky="ew")
+
+        # ========== v7.6: 同步后执行命令（可选） ==========
+        self._create_post_sync_command_section()
+
         # ========== 底部按钮区域 ==========
         self.bottom_frame = ctk.CTkFrame(self)
         self.bottom_frame.grid(row=1, column=0, padx=10, pady=(0, 10), sticky="ew")
@@ -633,6 +639,53 @@ class CreateTaskPage(ctk.CTkFrame):
                     border_color=("#3B8ED0", "#1F6AA5")
                 )
     
+    def _create_post_sync_command_section(self):
+        """v7.6：同步成功后执行命令区域（每任务一条，可选填，留空不执行）"""
+        self.post_sync_frame = ctk.CTkFrame(self.content_frame)
+        # v7.6: 单独配置按钮已占用 row=7，同步后命令区移至 row=8
+        self.post_sync_frame.grid(row=8, column=0, columnspan=2, padx=5, pady=10, sticky="ew")
+        self.post_sync_frame.grid_columnconfigure(0, weight=1)
+
+        self.post_sync_label = ctk.CTkLabel(
+            self.post_sync_frame,
+            text=self.language_manager.get_text(
+                "post_sync_command", "同步后执行命令（可选）"
+            ),
+            font=get_font(size=14, weight="bold")
+        )
+        self.post_sync_label.grid(row=0, column=0, padx=10, pady=(10, 5), sticky="w")
+
+        self.post_sync_entry = ctk.CTkEntry(
+            self.post_sync_frame,
+            font=get_font(size=13),
+            height=35,
+            placeholder_text=self.language_manager.get_text(
+                "post_sync_command_placeholder",
+                "同步成功后运行的脚本或命令，留空则不执行"
+            )
+        )
+        self.post_sync_entry.grid(row=1, column=0, padx=10, pady=5, sticky="ew")
+        if self.post_sync_command:
+            self.post_sync_entry.insert(0, self.post_sync_command)
+
+        self.post_sync_hint = ctk.CTkLabel(
+            self.post_sync_frame,
+            text=self.language_manager.get_text(
+                "post_sync_command_security_hint",
+                "⚠️ 请确认命令来源可信，不要运行来源不明的命令"
+            ),
+            font=get_font(size=12),
+            text_color="#D97706",
+            anchor="w"
+        )
+        self.post_sync_hint.grid(row=2, column=0, padx=10, pady=(0, 10), sticky="w")
+
+    def _read_post_sync_command(self) -> str:
+        """从输入框读取同步后命令"""
+        if hasattr(self, "post_sync_entry"):
+            return self.post_sync_entry.get().strip()
+        return self.post_sync_command
+
     def _on_folder_config_click(self):
         """单独配置文件夹按钮点击事件"""
         # 验证源目录和目标目录
@@ -737,9 +790,10 @@ class CreateTaskPage(ctk.CTkFrame):
             "folders": [],
             "folder_strategies": {},
             "root_included": False,
-            "root_strategy": self.default_strategy
+            "root_strategy": self.default_strategy,
+            "post_sync_command": self._read_post_sync_command()
         }
-        
+
         if self.on_next_step:
             self.on_next_step(task_config)
     
@@ -779,7 +833,8 @@ class CreateTaskPage(ctk.CTkFrame):
             "folders": [],
             "folder_strategies": {},  # 空字典，使用全局默认策略
             "root_included": True,
-            "root_strategy": self.default_strategy
+            "root_strategy": self.default_strategy,
+            "post_sync_command": self._read_post_sync_command()
         }
         
         # 直接跳转到同步确认页面
@@ -818,7 +873,8 @@ class CreateTaskPage(ctk.CTkFrame):
             "use_multithreading_scan": self.use_multithreading_scan,
             "use_multithreading_copy": self.use_multithreading_copy,
             "mode": self.run_mode,
-            "default_strategy": self.default_strategy
+            "default_strategy": self.default_strategy,
+            "post_sync_command": self._read_post_sync_command()
         }
     
     def _load_task_data(self):
@@ -839,6 +895,7 @@ class CreateTaskPage(ctk.CTkFrame):
         
         self.run_mode = task.get("mode", task.get("run_mode", "safe"))
         self.default_strategy = task.get("default_strategy", "conservative")
+        self.post_sync_command = task.get("post_sync_command", "") or ""
         
         # 更新UI显示
         if hasattr(self, 'source_entry'):
@@ -848,6 +905,11 @@ class CreateTaskPage(ctk.CTkFrame):
         if hasattr(self, 'target_entry'):
             self.target_entry.delete(0, 'end')
             self.target_entry.insert(0, self.target_dir)
+
+        # v7.6: 同步后命令
+        if hasattr(self, 'post_sync_entry'):
+            self.post_sync_entry.delete(0, 'end')
+            self.post_sync_entry.insert(0, self.post_sync_command)
         
         # 更新按钮状态
         if hasattr(self, '_set_sync_direction'):
@@ -873,10 +935,13 @@ class CreateTaskPage(ctk.CTkFrame):
         self.use_multithreading = False
         self.run_mode = "safe"
         self.default_strategy = "conservative"
-        
+        self.post_sync_command = ""
+
         # 清空输入框
         self.source_entry.delete(0, "end")
         self.target_entry.delete(0, "end")
+        if hasattr(self, 'post_sync_entry'):
+            self.post_sync_entry.delete(0, "end")
         
         # 重置按钮样式
         self._set_sync_direction("both")
@@ -954,6 +1019,26 @@ class CreateTaskPage(ctk.CTkFrame):
         self.run_mode_hint.configure(
             text=self.language_manager.get_text("run_mode_hint", "快速模式：速度快但风险较高；安全模式：建立快照更安全")
         )
+
+        # v7.6: 同步后执行命令
+        if hasattr(self, 'post_sync_label'):
+            self.post_sync_label.configure(
+                text=self.language_manager.get_text(
+                    "post_sync_command", "同步后执行命令（可选）"
+                )
+            )
+            self.post_sync_entry.configure(
+                placeholder_text=self.language_manager.get_text(
+                    "post_sync_command_placeholder",
+                    "同步成功后运行的脚本或命令，留空则不执行"
+                )
+            )
+            self.post_sync_hint.configure(
+                text=self.language_manager.get_text(
+                    "post_sync_command_security_hint",
+                    "⚠️ 请确认命令来源可信，不要运行来源不明的命令"
+                )
+            )
         
         # 更新全局策略
         self.strategy_label.configure(

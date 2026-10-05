@@ -4,8 +4,9 @@
 """
 
 import os
+import shutil
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Set, Tuple
 
 
 def format_file_size(size_bytes: int) -> str:
@@ -317,3 +318,80 @@ def get_filename(filepath: str) -> str:
         return Path(filepath).name
     except Exception:
         return filepath
+
+
+# ===================== v7.6: 配置/语言目录迁移辅助 =====================
+
+
+def rollback_copied_files(
+    new_dir: Path,
+    copied_files: List[str],
+    preexisting_files: Set[str],
+    preexisting_dirs: Set[str],
+    created_new_dir: bool,
+):
+    """
+    迁移失败回滚：删除本次复制的文件；若目录为本次新建则整目录删除；
+    否则仅清理本次新建的空子目录。不留"一半迁移"状态。
+    """
+    try:
+        for path_str in copied_files:
+            try:
+                os.remove(path_str)
+            except Exception:
+                pass
+        if created_new_dir:
+            shutil.rmtree(str(new_dir), ignore_errors=True)
+        else:
+            # 自底向上删除本次新建的空子目录（迁移前已存在的目录不动）
+            try:
+                all_dirs = sorted(
+                    (p for p in new_dir.rglob("*") if p.is_dir()),
+                    key=lambda x: len(str(x)),
+                    reverse=True,
+                )
+                for d in all_dirs:
+                    if str(d) in preexisting_dirs:
+                        continue
+                    try:
+                        d.rmdir()
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+    finally:
+        print("迁移失败，已回滚")
+
+
+def delete_dir_contents(dir_path: Path, exclude_names: tuple = ()) -> Tuple[bool, str]:
+    """
+    删除目录下的全部文件与空子目录，exclude_names 中的文件名（仅顶层）保留。
+
+    Returns:
+        (是否完全成功, 失败摘要)
+    """
+    if not dir_path.is_dir():
+        return (False, "目录不存在")
+    errors: List[str] = []
+    for p in dir_path.rglob("*"):
+        if not p.is_file():
+            continue
+        # 仅顶层文件按名称排除（如默认目录下的 config_path.json 指针）
+        if p.parent == dir_path and p.name in exclude_names:
+            continue
+        try:
+            p.unlink()
+        except Exception as e:
+            errors.append(f"{p.name}: {e}")
+    for d in sorted(
+        (p for p in dir_path.rglob("*") if p.is_dir()),
+        key=lambda x: len(str(x)),
+        reverse=True,
+    ):
+        try:
+            d.rmdir()
+        except Exception:
+            pass
+    if errors:
+        return (False, "; ".join(errors[:5]))
+    return (True, "")

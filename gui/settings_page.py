@@ -4,8 +4,9 @@
 """
 
 import customtkinter as ctk
+from pathlib import Path
 from backend.language_manager import get_font
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Tuple
 
 if TYPE_CHECKING:
     from .app import FileSyncApp
@@ -94,10 +95,15 @@ class SettingsPage(ctk.CTkFrame):
         
         # v7.5: 配置存储路径设置区域
         self._create_config_path_section()
-        
-        # v7.5: 任务导入导出区域
-        self._create_task_import_export_section()
-        
+
+        # v7.6: 外挂语言目录区域
+        self._create_external_language_section()
+
+        # v7.6: 同步行为（阻止系统休眠）
+        self._create_sync_behavior_section()
+
+        # v7.6: 任务导入导出已移至「工具包」页面
+
         # ========== 底部按钮区域 ==========
         self.bottom_frame = ctk.CTkFrame(self)
         self.bottom_frame.grid(row=2, column=0, padx=10, pady=(0, 10), sticky="ew")
@@ -800,156 +806,353 @@ class SettingsPage(ctk.CTkFrame):
             self.config_path_entry.delete(0, "end")
             self.config_path_entry.insert(0, selected)
     
+    # ===================== v7.6: 迁移通用流程与对话框辅助 =====================
+
+    def _ask_yes_no(self, title: str, message: str) -> bool:
+        """是/否询问对话框"""
+        import tkinter as tk
+        from tkinter import messagebox
+        root = tk.Tk()
+        root.withdraw()
+        try:
+            return bool(messagebox.askyesno(title, message, icon=messagebox.QUESTION))
+        finally:
+            root.destroy()
+
+    def _show_msg(self, kind: str, title: str, message: str):
+        """信息/警告/错误对话框（kind: showinfo/showwarning/showerror）"""
+        import tkinter as tk
+        from tkinter import messagebox
+        root = tk.Tk()
+        root.withdraw()
+        try:
+            getattr(messagebox, kind)(title, message)
+        finally:
+            root.destroy()
+
+    def _migration_error_message(self, err: str) -> str:
+        """根据后端错误类型返回对应的迁移失败提示（复制失败/验证失败）"""
+        if err.startswith("验证"):
+            base = self.language_manager.get_text(
+                "migration_verify_failed_rollback",
+                "新路径文件验证失败，已回滚。"
+            )
+        else:
+            base = self.language_manager.get_text(
+                "migration_failed_rollback",
+                "迁移失败，已回滚。请检查磁盘空间或权限。"
+            )
+        return f"{base}\n{err}" if err else base
+
+    def _check_and_stop_sync_for_migration(self) -> Tuple[bool, bool]:
+        """
+        迁移前检查同步活动；正在运行时弹窗询问，用户确认则中断同步。
+
+        Returns:
+            (can_proceed, interrupted_sync)
+            can_proceed      —— True 表示无同步活动或已成功中断，可以继续迁移；
+                                False 表示用户取消或同步未能完全停止，应中止迁移
+            interrupted_sync —— 本次是否实际中断了同步活动
+        """
+        lm = self.language_manager
+        if not self.app.has_active_sync_activity():
+            return (True, False)
+
+        title = lm.get_text("migration_confirm_title", "迁移确认")
+        confirmed = self._ask_yes_no(
+            title,
+            lm.get_text(
+                "migration_sync_running_confirm",
+                "有同步任务正在运行。建议先停止同步再迁移，否则可能导致数据不一致。\n\n是否继续？"
+            ),
+        )
+        if not confirmed:
+            return (False, False)
+
+        if not self.app.interrupt_sync_for_migration():
+            self._show_msg(
+                "showerror",
+                title,
+                lm.get_text(
+                    "migration_sync_stop_failed",
+                    "同步任务未能完全停止，已取消迁移。请稍后重试。"
+                ),
+            )
+            return (False, False)
+        return (True, True)
+
+    def _finish_migration(self, interrupted_sync: bool, title: str):
+        """迁移成功后的收尾提示：打断任务说明 + 重启建议"""
+        lm = self.language_manager
+        message = lm.get_text("migration_done_restart", "迁移完成，建议重启程序以生效。")
+        if interrupted_sync:
+            message += "\n" + lm.get_text(
+                "migration_interrupt_note",
+                "被中断的同步已保存为打断任务，请在迁移完成后手动重新同步。"
+            )
+        self._show_msg("showinfo", title, message)
+
     def _on_config_path_save(self):
-        """保存配置路径"""
+        """保存配置路径：完整迁移流程（检测同步 → 复制 → 验证 → 询问删旧 → 提示重启）"""
+        lm = self.language_manager
+        title = lm.get_text("config_path_settings", "配置存储路径")
         path = self.config_path_entry.get().strip()
         if not path:
             return
-        success = self.config_manager.set_custom_config_dir(path)
-        if success:
-            import tkinter as tk
-            from tkinter import messagebox
-            root = tk.Tk()
-            root.withdraw()
-            messagebox.showinfo(
-                self.language_manager.get_text("config_path_settings", "配置存储路径"),
-                self.language_manager.get_text(
-                    "config_path_saved",
-                    "配置路径已保存，请重启程序以使用新路径。"
+
+        current = self.config_manager.get_config_dir()
+        try:
+            if Path(path).resolve() == Path(current).resolve():
+                return  # 与当前路径相同，无需迁移
+        except Exception:
+            pass
+
+        # 1. 检查并（经用户确认后）中断正在运行的同步
+        can_proceed, interrupted_sync = self._check_and_stop_sync_for_migration()
+        if not can_proceed:
+            # 用户取消或中断失败：恢复输入框为原路径
+            self.config_path_entry.delete(0, "end")
+            self.config_path_entry.insert(0, current)
+            return
+
+        # 2. 执行迁移（复制 + 验证 + 切换内部路径 + 写指针）
+        ok, err = self.config_manager.set_custom_config_dir(path)
+        if not ok:
+            self._show_msg("showerror", title, self._migration_error_message(err))
+            self.config_path_entry.delete(0, "end")
+            self.config_path_entry.insert(0, self.config_manager.get_config_dir())
+            return
+
+        # 3. 询问是否删除旧配置
+        if self._ask_yes_no(
+            title,
+            lm.get_text("migration_success_delete_old", "迁移成功，是否删除旧配置？"),
+        ):
+            del_ok, del_err = self.config_manager.cleanup_old_config_dir(current)
+            if not del_ok:
+                self._show_msg(
+                    "showwarning",
+                    title,
+                    lm.get_text("migration_delete_old_failed", "删除旧配置时出现问题：") + f"\n{del_err}",
                 )
-            )
-            root.destroy()
-        else:
-            self.config_path_save_btn.configure(
-                text=self.language_manager.get_text("save_failed", "保存失败")
-            )
-    
-    def _on_config_path_reset(self):
-        """恢复默认配置路径"""
-        self.config_manager.reset_config_dir_to_default()
+
+        # 4. 输入框同步为新路径，提示重启
         self.config_path_entry.delete(0, "end")
         self.config_path_entry.insert(0, self.config_manager.get_config_dir())
-    
-    # ===================== v7.5: 任务导入导出 =====================
-    
-    def _create_task_import_export_section(self):
-        """创建任务导入导出区域"""
-        self.import_export_frame = ctk.CTkFrame(self.content_frame)
-        self.import_export_frame.grid(row=6, column=0, padx=5, pady=10, sticky="ew")
-        self.import_export_frame.grid_columnconfigure(0, weight=1)
-        
-        self.import_export_title = ctk.CTkLabel(
-            self.import_export_frame,
-            text=self.language_manager.get_text("task_import_export", "任务导入导出"),
+        self._finish_migration(interrupted_sync, title)
+
+    def _on_config_path_reset(self):
+        """恢复默认配置路径：走与保存相同的完整迁移流程"""
+        from backend.platform_utils import get_default_config_dir
+        default_dir = str(get_default_config_dir())
+        self.config_path_entry.delete(0, "end")
+        self.config_path_entry.insert(0, default_dir)
+        self._on_config_path_save()
+
+    # ===================== v7.6: 外挂语言目录 =====================
+
+    def _create_external_language_section(self):
+        """创建外挂语言目录区域：显示路径 + 打开目录按钮"""
+        self.ext_lang_frame = ctk.CTkFrame(self.content_frame)
+        self.ext_lang_frame.grid(row=6, column=0, padx=5, pady=10, sticky="ew")
+        self.ext_lang_frame.grid_columnconfigure(0, weight=1)
+
+        self.ext_lang_title = ctk.CTkLabel(
+            self.ext_lang_frame,
+            text=self.language_manager.get_text("external_language_dir", "外挂语言目录"),
             font=get_font(size=16, weight="bold")
         )
-        self.import_export_title.grid(row=0, column=0, padx=10, pady=(10, 5), sticky="w")
-        
-        self.import_export_hint = ctk.CTkLabel(
-            self.import_export_frame,
-            text=self.language_manager.get_text(
-                "task_import_export_hint",
-                "将任务导出为 JSON 配置文件，可在另一台电脑导入恢复"
-            ),
-            font=get_font(size=12),
-            text_color="gray",
-            wraplength=600
-        )
-        self.import_export_hint.grid(row=1, column=0, padx=10, pady=(0, 15), sticky="w")
-        
-        self.import_export_btn_frame = ctk.CTkFrame(self.import_export_frame, fg_color="transparent")
-        self.import_export_btn_frame.grid(row=2, column=0, padx=10, pady=5, sticky="ew")
-        
-        self.export_all_btn = ctk.CTkButton(
-            self.import_export_btn_frame,
-            text=self.language_manager.get_text("export_all_tasks", "导出所有任务"),
-            font=get_font(size=14),
-            height=40,
-            command=self._on_export_all_tasks
-        )
-        self.export_all_btn.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
-        
-        self.import_tasks_btn = ctk.CTkButton(
-            self.import_export_btn_frame,
-            text=self.language_manager.get_text("import_tasks", "导入任务"),
-            font=get_font(size=14),
-            height=40,
-            fg_color=("#2E7D32", "#2E7D32"),
-            hover_color=("#1B5E20", "#1B5E20"),
-            command=self._on_import_tasks
-        )
-        self.import_tasks_btn.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+        self.ext_lang_title.grid(row=0, column=0, padx=10, pady=(10, 5), sticky="w")
 
-        # v7.5.1: 提示可在任务配置页多选任务导出
-        self.multi_export_hint_label = ctk.CTkLabel(
-            self.import_export_frame,
+        self.ext_lang_hint = ctk.CTkLabel(
+            self.ext_lang_frame,
             text=self.language_manager.get_text(
-                "multi_export_hint",
-                "提示：如需只导出部分任务，请到「任务配置」页多选后导出"
+                "external_language_dir_hint",
+                "将自定义语言文件（.json）放入此目录，优先级高于内置语言；"
+                "同名文件按键覆盖内置翻译，重启后生效"
             ),
             font=get_font(size=12),
             text_color="gray",
-            wraplength=600
+            wraplength=600,
+            justify="left"
         )
-        self.multi_export_hint_label.grid(row=3, column=0, padx=10, pady=(5, 10), sticky="w")
-    
-    def _on_export_all_tasks(self):
-        """导出所有任务"""
+        self.ext_lang_hint.grid(row=1, column=0, padx=10, pady=(0, 10), sticky="w")
+
+        lang_dir = str(getattr(self.language_manager, "user_translations_dir", ""))
+        self.ext_lang_entry = ctk.CTkEntry(self.ext_lang_frame, font=get_font(size=13))
+        self.ext_lang_entry.insert(0, lang_dir)
+        self.ext_lang_entry.grid(row=2, column=0, padx=10, pady=5, sticky="ew")
+
+        # v7.6: 浏览/保存/打开目录按钮（保存触发独立迁移流程）
+        self.ext_lang_btn_frame = ctk.CTkFrame(self.ext_lang_frame, fg_color="transparent")
+        self.ext_lang_btn_frame.grid(row=3, column=0, padx=10, pady=(8, 10), sticky="ew")
+
+        self.ext_lang_browse_btn = ctk.CTkButton(
+            self.ext_lang_btn_frame,
+            text=self.language_manager.get_text("browse", "浏览..."),
+            font=get_font(size=13),
+            width=110,
+            command=self._on_external_language_dir_browse
+        )
+        self.ext_lang_browse_btn.grid(row=0, column=0, padx=(0, 10), pady=2, sticky="w")
+
+        self.ext_lang_save_btn = ctk.CTkButton(
+            self.ext_lang_btn_frame,
+            text=self.language_manager.get_text("save", "保存"),
+            font=get_font(size=13),
+            width=110,
+            command=self._on_external_language_dir_save
+        )
+        self.ext_lang_save_btn.grid(row=0, column=1, padx=10, pady=2, sticky="w")
+
+        self.ext_lang_open_btn = ctk.CTkButton(
+            self.ext_lang_btn_frame,
+            text=self.language_manager.get_text("open_directory", "打开目录"),
+            font=get_font(size=13),
+            width=110,
+            command=self._on_open_external_language_dir
+        )
+        self.ext_lang_open_btn.grid(row=0, column=2, padx=10, pady=2, sticky="w")
+
+    def _on_external_language_dir_browse(self):
+        """浏览选择外挂语言目录"""
         import tkinter as tk
-        from tkinter import filedialog, messagebox
+        from tkinter import filedialog
         root = tk.Tk()
         root.withdraw()
-        file_path = filedialog.asksaveasfilename(
-            title=self.language_manager.get_text("export_all_tasks", "导出所有任务"),
-            defaultextension=".json",
-            filetypes=[("JSON files", "*.json"), ("All files", "*.*")]
-        )
-        root.destroy()
-        if not file_path:
+        try:
+            selected = filedialog.askdirectory(
+                title=self.language_manager.get_text("select_language_dir", "选择外挂语言目录"),
+                initialdir=str(getattr(self.language_manager, "user_translations_dir", "")),
+            )
+        finally:
+            root.destroy()
+        if selected:
+            self.ext_lang_entry.delete(0, "end")
+            self.ext_lang_entry.insert(0, selected)
+
+    def _on_external_language_dir_save(self):
+        """保存外挂语言目录：独立迁移流程（不影响配置存储路径）"""
+        lm = self.language_manager
+        title = lm.get_text("external_language_dir", "外挂语言目录")
+        path = self.ext_lang_entry.get().strip()
+        if not path:
             return
-        success = self.app.task_manager.export_all_tasks(file_path)
-        root = tk.Tk()
-        root.withdraw()
-        if success:
-            messagebox.showinfo(
-                self.language_manager.get_text("export_all_tasks", "导出所有任务"),
-                self.language_manager.get_text("export_success", "任务导出成功")
-            )
-        else:
-            messagebox.showerror(
-                self.language_manager.get_text("export_all_tasks", "导出所有任务"),
-                self.language_manager.get_text("export_failed", "任务导出失败")
-            )
-        root.destroy()
-    
-    def _on_import_tasks(self):
-        """导入任务"""
-        import tkinter as tk
-        from tkinter import filedialog, messagebox
-        root = tk.Tk()
-        root.withdraw()
-        file_path = filedialog.askopenfilename(
-            title=self.language_manager.get_text("import_tasks", "导入任务"),
-            filetypes=[("JSON files", "*.json"), ("All files", "*.*")]
-        )
-        root.destroy()
-        if not file_path:
+
+        current = str(lm.user_translations_dir)
+        try:
+            if Path(path).resolve() == Path(current).resolve():
+                return  # 与当前路径相同，无需迁移
+        except Exception:
+            pass
+
+        # 1. 检查并（经用户确认后）中断正在运行的同步
+        can_proceed, interrupted_sync = self._check_and_stop_sync_for_migration()
+        if not can_proceed:
+            self.ext_lang_entry.delete(0, "end")
+            self.ext_lang_entry.insert(0, current)
             return
-        result = self.app.task_manager.import_tasks(file_path)
-        root = tk.Tk()
-        root.withdraw()
-        if result["success"]:
+
+        # 2. 执行迁移（复制 + 验证 JSON + 切换内部路径 + 重新加载语言）
+        ok, err = lm.migrate_user_translations_dir(path)
+        if not ok:
+            self._show_msg("showerror", title, self._migration_error_message(err))
+            self.ext_lang_entry.delete(0, "end")
+            self.ext_lang_entry.insert(0, current)
+            return
+
+        # 3. 持久化设置（与配置存储路径相互独立）
+        self.settings["user_translations_dir"] = str(lm.user_translations_dir)
+        self.config_manager.update_settings(self.settings)
+
+        # 4. 询问是否删除旧语言目录
+        if self._ask_yes_no(
+            title,
+            lm.get_text("migration_success_delete_old_lang", "迁移成功，是否删除旧语言目录？"),
+        ):
+            del_ok, del_err = lm.cleanup_old_translations_dir(current)
+            if not del_ok:
+                self._show_msg(
+                    "showwarning",
+                    title,
+                    lm.get_text("migration_delete_old_failed", "删除旧配置时出现问题：") + f"\n{del_err}",
+                )
+
+        # 5. 提示重启
+        self._finish_migration(interrupted_sync, title)
+
+    def _on_open_external_language_dir(self):
+        """用系统文件管理器打开外挂语言目录"""
+        from backend.platform_utils import open_directory_in_file_manager
+
+        lang_dir = getattr(self.language_manager, "user_translations_dir", None)
+        if not lang_dir:
+            return
+        try:
+            Path(lang_dir).mkdir(parents=True, exist_ok=True)
+        except Exception:
+            pass
+        ok = open_directory_in_file_manager(str(lang_dir))
+        if not ok:
+            import tkinter as tk
+            from tkinter import messagebox
+            root = tk.Toplevel(self)
+            root.withdraw()
             messagebox.showinfo(
-                self.language_manager.get_text("import_tasks", "导入任务"),
-                result["message"]
+                self.language_manager.get_text("external_language_dir", "外挂语言目录"),
+                f"{self.language_manager.get_text('open_directory_failed', '无法自动打开目录，请手动前往：')}\n{lang_dir}",
+                parent=root
             )
+            root.destroy()
+
+    def _create_sync_behavior_section(self):
+        """v7.6：同步行为区域 —— 同步时阻止系统休眠"""
+        self.sync_behavior_frame = ctk.CTkFrame(self.content_frame)
+        self.sync_behavior_frame.grid(row=7, column=0, padx=5, pady=10, sticky="ew")
+        self.sync_behavior_frame.grid_columnconfigure(0, weight=1)
+
+        self.sync_behavior_title = ctk.CTkLabel(
+            self.sync_behavior_frame,
+            text=self.language_manager.get_text("sync_behavior", "同步行为"),
+            font=get_font(size=16, weight="bold")
+        )
+        self.sync_behavior_title.grid(row=0, column=0, padx=10, pady=(10, 10), sticky="w")
+
+        self.prevent_sleep_enabled = self.settings.get("prevent_sleep_during_sync", True)
+        self.prevent_sleep_switch = ctk.CTkSwitch(
+            self.sync_behavior_frame,
+            text=self.language_manager.get_text(
+                "prevent_sleep_during_sync", "同步时阻止系统休眠"
+            ),
+            font=get_font(size=14),
+            command=self._on_prevent_sleep_switch_change,
+        )
+        if self.prevent_sleep_enabled:
+            self.prevent_sleep_switch.select()
         else:
-            messagebox.showerror(
-                self.language_manager.get_text("import_tasks", "导入任务"),
-                result["message"]
-            )
-        root.destroy()
-    
+            self.prevent_sleep_switch.deselect()
+        self.prevent_sleep_switch.grid(row=1, column=0, padx=10, pady=(0, 6), sticky="w")
+
+        self.prevent_sleep_hint = ctk.CTkLabel(
+            self.sync_behavior_frame,
+            text=self.language_manager.get_text(
+                "prevent_sleep_hint",
+                "同步全过程（含寿命保护暂停期间）阻止电脑进入休眠；"
+                "同步结束后自动恢复。同步结束（成功/失败/中断）后恢复系统休眠。",
+            ),
+            font=get_font(size=12),
+            text_color="gray",
+            wraplength=600,
+            justify="left"
+        )
+        self.prevent_sleep_hint.grid(row=2, column=0, padx=10, pady=(0, 12), sticky="w")
+
+    def _on_prevent_sleep_switch_change(self):
+        """阻止系统休眠开关变化：写入设置"""
+        self.prevent_sleep_enabled = bool(self.prevent_sleep_switch.get())
+        self.settings["prevent_sleep_during_sync"] = self.prevent_sleep_enabled
+        self.config_manager.update_settings(self.settings)
+
     def _on_back_click(self):
         """返回首页按钮点击事件"""
         self.app.show_page("home")
@@ -1139,3 +1342,45 @@ class SettingsPage(ctk.CTkFrame):
         self.back_btn.configure(
             text=self.language_manager.get_text("return_home", "返回首页")
         )
+
+        # v7.6: 更新外挂语言目录区域
+        if hasattr(self, "ext_lang_title"):
+            self.ext_lang_title.configure(
+                text=self.language_manager.get_text("external_language_dir", "外挂语言目录")
+            )
+            self.ext_lang_hint.configure(
+                text=self.language_manager.get_text(
+                    "external_language_dir_hint",
+                    "将自定义语言文件（.json）放入此目录，优先级高于内置语言；"
+                    "同名文件按键覆盖内置翻译，重启后生效"
+                )
+            )
+            self.ext_lang_open_btn.configure(
+                text=self.language_manager.get_text("open_directory", "打开目录")
+            )
+            if hasattr(self, "ext_lang_browse_btn"):
+                self.ext_lang_browse_btn.configure(
+                    text=self.language_manager.get_text("browse", "浏览...")
+                )
+            if hasattr(self, "ext_lang_save_btn"):
+                self.ext_lang_save_btn.configure(
+                    text=self.language_manager.get_text("save", "保存")
+                )
+
+        # v7.6: 更新同步行为区域
+        if hasattr(self, "sync_behavior_title"):
+            self.sync_behavior_title.configure(
+                text=self.language_manager.get_text("sync_behavior", "同步行为")
+            )
+            self.prevent_sleep_switch.configure(
+                text=self.language_manager.get_text(
+                    "prevent_sleep_during_sync", "同步时阻止系统休眠"
+                )
+            )
+            self.prevent_sleep_hint.configure(
+                text=self.language_manager.get_text(
+                    "prevent_sleep_hint",
+                    "同步全过程（含寿命保护暂停期间）阻止电脑进入休眠；"
+                    "同步结束后自动恢复。同步结束（成功/失败/中断）后恢复系统休眠。",
+                )
+            )

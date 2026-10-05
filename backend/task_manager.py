@@ -36,7 +36,8 @@ class TaskManager:
                    folder_filters: Dict[str, Dict] = None,
                    root_included: bool = False, root_strategy: str = "conservative",
                    use_multithreading_scan: bool = False, use_multithreading_copy: bool = False,
-                   last_snapshot: Optional[Dict] = None) -> Dict:
+                   last_snapshot: Optional[Dict] = None,
+                   post_sync_command: str = "") -> Dict:
         """
         创建新任务
 
@@ -73,6 +74,7 @@ class TaskManager:
             "root_strategy": root_strategy,
             "use_multithreading_scan": use_multithreading_scan,
             "use_multithreading_copy": use_multithreading_copy,
+            "post_sync_command": post_sync_command or "",
             "last_snapshot": last_snapshot,
             "created_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
             "last_used": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),

@@ -49,7 +49,10 @@ class SyncProgressPage(ctk.CTkFrame):
         
         # 同步引擎引用
         self.sync_engine = None
-        
+
+        # 启动前/同步中的错误明细（如源/目标目录不存在），None 表示无错误
+        self._error_message = None
+
         # 进度刷新定时器
         self.refresh_timer = None
         
@@ -94,6 +97,33 @@ class SyncProgressPage(ctk.CTkFrame):
             text_color=("green", "#2CC985")
         )
         self.status_label.grid(row=0, column=1, padx=20, pady=15, sticky="e")
+
+        # 错误明细（如未插 U 盘导致源/目标目录不存在），默认隐藏
+        self.error_detail_label = ctk.CTkLabel(
+            self.header_frame,
+            text="",
+            font=get_font(size=14),
+            text_color="red",
+            justify="left",
+            anchor="w",
+            wraplength=900,
+        )
+        # row=1, columnspan=2；无错误时不占位
+
+    def show_error(self, message: str):
+        """在进度页顶部以红色多行文本显示错误明细（含具体路径）"""
+        self._error_message = message
+        self.error_detail_label.configure(text=message)
+        if self.error_detail_label.winfo_manager() == "":
+            self.error_detail_label.grid(
+                row=1, column=0, columnspan=2, padx=20, pady=(0, 12), sticky="w"
+            )
+
+    def clear_error(self):
+        """清除错误明细"""
+        self._error_message = None
+        self.error_detail_label.configure(text="")
+        self.error_detail_label.grid_forget()
     
     def _create_progress_panel(self):
         """创建进度信息面板"""
