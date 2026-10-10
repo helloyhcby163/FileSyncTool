@@ -15,12 +15,18 @@ jobs:
     strategy:
       matrix:
         include:
+          # Windows
           - os: windows-latest
-            output_name: FileSyncTool_v7.6_Windows.exe
-          - os: macos-latest
-            output_name: FileSyncTool_v7.6_macOS
+            output_name: FileSyncTool_v7.6.1_Windows.exe
+          # macOS ARM64 (Apple Silicon)
+          - os: macos-14
+            output_name: FileSyncTool_v7.6.1_macOS_ARM64
+          # macOS x86_64 (Intel)
+          - os: macos-13
+            output_name: FileSyncTool_v7.6.1_macOS_Intel
+          # Linux
           - os: ubuntu-latest
-            output_name: FileSyncTool_v7.6_Linux
+            output_name: FileSyncTool_v7.6.1_Linux
 
     steps:
       - uses: actions/checkout@v4
@@ -45,10 +51,24 @@ jobs:
           if [ -f "dist/main" ]; then mv dist/main "dist/${{ matrix.output_name }}"; fi
         shell: bash
 
+      - name: Create ZIP
+        run: |
+          cd dist
+          if [ -f "${{ matrix.output_name }}" ]; then
+            if command -v 7z &> /dev/null; then
+              7z a "${{ matrix.output_name }}.zip" "${{ matrix.output_name }}"
+            else
+              zip -r "${{ matrix.output_name }}.zip" "${{ matrix.output_name }}"
+            fi
+          fi
+        shell: bash
+
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.os }}
-          path: dist/${{ matrix.output_name }}
+          path: |
+            dist/${{ matrix.output_name }}
+            dist/${{ matrix.output_name }}.zip
 
   release:
     needs: build
