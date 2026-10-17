@@ -22,7 +22,7 @@ jobs:
           - os: macos-14
             output_name: FileSyncTool_v7.6.1_macOS_ARM64
           # macOS x86_64 (Intel)
-          - os: macos-13
+          - os: macos-15-intel
             output_name: FileSyncTool_v7.6.1_macOS_Intel
           # Linux
           - os: ubuntu-latest
