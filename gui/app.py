@@ -4,6 +4,7 @@
 """
 
 import os
+import queue
 import threading
 import customtkinter as ctk
 from typing import Optional, Dict, Any
@@ -38,6 +39,11 @@ class FileSyncApp(ctk.CTk):
         
         # 初始化状态栏引用（在加载语言前使用）
         self.status_bar = None
+
+        # v7.6: 后台线程 → 主线程事件队列
+        # Tk 只允许在主线程操作，后台线程（同步线程等）一律通过 post_ui 投递回调
+        self._ui_events: "queue.Queue" = queue.Queue()
+        self._ui_event_after_id = None
         
         # 1. 创建基础窗口（临时标题，语言加载后更新）
         self._setup_window()
@@ -64,7 +70,10 @@ class FileSyncApp(ctk.CTk):
         # 8. 显示首页
         self.show_page("home")
         
-        # 9. 状态栏显示就绪
+        # 9. 启动后台线程事件泵（主线程定时消费投递的回调）
+        self._poll_ui_events()
+
+        # 10. 状态栏显示就绪
         self._update_status("ready")
     
     def _check_recovery_on_start(self):
@@ -279,6 +288,38 @@ class FileSyncApp(ctk.CTk):
         )
         self.shutdown_cancel_btn.pack(side="left")
         self.shutdown_frame.grid_remove()
+
+    # ===================== v7.6: 后台线程 → 主线程事件泵 =====================
+
+    def post_ui(self, callback):
+        """
+        线程安全地投递界面回调（可在任意后台线程调用）
+
+        后台线程禁止直接调用 Tk 控件或 self.after(...)（macOS 上跨线程调用
+        Tcl 会触发段错误），只能把回调放入队列，由主线程的 _poll_ui_events 执行。
+
+        Args:
+            callback: 无参可调用对象，将在主线程中执行
+        """
+        self._ui_events.put(callback)
+
+    def _poll_ui_events(self):
+        """主线程定时器：取出后台线程投递的回调并执行"""
+        self._ui_event_after_id = None
+        while True:
+            try:
+                callback = self._ui_events.get_nowait()
+            except queue.Empty:
+                break
+            try:
+                callback()
+            except Exception as e:
+                print(f"⚠️ 界面事件处理失败：{e}")
+        try:
+            if self.winfo_exists():
+                self._ui_event_after_id = self.after(100, self._poll_ui_events)
+        except Exception:
+            self._ui_event_after_id = None
     
     def _update_status(self, stage: str):
         """
@@ -952,38 +993,50 @@ class FileSyncApp(ctk.CTk):
                     direction=sync_direction,
                     last_snapshot=last_snapshot
                 ))
-
-                # 保存本次同步的文件快照
-                if sync_engine.last_snapshot:
-                    task_config["last_snapshot"] = sync_engine.last_snapshot
-                    
-                    # 持久化到任务配置（如果任务已保存）
-                    task_id = task_config.get("id")
-                    if task_id:
-                        existing_task = self.task_manager.get_task_by_id(task_id)
-                        if existing_task:
-                            self.task_manager.update_task(task_id, {
-                                "last_snapshot": sync_engine.last_snapshot
-                            })
-                
-                # 同步完成
-                self._on_sync_complete(task_info.get("id"), sync_success=sync_success)
+                # v7.6: 后台线程不直接碰界面，收尾工作投递到主线程执行
+                snapshot = sync_engine.last_snapshot
+                self.post_ui(
+                    lambda: self._finish_sync(task_info, task_config, sync_success, snapshot)
+                )
             except Exception as e:
                 print(f"同步错误: {e}")
-                # 更新进度页面显示错误
-                sync_progress_page = self.pages.get("sync_progress")
-                if sync_progress_page:
-                    error_msg = f"同步中断：{str(e)}"
-                    sync_progress_page.status_label.configure(
-                        text=error_msg,
-                        text_color="red"
-                    )
-                    sync_progress_page.set_complete(success=False)
-                self._on_sync_cancel(task_info.get("id"), failure=True)
+                self.post_ui(lambda err=e: self._on_sync_error(task_info, err))
         
         # 启动后台线程执行同步
         sync_thread = threading.Thread(target=run_sync, daemon=True)
         sync_thread.start()
+
+    def _finish_sync(self, task_info, task_config, sync_success, snapshot):
+        """同步线程结束后的主线程收尾：保存文件快照并更新界面"""
+        # 保存本次同步的文件快照
+        if snapshot:
+            task_config["last_snapshot"] = snapshot
+
+            # 持久化到任务配置（如果任务已保存）
+            task_id = task_config.get("id")
+            if task_id:
+                existing_task = self.task_manager.get_task_by_id(task_id)
+                if existing_task:
+                    self.task_manager.update_task(task_id, {
+                        "last_snapshot": snapshot
+                    })
+
+        # 同步完成
+        self._on_sync_complete(task_info.get("id"), sync_success=sync_success)
+
+    def _on_sync_error(self, task_info, error):
+        """同步异常：在主线程更新进度页错误提示并收尾"""
+        sync_progress_page = self.pages.get("sync_progress")
+        if sync_progress_page:
+            try:
+                sync_progress_page.status_label.configure(
+                    text=f"同步中断：{error}",
+                    text_color="red"
+                )
+                sync_progress_page.set_complete(success=False)
+            except Exception:
+                pass
+        self._on_sync_cancel(task_info.get("id"), failure=True)
     
     def start_sync_from_interrupted(self, task_info, interrupted_task_id=None):
         """从打断任务继续同步"""

@@ -3,6 +3,8 @@
 显示同步进度、速度、剩余时间等信息，支持寿命保护暂停状态显示
 """
 
+import copy
+import queue
 import customtkinter as ctk
 from backend.language_manager import get_font
 import time
@@ -55,9 +57,17 @@ class SyncProgressPage(ctk.CTkFrame):
 
         # 进度刷新定时器
         self.refresh_timer = None
+
+        # v7.6: 线程安全进度队列 —— 后台同步线程只投递进度快照，
+        # 由主线程定时取出后更新界面（macOS 上跨线程操作 Tk 会导致段错误）
+        self._progress_queue: "queue.Queue" = queue.Queue()
+        self._queue_after_id = None
         
         # 设置布局
         self._setup_layout()
+
+        # 启动主线程队列轮询（页面在主线程创建，after 只会由主线程调度）
+        self._queue_after_id = self.after(100, self._check_queue)
     
     def _setup_layout(self):
         """设置布局"""
@@ -440,11 +450,63 @@ class SyncProgressPage(ctk.CTkFrame):
             except Exception:
                 pass
             self.refresh_timer = None
+        # v7.6: 取消进度队列轮询定时器
+        if getattr(self, '_queue_after_id', None) is not None:
+            try:
+                self.after_cancel(self._queue_after_id)
+            except Exception:
+                pass
+            self._queue_after_id = None
+        # v7.6: 页面销毁后解绑引擎进度回调，避免后台线程继续向废弃页面队列投递
+        if self.sync_engine is not None:
+            try:
+                if getattr(self.sync_engine, '_progress_callback', None) == self._on_progress_update:
+                    self.sync_engine.set_progress_callback(None)
+            except Exception:
+                pass
     
     def _on_progress_update(self, progress):
         """
-        进度更新回调
-        
+        进度更新回调（可能由后台同步线程或其工作线程调用）
+
+        v7.6: 后台线程严禁触碰任何 Tk 控件（macOS 上会触发段错误），
+        这里只把进度快照放入线程安全队列，由主线程的 _check_queue 定时取出渲染。
+
+        Args:
+            progress: SyncProgress 对象
+        """
+        try:
+            # 引擎复用同一个 SyncProgress 对象，必须拷贝快照后再入队
+            snapshot = copy.copy(progress)
+        except Exception:
+            snapshot = progress
+        self._progress_queue.put(snapshot)
+
+    def _check_queue(self):
+        """
+        主线程定时器：取出后台线程投递的进度快照并更新界面
+
+        只处理最新一条，避免高频进度把 UI 淹没。
+        """
+        self._queue_after_id = None
+        latest = None
+        while True:
+            try:
+                latest = self._progress_queue.get_nowait()
+            except queue.Empty:
+                break
+        if latest is not None:
+            self._apply_progress(latest)
+        try:
+            if self.winfo_exists():
+                self._queue_after_id = self.after(100, self._check_queue)
+        except Exception:
+            self._queue_after_id = None
+
+    def _apply_progress(self, progress):
+        """
+        在主线程中应用进度数据并刷新界面
+
         Args:
             progress: SyncProgress 对象
         """
