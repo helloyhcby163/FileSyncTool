@@ -1,14 +1,15 @@
 """
-文件同步工具 v7.6 - 程序入口
+文件同步工具 v7.7 - 程序入口
 基于 CustomTkinter 的图形界面版本
-继承 v7.5 的所有功能，v7.6 新增：
-- 命令行执行：--task "任务名" [--silent]
-- 实时监控：--watch "任务名" [--idle 秒数]，空闲触发，Ctrl+C 退出
-- 崩溃弹窗支持“查看详细信息”（在终端中打开日志）
+继承 v7.6 的所有功能，v7.7 新增：
+- 插入 U 盘自动同步（后台独立线程监听，任务级设备绑定 + 全局开关）
+- 自动版本更新（24 小时检查、镜像加速下载、Windows 临时 .bat 替换）
+- AI 帮我配置（预置 Prompt 一键复制 + JSON 导入预填新建任务）
 
 历史版本：
 - v7.4：全局异常捕获、打包资源路径、跨平台配置目录、系统语言检测
 - v7.5：多语言架构重构
+- v7.6：命令行自动化、后台监听、工具包、外挂语言目录
 """
 
 import sys
@@ -306,7 +307,7 @@ def set_window_icon(root) -> bool:
 
 # ========== v7.6: 命令行模式（--task / --watch / --list-tasks） ==========
 
-CLI_HELP_DESCRIPTION = """FileSyncTool v7.6 - 跨平台文件同步工具
+CLI_HELP_DESCRIPTION = """FileSyncTool v7.7 - 跨平台文件同步工具
 
 用法：
   FileSyncTool                             启动图形界面
@@ -507,6 +508,20 @@ def main():
         # v7.6: 设置窗口图标（失败静默跳过）
         set_window_icon(global_app)
 
+        # v7.7: 异常退出检测（运行锁：正常退出时删除）
+        try:
+            from backend import crash_guard
+
+            crash_detected = crash_guard.acquire(
+                global_app.config_manager.get_config_dir()
+            )
+        except Exception as exc:
+            print(f"异常退出检测跳过: {exc}")
+            crash_guard = None
+            crash_detected = False
+        if crash_detected:
+            global_app.after(600, global_app.show_crash_recovery_dialog)
+
         # 2. 应用和语言加载完成后，再注册信号处理器
         #    确保 signal_handler 触发时语言系统已就绪
         setup_signal_handlers()
@@ -519,7 +534,11 @@ def main():
             pass
 
         # 4. 运行应用
-        global_app.mainloop()
+        try:
+            global_app.mainloop()
+        finally:
+            if crash_guard is not None:
+                crash_guard.release()
 
     except Exception as e:
         print(f"程序启动失败: {e}")

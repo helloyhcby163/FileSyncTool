@@ -1,0 +1,1598 @@
+2026-09-17T23:02:56.0991112+08:00 [INF]
+FastGithub.HttpServer
+已监听https://localhost:443，https反向代理服务启动完成
+
+2026-09-17T23:02:56.1511773+08:00 [INF]
+FastGithub.HttpServer
+已监听http://localhost:80，http反向代理服务启动完成
+
+2026-09-17T23:02:56.2397567+08:00 [INF]
+FastGithub.HttpServer
+已监听ssh://localhost:22，github的ssh反向代理服务启动完成
+
+2026-09-17T23:02:56.2426312+08:00 [INF]
+FastGithub.HttpServer
+已监听git://localhost:9418，github的git反向代理服务启动完成
+
+2026-09-17T23:02:56.3117692+08:00 [INF]
+FastGithub.AppHostedService
+
+======[ FastGithub 启动完成，当前版本为 V2.1.5 ]======
+
+
+2026-09-17T23:03:02.6929024+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+mozilla.map.fastly.net->127.0.0.1
+
+2026-09-17T23:03:02.6976209+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+mozilla.map.fastly.net->::1
+
+2026-09-17T23:03:06.8040524+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github.com->127.0.0.1
+
+2026-09-17T23:03:06.8064706+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github.com->::1
+
+2026-09-17T23:03:06.8090552+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github.com->127.0.0.1
+
+2026-09-17T23:03:06.8112560+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github.com->::1
+
+2026-09-17T23:03:07.8393953+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github.githubassets.com->127.0.0.1
+
+2026-09-17T23:03:07.8418670+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github.githubassets.com->::1
+
+2026-09-17T23:03:07.8451935+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github.githubassets.com->::1
+
+2026-09-17T23:03:09.0594070+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/service-worker-1619cc513136b4e1.js responded 200 in 1075.7155 ms
+
+2026-09-17T23:03:13.3276943+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+github.com@119.29.29.29:53->Unexpected end of stream
+
+2026-09-17T23:03:14.8057777+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+github.com:443->[20.205.243.166]
+
+2026-09-17T23:03:18.1972097+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+api.github.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-17T23:03:22.4986824+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/assets-cdn/worker/service-worker-1619cc513136b4e1.js responded 200 in 14657.4584 ms
+
+2026-09-17T23:03:23.0227747+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+avatars.githubusercontent.com->127.0.0.1
+
+2026-09-17T23:03:23.0248918+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+avatars.githubusercontent.com->::1
+
+2026-09-17T23:03:23.0278508+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+user-images.githubusercontent.com->127.0.0.1
+
+2026-09-17T23:03:23.0301619+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+user-images.githubusercontent.com->::1
+
+2026-09-17T23:03:23.0325044+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github-cloud.s3.amazonaws.com->127.0.0.1
+
+2026-09-17T23:03:23.0346702+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github-cloud.s3.amazonaws.com->::1
+
+2026-09-17T23:03:23.0367479+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+avatars.githubusercontent.com->127.0.0.1
+
+2026-09-17T23:03:23.0387002+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+user-images.githubusercontent.com->127.0.0.1
+
+2026-09-17T23:03:23.0408059+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github-cloud.s3.amazonaws.com->127.0.0.1
+
+2026-09-17T23:03:23.0432308+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+avatars.githubusercontent.com->::1
+
+2026-09-17T23:03:23.0455333+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+user-images.githubusercontent.com->::1
+
+2026-09-17T23:03:23.0479205+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github-cloud.s3.amazonaws.com->::1
+
+2026-09-17T23:03:23.4881395+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+api.github.com:443->[20.205.243.168]
+
+2026-09-17T23:03:23.7598449+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/primer-primitives-ed9ca172356fd545.css responded 200 in 712.8936 ms
+
+2026-09-17T23:03:23.7604454+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/releases-5dc30fe996d56214.css responded 200 in 709.6672 ms
+
+2026-09-17T23:03:23.8080574+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/global-54ba76e934a49d7c.css responded 200 in 759.558 ms
+
+2026-09-17T23:03:23.8517032+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/scheduler-58b860b049ca307c.js responded 200 in 796.9966 ms
+
+2026-09-17T23:03:23.8562393+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/light-99f877e9ddfc0e51.css responded 200 in 810.6628 ms
+
+2026-09-17T23:03:23.8920390+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/react-e27d1b3e03961e68.js responded 200 in 838.0754 ms
+
+2026-09-17T23:03:23.9160571+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/tailwind-46b53ca2d13bc09d.css responded 200 in 866.5975 ms
+
+2026-09-17T23:03:23.9430402+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/repository-11ee8a031c040c1a.css responded 200 in 892.7175 ms
+
+2026-09-17T23:03:23.9486307+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/wp-runtime-9c7fe92d3bef1039.js responded 200 in 623.1181 ms
+
+2026-09-17T23:03:23.9531653+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/app-runtime.94e436d05b4d028c.module.css responded 200 in 627.6654 ms
+
+2026-09-17T23:03:23.9682227+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/react-jsx-runtime-4915cb0f5b3aff04.js responded 200 in 911.4764 ms
+
+2026-09-17T23:03:24.0245617+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/primer-tailwind-compatible-330c475bd59f66d2.css responded 200 in 976.9233 ms
+
+2026-09-17T23:03:24.0465262+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/fetch-utilities-5305162aa9984914.js responded 200 in 720.3117 ms
+
+2026-09-17T23:03:24.0621791+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/catalyst-86a8f5de995615f8.js responded 200 in 735.4201 ms
+
+2026-09-17T23:03:24.0621833+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/environment-7bd78f69ac934119.js responded 200 in 735.649 ms
+
+2026-09-17T23:03:24.0898167+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/app-runtime-eed8df9c2267c378.js responded 200 in 763.9451 ms
+
+2026-09-17T23:03:24.1203407+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/relative-time-element-7cdf4e0db98b997c.js responded 200 in 318.8375 ms
+
+2026-09-17T23:03:24.1252215+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/react-core.5858534b1c27f133.module.css responded 200 in 330.5686 ms
+
+2026-09-17T23:03:24.1296913+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/react-dom-client-1b4a3ee065998cea.js responded 200 in 1073.8956 ms
+
+2026-09-17T23:03:24.1502935+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/global-nav-bar.2bdd10896f2e8745.module.css responded 200 in 349.5285 ms
+
+2026-09-17T23:03:24.1641938+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/ser-cd1b421ad0ad7ed5.js responded 200 in 837.952 ms
+
+2026-09-17T23:03:24.1799562+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/aria-live-76b18916d0c8ec4d.js responded 200 in 375.4054 ms
+
+2026-09-17T23:03:24.1911027+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/j0-41a4cf04cbd99503.js responded 200 in 383.002 ms
+
+2026-09-17T23:03:24.1965638+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/gh-5178f11531818e74.js responded 200 in 383.4246 ms
+
+2026-09-17T23:03:24.2032389+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/04-9cb1f09b927a3a68.js responded 200 in 397.9464 ms
+
+2026-09-17T23:03:24.2036441+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/dark-79ad2ace604703b3.css responded 200 in 1157.1826 ms
+
+2026-09-17T23:03:24.2038911+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/9y-81cfe57dc9040f3e.js responded 200 in 396.0074 ms
+
+2026-09-17T23:03:24.2039418+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/keyboard-shortcuts-dialog.151d858616d31020.module.css responded 200 in 406.6957 ms
+
+2026-09-17T23:03:24.2041164+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/ncx-9a860680a5f230b9.js responded 200 in 395.0134 ms
+
+2026-09-17T23:03:24.2049862+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/2j-27e9ee2430e06be4.js responded 200 in 391.7622 ms
+
+2026-09-17T23:03:24.2052822+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/jz5-7c5d1669717041f8.js responded 200 in 402.6013 ms
+
+2026-09-17T23:03:24.2057437+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/kw-866fd9513ae95106.js responded 200 in 403.4827 ms
+
+2026-09-17T23:03:24.2061981+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/yhq-3a209035a30b1a09.js responded 200 in 399.539 ms
+
+2026-09-17T23:03:24.2099327+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/by-6b3c07383371bf58.js responded 200 in 408.1146 ms
+
+2026-09-17T23:03:24.2104049+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/sp-2bbb73a69162e23b.js responded 200 in 398.8741 ms
+
+2026-09-17T23:03:24.2114236+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/wo-09f85d22a6c8931b.js responded 200 in 403.6391 ms
+
+2026-09-17T23:03:24.2114544+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/z1v-da5b33b877bfa358.js responded 200 in 403.9065 ms
+
+2026-09-17T23:03:24.2114927+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/t7l-bf6f21d7e7a43c35.js responded 200 in 402.1766 ms
+
+2026-09-17T23:03:24.2209454+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/ge-6f569ad9cf172fd4.js responded 200 in 407.1211 ms
+
+2026-09-17T23:03:24.2211985+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/hotkey-5109c77d7ac61078.js responded 200 in 416.4816 ms
+
+2026-09-17T23:03:24.2220262+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/selector-observer-e88088f989b27670.js responded 200 in 420.7603 ms
+
+2026-09-17T23:03:24.2237373+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/b1-1dbc371cef78c3c1.js responded 200 in 412.6338 ms
+
+2026-09-17T23:03:24.2257961+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/4t-364e19c63d726e9a.js responded 200 in 419.9139 ms
+
+2026-09-17T23:03:24.2351085+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/j05-dce4d588268f0f7e.js responded 200 in 432.2198 ms
+
+2026-09-17T23:03:24.2379354+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/react-compiler-runtime-4610bd6d3de9c049.js responded 200 in 1183.9117 ms
+
+2026-09-17T23:03:24.3018642+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/global-nav-bar-ee0c1dda9c1d3875.js responded 200 in 487.6312 ms
+
+2026-09-17T23:03:24.3019450+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/r1-b075aab3204f32f9.js responded 200 in 499.6178 ms
+
+2026-09-17T23:03:24.3078384+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/github-456bd5deb85c7ecd.css responded 200 in 1258.7039 ms
+
+2026-09-17T23:03:24.3062540+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/c2z-c92998400310b94b.js responded 200 in 494.8617 ms
+
+2026-09-17T23:03:24.3026963+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/6ny-c969fbae697a356f.js responded 200 in 496.526 ms
+
+2026-09-17T23:03:24.3078579+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/dgq-ddebe3f7d2abb42d.js responded 200 in 495.1757 ms
+
+2026-09-17T23:03:24.3147877+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/keyboard-shortcuts-dialog-3eea1615b944fd69.js responded 200 in 504.6818 ms
+
+2026-09-17T23:03:24.3210242+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/n4u-6317ce1c31aed1db.js responded 200 in 510.763 ms
+
+2026-09-17T23:03:24.3204099+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/gzu-1a09248f686325f6.js responded 200 in 510.8456 ms
+
+2026-09-17T23:03:24.3558416+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/primer-react-css.9d59d1018a52a53c.module.css responded 200 in 561.1224 ms
+
+2026-09-17T23:03:24.3630037+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/github-elements-78bd113eb50584a0.js responded 200 in 559.9265 ms
+
+2026-09-17T23:03:24.4048062+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/ql0-6accb9e40c25a6a5.js responded 200 in 592.5504 ms
+
+2026-09-17T23:03:24.4057645+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/0p-81491ed0d9d666e2.js responded 200 in 597.5363 ms
+
+2026-09-17T23:03:24.4085689+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/ic-991f04433f366e7b.js responded 200 in 600.0785 ms
+
+2026-09-17T23:03:24.4085805+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/8t-91da53744036cd5e.js responded 200 in 594.5557 ms
+
+2026-09-17T23:03:24.4185783+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/bny-9d34b53fb13e944b.js responded 200 in 605.1549 ms
+
+2026-09-17T23:03:24.4190472+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/ec-ec74cb1fa6c31a3f.js responded 200 in 607.1081 ms
+
+2026-09-17T23:03:24.4259262+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/react-is-e0b593954b4706d8.js responded 200 in 1369.5518 ms
+
+2026-09-17T23:03:24.4284215+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/behaviors-4cd923a4cb5287b4.js responded 200 in 619.9989 ms
+
+2026-09-17T23:03:24.4344594+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/ql0.bd9e6b542f167fd8.module.css responded 200 in 634.2738 ms
+
+2026-09-17T23:03:24.4375380+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/bi0-e2f78de823e39ca9.js responded 200 in 627.6289 ms
+
+2026-09-17T23:03:24.4722563+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/ja9-36f036c13c2e3a4c.js responded 200 in 670.2768 ms
+
+2026-09-17T23:03:24.5081779+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/react-core-fbb00aaa3ab9abdf.js responded 200 in 703.2158 ms
+
+2026-09-17T23:03:24.5354776+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/app-foundation-74e9766bd696d26a.js responded 200 in 1209.8451 ms
+
+2026-09-17T23:03:24.5783944+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/eus-9708192171c5a40a.js responded 200 in 765.5297 ms
+
+2026-09-17T23:03:24.6081575+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/runtime-helpers-f3f5d71440009c48.js responded 200 in 804.08 ms
+
+2026-09-17T23:03:24.6082075+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/j8s-d90ce3a169b741ed.js responded 200 in 797.8066 ms
+
+2026-09-17T23:03:24.6100663+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/primer-react-12ebdc24dcff1ecc.js responded 200 in 801.145 ms
+
+2026-09-17T23:03:24.6415412+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/hj-5126390ff433704d.js responded 200 in 838.7654 ms
+
+2026-09-17T23:03:24.7121680+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/svf-a3057e54e0f7e98e.js responded 200 in 901.5019 ms
+
+2026-09-17T23:03:24.7651550+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/urv-b9498edf8699ddd8.js responded 200 in 959.7061 ms
+
+2026-09-17T23:03:24.8124331+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/or-a481dd9d4091828c.js responded 200 in 1001.4427 ms
+
+2026-09-17T23:03:24.8186294+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/element-registry-bc2eb78276470115.js responded 200 in 1014.8907 ms
+
+2026-09-17T23:03:24.8652417+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/react-reconciler-8e99e505c4429605.js responded 200 in 1807.9432 ms
+
+2026-09-17T23:03:24.9582987+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/repositories-e64bd1803252072e.js responded 200 in 1149.5045 ms
+
+2026-09-17T23:03:24.9664179+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/l7j-2ddd8b435dadae28.js responded 200 in 1156.9571 ms
+
+2026-09-17T23:03:25.4466774+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/6n7-86868bb79ce1afc7.js responded 200 in 1635.8211 ms
+
+2026-09-17T23:03:25.5878403+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/j6-363f0ebf4f62f310.js responded 200 in 1777.6281 ms
+
+2026-09-17T23:03:26.6966066+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/react-dom-e5fd46a22d5c4058.js responded 200 in 3641.1839 ms
+
+2026-09-17T23:03:26.9406213+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+github.githubassets.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-17T23:03:28.2585791+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+github.githubassets.com:443->[2606:50c0:8002::215, 2606:50c0:8001::215, 2606:50c0:8000::215]
+
+2026-09-17T23:03:28.8852536+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/stromblex/VartaPack/releases responded 200 in 21597.3369 ms
+
+2026-09-17T23:03:29.0383975+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-xg-c0e5384be9289378.js responded 200 in 115.0861 ms
+
+2026-09-17T23:03:29.0395265+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-lazy-element-toggle-switch-0b0e875a5b4f4f2e.js responded 200 in 78.8333 ms
+
+2026-09-17T23:03:29.0498151+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-lazy-element-cookie-consent-link-107acedd3d61c045.js responded 200 in 87.4595 ms
+
+2026-09-17T23:03:29.0530146+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/bv.b256b1d32b3fe209.module.css responded 200 in 88.1413 ms
+
+2026-09-17T23:03:29.0583184+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-lazy-element-ghcc-consent-c2868a800ad1375a.js responded 200 in 94.5615 ms
+
+2026-09-17T23:03:29.0633147+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/u2l.3466b02db23691e4.module.css responded 200 in 97.3637 ms
+
+2026-09-17T23:03:29.0633621+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-lazy-react-partial-global-nav-bar-886ad3913c875b06.js responded 200 in 97.6317 ms
+
+2026-09-17T23:03:29.0690068+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-lazy-element-reactions-menu-6acbfd0b41f9f06f.js responded 200 in 107.0564 ms
+
+2026-09-17T23:03:29.1470682+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-lazy-react-partial-keyboard-shortcuts-dialog-1658a82db610d1af.js responded 200 in 180.7016 ms
+
+2026-09-17T23:03:29.1573433+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-lazy-element-webauthn-get-feb0edd03376a730.js responded 200 in 192.9983 ms
+
+2026-09-17T23:03:29.2166716+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/5j.552f29910a801124.module.css responded 200 in 96.5572 ms
+
+2026-09-17T23:03:29.2185189+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/on-95be29ba1ef725d9.js responded 200 in 93.0378 ms
+
+2026-09-17T23:03:29.2270243+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/5r.aae84376abc656a1.module.css responded 200 in 101.3115 ms
+
+2026-09-17T23:03:29.2524964+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/fg.adb81b70ebd48273.module.css responded 200 in 85.8292 ms
+
+2026-09-17T23:03:29.2562381+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://avatars.githubusercontent.com/u/318166824 responded 200 in 4873.1147 ms
+
+2026-09-17T23:03:29.2562882+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-fg-469552acb62e3fe2.js responded 200 in 89.6551 ms
+
+2026-09-17T23:03:29.3192435+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/js-9f65c476840ac516.js responded 200 in 357.2579 ms
+
+2026-09-17T23:03:29.3449122+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/ku-fd72475f2795cf3b.js responded 200 in 225.5485 ms
+
+2026-09-17T23:03:29.3539999+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-lazy-element-select-panel-c1e7af998a1d00c5.js responded 200 in 394.829 ms
+
+2026-09-17T23:03:29.3918060+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-3m-a5bd6eb6538dbb98.js responded 200 in 468.4879 ms
+
+2026-09-17T23:03:29.3964366+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-5j-32c89226ebebf548.js responded 200 in 275.8877 ms
+
+2026-09-17T23:03:29.4063129+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/wsr-5fd3071e5a9061ab.js responded 200 in 281.6492 ms
+
+2026-09-17T23:03:29.4321064+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/gkm-e4db64bbc3c67a63.js responded 200 in 306.4884 ms
+
+2026-09-17T23:03:29.4619369+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://avatars.githubusercontent.com/u/88762254 responded 200 in 2461.9064 ms
+
+2026-09-17T23:03:29.5952301+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/pk3-391f4f6d6744735a.js responded 200 in 637.083 ms
+
+2026-09-17T23:03:29.6983364+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-lazy-element-notification-shelf-watcher-1ab65743573d8e7b.js responded 200 in 740.0976 ms
+
+2026-09-17T23:03:29.7977763+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/in-product-messaging/copilot-budget-request-banner responded 200 in 830.2924 ms
+
+2026-09-17T23:03:29.9446272+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+collector.github.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-17T23:03:29.9917834+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/assets-cdn/worker/service-worker-cb356ea864bb5bb5.js responded 200 in 1060.4428 ms
+
+2026-09-17T23:03:30.0373983+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/stromblex/VartaPack/releases/expanded_assets/v1.1.4-mc26.2-beta responded 200 in 1064.209 ms
+
+2026-09-17T23:03:30.1380100+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/assets-cdn/worker/chunk-8-1b15c87cf86fcbcf.js responded 200 in 1165.0441 ms
+
+2026-09-17T23:03:30.1401964+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/in-product-messaging/code-scanning-ai-findings-preview-banner responded 204 in 1172.6456 ms
+
+2026-09-17T23:03:30.2148589+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/notifications/indicator responded 200 in 1089.5808 ms
+
+2026-09-17T23:03:30.2593785+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-8-1b15c87cf86fcbcf.js responded 200 in 115.1231 ms
+
+2026-09-17T23:03:30.3339698+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/service-worker-cb356ea864bb5bb5.js responded 200 in 328.2082 ms
+
+2026-09-17T23:03:30.5068046+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/github-copilot/chat responded 200 in 1372.6692 ms
+
+2026-09-17T23:03:30.6425103+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/vw-d31d4b4cb587bf1c.js responded 200 in 83.9973 ms
+
+2026-09-17T23:03:30.7024179+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/xv-51cb34754bda73a9.js responded 200 in 145.48 ms
+
+2026-09-17T23:03:30.7081871+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/69-974b6f2def47a0b8.js responded 200 in 132.9241 ms
+
+2026-09-17T23:03:30.7084321+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/7i-c769dfe67600326e.js responded 200 in 131.8103 ms
+
+2026-09-17T23:03:30.7306476+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/d4-052601b28dcad97b.js responded 200 in 178.5077 ms
+
+2026-09-17T23:03:30.7310554+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/q6a-f58a8249a9dcbd8c.js responded 200 in 141.226 ms
+
+2026-09-17T23:03:30.7328975+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/h6j-d6d964c43b87c95e.js responded 200 in 145.9124 ms
+
+2026-09-17T23:03:30.7337860+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/ugx-f88e84d4232afab3.js responded 200 in 157.6489 ms
+
+2026-09-17T23:03:30.7540392+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/dxf-581f854ae7c12fdb.js responded 200 in 171.7713 ms
+
+2026-09-17T23:03:30.7750633+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/zlf-d0486c38d245778c.js responded 200 in 185.6928 ms
+
+2026-09-17T23:03:30.7755378+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/m4.194c0d76bec1bd3a.module.css responded 200 in 190.3468 ms
+
+2026-09-17T23:03:30.7758308+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/8n0-0163c6001d984b30.js responded 200 in 189.3875 ms
+
+2026-09-17T23:03:30.7781691+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/xf-9fc1a567d143f175.js responded 200 in 202.5621 ms
+
+2026-09-17T23:03:30.7865664+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/s8d-dd5312d0a0e0442d.js responded 200 in 206.0907 ms
+
+2026-09-17T23:03:30.7900795+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/b9-69d9b60a1b1fcd59.js responded 200 in 200.0015 ms
+
+2026-09-17T23:03:30.7950059+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/yt.dc65a20875ce11f4.module.css responded 200 in 202.9117 ms
+
+2026-09-17T23:03:30.8025915+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/jd-5b7056d52533adb1.js responded 200 in 211.4888 ms
+
+2026-09-17T23:03:30.8032684+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/9a0-743df31ee349c68f.js responded 200 in 209.2221 ms
+
+2026-09-17T23:03:30.8032842+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/sy.42c49f7558fbdf01.module.css responded 200 in 212.1456 ms
+
+2026-09-17T23:03:30.8039837+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/du-bbe0f39cd2abe9a0.js responded 200 in 210.9902 ms
+
+2026-09-17T23:03:30.8041612+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/wp7-94fecd081829b07d.js responded 200 in 210.5814 ms
+
+2026-09-17T23:03:30.8059464+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/7u-3bce321eed0c3f8c.js responded 200 in 215.4557 ms
+
+2026-09-17T23:03:30.8060510+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/f9-038758dcbfe08dab.js responded 200 in 220.2306 ms
+
+2026-09-17T23:03:30.8290102+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/zo-f955a139adbd74f7.js responded 200 in 245.0187 ms
+
+2026-09-17T23:03:30.8290132+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/gk-a76432db49e320de.js responded 200 in 238.2029 ms
+
+2026-09-17T23:03:30.8292188+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/20x-3816f66aa95f0fea.js responded 200 in 234.8044 ms
+
+2026-09-17T23:03:30.8324297+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+collector.github.com:443->[140.82.114.21, 140.82.114.22, 140.82.112.22]
+
+2026-09-17T23:03:30.8616751+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/811-6fc98d9031364156.js responded 200 in 272.8533 ms
+
+2026-09-17T23:03:30.9040200+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-8q-422d162f1bf80b73.js responded 200 in 638.903 ms
+
+2026-09-17T23:03:30.9092508+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/d6-1bb61b30300be3e6.js responded 200 in 328.089 ms
+
+2026-09-17T23:03:30.9095237+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/la-de176c4ee471f2b3.js responded 200 in 336.6443 ms
+
+2026-09-17T23:03:30.9099145+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/k0-d18afcaaf2e8d80c.js responded 200 in 337.7403 ms
+
+2026-09-17T23:03:30.9108118+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/k7k-6ea7f3236765c7c5.js responded 200 in 317.9803 ms
+
+2026-09-17T23:03:30.9119645+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+alive.github.com->127.0.0.1
+
+2026-09-17T23:03:30.9215742+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+alive.github.com->::1
+
+2026-09-17T23:03:30.9246224+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+alive.github.com->127.0.0.1
+
+2026-09-17T23:03:30.9267479+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+alive.github.com->::1
+
+2026-09-17T23:03:30.9291015+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/kn-9df91178d62344b7.js responded 200 in 371.8617 ms
+
+2026-09-17T23:03:30.9619150+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/va-87a7234780a05e2b.js responded 200 in 386.1493 ms
+
+2026-09-17T23:03:30.9619149+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/ko-4124a7e286bb1d1c.js responded 200 in 385.406 ms
+
+2026-09-17T23:03:30.9681872+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-5r-c59237ecb41bf442.js responded 200 in 1842.3019 ms
+
+2026-09-17T23:03:30.9682612+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/s5-64efbe2785c83394.js responded 200 in 400.4888 ms
+
+2026-09-17T23:03:30.9771529+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/wws-7cb60285648e8f22.js responded 200 in 396.1294 ms
+
+2026-09-17T23:03:30.9771554+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/q1-c083af7a1b4d2f6f.js responded 200 in 400.7253 ms
+
+2026-09-17T23:03:30.9774621+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/aa-59b6c032a90659cf.js responded 200 in 407.6729 ms
+
+2026-09-17T23:03:30.9781809+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/7rj-a3e2d6849e23ead8.js responded 200 in 399.6967 ms
+
+2026-09-17T23:03:30.9782178+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/0b-04ca89778d793dfe.js responded 200 in 399.9215 ms
+
+2026-09-17T23:03:30.9835010+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/r3-07dd2c6c18ca97d4.js responded 200 in 399.7905 ms
+
+2026-09-17T23:03:30.9836075+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/0l5-55aa9485c732f0ca.js responded 200 in 400.5633 ms
+
+2026-09-17T23:03:31.0011139+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/b3-734f9afaff81ad54.js responded 200 in 403.5591 ms
+
+2026-09-17T23:03:31.0104014+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/github-copilot/chat/entitlement responded 200 in 1886.6318 ms
+
+2026-09-17T23:03:31.0108382+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/a6-9562127ae8990ece.js responded 200 in 441.396 ms
+
+2026-09-17T23:03:31.0143075+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/ig.51915e9727238936.module.css responded 200 in 418.7452 ms
+
+2026-09-17T23:03:31.0143102+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/9o-ec53cecae10d65e0.js responded 200 in 416.4655 ms
+
+2026-09-17T23:03:31.0143649+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/4x8-047c7d5cf5ee94d1.js responded 200 in 426.0937 ms
+
+2026-09-17T23:03:31.0143699+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/nt-0d13053daae51002.js responded 200 in 431.6949 ms
+
+2026-09-17T23:03:31.0273632+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/4x-6122000c83d92f07.js responded 200 in 446.0339 ms
+
+2026-09-17T23:03:31.0273634+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/m4-e757ad16cfb6cb72.js responded 200 in 441.7809 ms
+
+2026-09-17T23:03:31.0391055+08:00 [ERR]
+Microsoft.AspNetCore.Server.Kestrel
+Connection id "0HNOKPJ0TFRFR", Request id "0HNOKPJ0TFRFR:00000003": An unhandled exception was thrown by the application.
+System.NotSupportedException: Unsupported request method 'CONNECT'.
+   at Yarp.ReverseProxy.Forwarder.RequestUtilities.GetHttpMethod(String method)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.CreateRequestMessageAsync(HttpContext context, String destinationPrefix, HttpTransformer transformer, ForwarderRequestConfig requestConfig, Boolean isStreamingRequest, ActivityCancellationTokenSource activityToken)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.SendAsync(HttpContext context, String destinationPrefix, HttpMessageInvoker httpClient, ForwarderRequestConfig requestConfig, HttpTransformer transformer)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpReverseProxyMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpProxyPacMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.HttpProtocol.ProcessRequests[TContext](IHttpApplication`1)
+
+2026-09-17T23:03:31.0681481+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/gq.36c66c6a931072ef.module.css responded 200 in 470.0327 ms
+
+2026-09-17T23:03:31.1007803+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/dl-e9a98ff89057b0dc.js responded 200 in 499.7638 ms
+
+2026-09-17T23:03:31.1072698+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/jg-9e197c2996b9e285.js responded 200 in 512.5683 ms
+
+2026-09-17T23:03:31.1073515+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/t73-207626e9a0342004.js responded 200 in 396.4197 ms
+
+2026-09-17T23:03:31.1073934+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/pb-f2eaac6049866ac0.js responded 200 in 370.6832 ms
+
+2026-09-17T23:03:31.1074358+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/oq-46fd8c318b899532.js responded 200 in 393.7131 ms
+
+2026-09-17T23:03:31.1120673+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/ig-6409b299447c4d21.js responded 200 in 516.3081 ms
+
+2026-09-17T23:03:31.1228227+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/rp-9f560c706b08d4b8.js responded 200 in 543.4237 ms
+
+2026-09-17T23:03:31.1229195+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/na-59804430583f7fd5.js responded 200 in 545.3377 ms
+
+2026-09-17T23:03:31.1229547+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/4u.8c9d0a996012abca.module.css responded 200 in 382.4218 ms
+
+2026-09-17T23:03:31.1229751+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/e0-b2069ddd18fc5236.js responded 200 in 542.8903 ms
+
+2026-09-17T23:03:31.1240304+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/u.d7bdfb98b5635c5f.module.css responded 200 in 526.8945 ms
+
+2026-09-17T23:03:31.1250135+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/1xi-5c4e0822a435ab10.js responded 200 in 549.5337 ms
+
+2026-09-17T23:03:31.1250700+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/0k-b7df0a74912a42bf.js responded 200 in 537.7555 ms
+
+2026-09-17T23:03:31.1270852+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/u6-f1841b21f62a7857.js responded 200 in 550.0927 ms
+
+2026-09-17T23:03:31.1328309+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/ux-74c37b78caa8232a.js responded 200 in 532.3588 ms
+
+2026-09-17T23:03:31.1331293+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/cze-8d904bc48147e1b3.js responded 200 in 534.3416 ms
+
+2026-09-17T23:03:31.1339892+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/xn-16efb81e447738af.js responded 200 in 545.9 ms
+
+2026-09-17T23:03:31.1340649+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/w.a0edd08f42a255b7.module.css responded 200 in 534.2677 ms
+
+2026-09-17T23:03:31.1653070+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/53-b823b12804baffa4.js responded 200 in 572.7446 ms
+
+2026-09-17T23:03:31.1653117+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/51s-1e4b2fa3a2927fb0.js responded 200 in 574.3903 ms
+
+2026-09-17T23:03:31.1655548+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/jq-0a20bc7b9b84dc80.js responded 200 in 569.2735 ms
+
+2026-09-17T23:03:31.1655868+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/gda-839591e97bdffa24.js responded 200 in 599.5282 ms
+
+2026-09-17T23:03:31.1660671+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/9n.0fee5e538977a943.module.css responded 200 in 379.94 ms
+
+2026-09-17T23:03:31.1662743+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/dsj-cb1e4ddbce4f007b.js responded 200 in 570.2408 ms
+
+2026-09-17T23:03:31.1671686+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/1i-7eb3b4719528b9f7.js responded 200 in 347.9802 ms
+
+2026-09-17T23:03:31.1936245+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/0.7ef90864aa037e47.module.css responded 200 in 360.3229 ms
+
+2026-09-17T23:03:31.1936248+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/om-40f62de88571b47f.js responded 200 in 596.7923 ms
+
+2026-09-17T23:03:31.2023671+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-yj-81d3b7c6a508c0da.js responded 200 in 230.6573 ms
+
+2026-09-17T23:03:31.2687539+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/tc-147a754fcab95fed.js responded 200 in 672.2416 ms
+
+2026-09-17T23:03:31.2740295+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/rd-43e5ae5cbfa0a993.js responded 200 in 358.3548 ms
+
+2026-09-17T23:03:31.2889743+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/pz-82eeeb40f7834652.js responded 200 in 696.6647 ms
+
+2026-09-17T23:03:31.2909149+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/mo-93c278666cd68062.js responded 200 in 701.7029 ms
+
+2026-09-17T23:03:31.2916936+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/9f-a235933bbeab8197.js responded 200 in 359.5914 ms
+
+2026-09-17T23:03:31.2930547+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/yj.b2bf58cfba884626.module.css responded 200 in 324.3376 ms
+
+2026-09-17T23:03:31.2966397+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/47z-c53a7c7297140168.js responded 200 in 722.098 ms
+
+2026-09-17T23:03:31.2966527+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/6j2-2061b1730e777184.js responded 200 in 698.0272 ms
+
+2026-09-17T23:03:31.2977001+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/7p-1c1a0a7b2db57ef7.js responded 200 in 518.5036 ms
+
+2026-09-17T23:03:31.2977573+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/x3-de52d8da4fb04368.js responded 200 in 484.3356 ms
+
+2026-09-17T23:03:31.3059686+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/ag-ee5fea3d700eac9a.js responded 200 in 522.6187 ms
+
+2026-09-17T23:03:31.3888498+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/1r-2e1fe7d11e744f89.js responded 200 in 801.3357 ms
+
+2026-09-17T23:03:31.3949959+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/l6-e489207bf5de6379.js responded 200 in 816.0416 ms
+
+2026-09-17T23:03:31.3973395+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/wp-9f5235d335ab624b.js responded 200 in 662.7605 ms
+
+2026-09-17T23:03:31.3974991+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/07-624b1bb56a25cb3b.js responded 200 in 432.1306 ms
+
+2026-09-17T23:03:31.3981130+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/yt-23cfc9b354c338b4.js responded 200 in 805.9319 ms
+
+2026-09-17T23:03:31.4037051+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/v.f28c7c500d3e6209.module.css responded 200 in 485.5158 ms
+
+2026-09-17T23:03:31.4138031+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/gu-f7ba93c785fd0e79.js responded 200 in 855.8743 ms
+
+2026-09-17T23:03:31.4138428+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/sk-753f7dc4b981716b.js responded 200 in 501.1218 ms
+
+2026-09-17T23:03:31.4359704+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/k7f-9e3210eb228cbb88.js responded 200 in 859.1443 ms
+
+2026-09-17T23:03:31.4975286+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/_global-navigation/payloads.json responded 200 in 2358.6098 ms
+
+2026-09-17T23:03:31.5157319+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+collector.github.com->127.0.0.1
+
+2026-09-17T23:03:31.5176332+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+collector.github.com->::1
+
+2026-09-17T23:03:31.5195438+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+collector.github.com->::1
+
+2026-09-17T23:03:31.5377309+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/d5.6915bb502f57ce0f.module.css responded 200 in 729.1994 ms
+
+2026-09-17T23:03:31.5436977+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/ns-65bc1e8fea42ae55.js responded 200 in 977.6827 ms
+
+2026-09-17T23:03:31.5966810+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/0g-db6a5ae4ee17e536.js responded 200 in 995.3715 ms
+
+2026-09-17T23:03:31.5972494+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/0c-c087cf98ed8dbfba.js responded 200 in 996.4368 ms
+
+2026-09-17T23:03:31.5979247+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/0l.552b95e450076f00.module.css responded 200 in 87.2821 ms
+
+2026-09-17T23:03:31.5993412+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-0l-fab714f8962215d1.js responded 200 in 87.5555 ms
+
+2026-09-17T23:03:31.6327199+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/og-93ae8b358505d372.js responded 200 in 1043.5453 ms
+
+2026-09-17T23:03:31.6950998+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/fe-7576d9b281e2106a.js responded 200 in 1149.5419 ms
+
+2026-09-17T23:03:31.7139618+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/cr5-525fa099b8f097ba.js responded 200 in 874.7389 ms
+
+2026-09-17T23:03:31.7308212+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/sa-6185d140ab8590ab.js responded 200 in 1163.3929 ms
+
+2026-09-17T23:03:31.8803527+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/dg7-9bae160cadcdf266.js responded 200 in 1014.8939 ms
+
+2026-09-17T23:03:31.9206886+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/ph-5724f76858164889.js responded 200 in 1349.4884 ms
+
+2026-09-17T23:03:31.9243996+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/fzy-b8766f7763e1b580.js responded 200 in 1341.5358 ms
+
+2026-09-17T23:03:31.9461813+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/c.276778c4f36f0075.module.css responded 200 in 1207.5591 ms
+
+2026-09-17T23:03:31.9527546+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/d.815fcc6dd4a3a912.module.css responded 200 in 1154.4469 ms
+
+2026-09-17T23:03:31.9593106+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/gq-9eeb1ec4427e3f62.js responded 200 in 1360.8559 ms
+
+2026-09-17T23:03:31.9878679+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/jx-3dc31d4d3697e451.js responded 200 in 1388.7098 ms
+
+2026-09-17T23:03:32.0612498+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/kczk-b4404d20841895f5.js responded 200 in 1356.2274 ms
+
+2026-09-17T23:03:32.0971101+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/ko6-9e80f7ac359e3c43.js responded 200 in 1274.9086 ms
+
+2026-09-17T23:03:32.1122457+08:00 [ERR]
+Microsoft.AspNetCore.Server.Kestrel
+Connection id "0HNOKPJ0TFRFR", Request id "0HNOKPJ0TFRFR:00000005": An unhandled exception was thrown by the application.
+System.NotSupportedException: Unsupported request method 'CONNECT'.
+   at Yarp.ReverseProxy.Forwarder.RequestUtilities.GetHttpMethod(String method)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.CreateRequestMessageAsync(HttpContext context, String destinationPrefix, HttpTransformer transformer, ForwarderRequestConfig requestConfig, Boolean isStreamingRequest, ActivityCancellationTokenSource activityToken)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.SendAsync(HttpContext context, String destinationPrefix, HttpMessageInvoker httpClient, ForwarderRequestConfig requestConfig, HttpTransformer transformer)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpReverseProxyMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpProxyPacMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.HttpProtocol.ProcessRequests[TContext](IHttpApplication`1)
+
+2026-09-17T23:03:32.1681539+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/w-4e04e65ea0b43362.js responded 200 in 1568.0947 ms
+
+2026-09-17T23:03:32.1689139+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/e8-3772153b6a0d767e.js responded 200 in 1387.7836 ms
+
+2026-09-17T23:03:32.1867652+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/in-product-messaging/organization-new-tasks-indicator.json responded 200 in 365.2805 ms
+
+2026-09-17T23:03:32.2057745+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/ay-ae0c7dee07306d9d.js responded 200 in 1412.0257 ms
+
+2026-09-17T23:03:32.2272755+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/sk.ede220332f78212c.module.css responded 200 in 1319.9242 ms
+
+2026-09-17T23:03:32.2720809+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/btx-0b80507295e70677.js responded 200 in 1696.1482 ms
+
+2026-09-17T23:03:32.3007653+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/v-16eac852873e401e.js responded 200 in 1380.2525 ms
+
+2026-09-17T23:03:32.4541962+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/hbs-62790db1cc2909a2.js responded 200 in 1808.5961 ms
+
+2026-09-17T23:03:32.4777791+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/_side-panels/user.json responded 200 in 656.3616 ms
+
+2026-09-17T23:03:32.6195842+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/1ae-13aff0e06f55977b.js responded 200 in 1803.397 ms
+
+2026-09-17T23:03:32.6895780+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/03-eb3d92393fed4f3d.js responded 200 in 2129.3686 ms
+
+2026-09-17T23:03:32.6917740+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 1071.5198 ms
+
+2026-09-17T23:03:32.9231129+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/in-product-messaging/enterprise-new-tasks-indicator.json responded 200 in 1101.1104 ms
+
+2026-09-17T23:03:32.9375408+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/4u-61c7bc9cb1256bfe.js responded 200 in 2181.5727 ms
+
+2026-09-17T23:03:33.2205786+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+codeload.github.com@119.29.29.29:53->Unexpected end of stream
+
+2026-09-17T23:03:33.2366826+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/9n-c68939934ebc8f52.js responded 200 in 2446.7944 ms
+
+2026-09-17T23:03:33.4107683+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/0-17f19dd373d5ea96.js responded 200 in 2574.5185 ms
+
+2026-09-17T23:03:33.5477819+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/rv-614f582987bbd18c.js responded 200 in 2976.2153 ms
+
+2026-09-17T23:03:33.5601017+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/d5-3abab094c3acc14f.js responded 200 in 2749.1157 ms
+
+2026-09-17T23:03:33.5799011+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/sy-df66866eea1c3648.js responded 200 in 2988.672 ms
+
+2026-09-17T23:03:33.6106239+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+codeload.github.com:443->[20.205.243.165]
+
+2026-09-17T23:03:33.8589912+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/58-ff9678555db2eff3.js responded 200 in 3268.7335 ms
+
+2026-09-17T23:03:34.1278448+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/1e-a6ba37d7c63d056a.js responded 200 in 3554.0271 ms
+
+2026-09-17T23:03:34.1734475+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/favicons/favicon-dark.svg responded 200 in 107.3397 ms
+
+2026-09-17T23:03:34.3020471+08:00 [ERR]
+Microsoft.AspNetCore.Server.Kestrel
+Connection id "0HNOKPJ0TFRFR", Request id "0HNOKPJ0TFRFR:00000007": An unhandled exception was thrown by the application.
+System.NotSupportedException: Unsupported request method 'CONNECT'.
+   at Yarp.ReverseProxy.Forwarder.RequestUtilities.GetHttpMethod(String method)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.CreateRequestMessageAsync(HttpContext context, String destinationPrefix, HttpTransformer transformer, ForwarderRequestConfig requestConfig, Boolean isStreamingRequest, ActivityCancellationTokenSource activityToken)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.SendAsync(HttpContext context, String destinationPrefix, HttpMessageInvoker httpClient, ForwarderRequestConfig requestConfig, HttpTransformer transformer)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpReverseProxyMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpProxyPacMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.HttpProtocol.ProcessRequests[TContext](IHttpApplication`1)
+
+2026-09-17T23:03:35.0007247+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/fluidicon.png responded 200 in 934.6528 ms
+
+2026-09-17T23:03:36.2700905+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/d-4948db40726cf24d.js responded 200 in 5464.1747 ms
+
+2026-09-17T23:03:36.4615928+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-2d-badc11534c2df900.js responded 200 in 135.1484 ms
+
+2026-09-17T23:03:36.5065231+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-45-9d23c4f94badb5bc.js responded 200 in 141.9721 ms
+
+2026-09-17T23:03:36.9667268+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+avatars.githubusercontent.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-17T23:03:37.0774144+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-zl-ed29476231133e1a.js responded 200 in 751.4919 ms
+
+2026-09-17T23:03:37.2515961+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+avatars.githubusercontent.com:443->[185.199.110.133, 2606:50c0:8000::154, 185.199.108.133]
+
+2026-09-17T23:03:37.3659724+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-8pm-1c40dff5175bc401.js responded 200 in 1039.8231 ms
+
+2026-09-17T23:03:38.6841822+08:00 [ERR]
+Microsoft.AspNetCore.Server.Kestrel
+Connection id "0HNOKPJ0TFRFR", Request id "0HNOKPJ0TFRFR:00000009": An unhandled exception was thrown by the application.
+System.NotSupportedException: Unsupported request method 'CONNECT'.
+   at Yarp.ReverseProxy.Forwarder.RequestUtilities.GetHttpMethod(String method)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.CreateRequestMessageAsync(HttpContext context, String destinationPrefix, HttpTransformer transformer, ForwarderRequestConfig requestConfig, Boolean isStreamingRequest, ActivityCancellationTokenSource activityToken)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.SendAsync(HttpContext context, String destinationPrefix, HttpMessageInvoker httpClient, ForwarderRequestConfig requestConfig, HttpTransformer transformer)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpReverseProxyMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpProxyPacMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.HttpProtocol.ProcessRequests[TContext](IHttpApplication`1)
+
+2026-09-17T23:03:41.9493524+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 515.4011 ms
+
+2026-09-17T23:03:42.1191862+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-k6-3901c3aea6776a89.js responded 200 in 5791.0922 ms
+
+2026-09-17T23:03:42.1490811+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+api.github.com->127.0.0.1
+
+2026-09-17T23:03:42.1513829+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+api.github.com->::1
+
+2026-09-17T23:03:42.1534533+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+api.github.com->::1
+
+2026-09-17T23:03:43.3858013+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+raw.githubusercontent.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-17T23:03:43.6753198+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+raw.githubusercontent.com:443->[185.199.110.133, 2606:50c0:8000::154, 185.199.108.133]
+
+2026-09-17T23:03:43.7275864+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://api.github.com/_private/browser/stats responded 200 in 1381.3276 ms
+
+2026-09-17T23:03:44.8878936+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 2741.6225 ms
+
+2026-09-17T23:03:45.0668187+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+github.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-17T23:03:45.3224139+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+github.com:443->[140.82.112.3, 20.205.243.166]
+
+2026-09-17T23:03:47.5357724+08:00 [ERR]
+Microsoft.AspNetCore.Server.Kestrel
+Connection id "0HNOKPJ0TFRFR", Request id "0HNOKPJ0TFRFR:0000000B": An unhandled exception was thrown by the application.
+System.NotSupportedException: Unsupported request method 'CONNECT'.
+   at Yarp.ReverseProxy.Forwarder.RequestUtilities.GetHttpMethod(String method)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.CreateRequestMessageAsync(HttpContext context, String destinationPrefix, HttpTransformer transformer, ForwarderRequestConfig requestConfig, Boolean isStreamingRequest, ActivityCancellationTokenSource activityToken)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.SendAsync(HttpContext context, String destinationPrefix, HttpMessageInvoker httpClient, ForwarderRequestConfig requestConfig, HttpTransformer transformer)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpReverseProxyMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpProxyPacMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.HttpProtocol.ProcessRequests[TContext](IHttpApplication`1)
+
+2026-09-17T23:03:47.8533935+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 301.0128 ms
+
+2026-09-17T23:03:51.8703993+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 336.5258 ms
+
+2026-09-17T23:03:58.9346046+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 324.0737 ms
+
+2026-09-17T23:04:03.6921032+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+codeload.github.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-17T23:04:04.3437607+08:00 [ERR]
+Microsoft.AspNetCore.Server.Kestrel
+Connection id "0HNOKPJ0TFRFR", Request id "0HNOKPJ0TFRFR:0000000D": An unhandled exception was thrown by the application.
+System.NotSupportedException: Unsupported request method 'CONNECT'.
+   at Yarp.ReverseProxy.Forwarder.RequestUtilities.GetHttpMethod(String method)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.CreateRequestMessageAsync(HttpContext context, String destinationPrefix, HttpTransformer transformer, ForwarderRequestConfig requestConfig, Boolean isStreamingRequest, ActivityCancellationTokenSource activityToken)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.SendAsync(HttpContext context, String destinationPrefix, HttpMessageInvoker httpClient, ForwarderRequestConfig requestConfig, HttpTransformer transformer)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpReverseProxyMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpProxyPacMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.HttpProtocol.ProcessRequests[TContext](IHttpApplication`1)
+
+2026-09-17T23:04:23.8199538+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/github-copilot/chat/implicit-context/stromblex/VartaPack/%2Fstromblex%2FVartaPack%2Freleases%23release-v1.1.3-mc1.20.1 responded 200 in 1970.2404 ms
+
+2026-09-17T23:04:30.0719091+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 1203.0521 ms
+
+2026-09-17T23:04:39.6395316+08:00 [ERR]
+Microsoft.AspNetCore.Server.Kestrel
+Connection id "0HNOKPJ0TFRFR", Request id "0HNOKPJ0TFRFR:0000000F": An unhandled exception was thrown by the application.
+System.NotSupportedException: Unsupported request method 'CONNECT'.
+   at Yarp.ReverseProxy.Forwarder.RequestUtilities.GetHttpMethod(String method)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.CreateRequestMessageAsync(HttpContext context, String destinationPrefix, HttpTransformer transformer, ForwarderRequestConfig requestConfig, Boolean isStreamingRequest, ActivityCancellationTokenSource activityToken)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.SendAsync(HttpContext context, String destinationPrefix, HttpMessageInvoker httpClient, ForwarderRequestConfig requestConfig, HttpTransformer transformer)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpReverseProxyMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpProxyPacMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.HttpProtocol.ProcessRequests[TContext](IHttpApplication`1)
+
+2026-09-17T23:04:41.1364861+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 366.8146 ms
+
+2026-09-17T23:04:46.5553909+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+collector.github.com:443->[140.82.112.21, 140.82.114.21, 140.82.114.22]
+
+2026-09-17T23:04:52.4923808+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 320.4328 ms
+
+2026-09-17T23:05:12.2372746+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/stromblex/VartaPack/releases/expanded_assets/v1.1.3-mc1.20.1 responded 200 in 1267.4757 ms
+
+2026-09-17T23:05:28.5665736+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+api.github.com:443->[20.205.243.168, 140.82.114.5]
+
+2026-09-17T23:05:30.9976220+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 2475.5637 ms
+
+2026-09-17T23:05:32.5103968+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+codeload.github.com:443->[20.205.243.165, 4.208.26.199]
+
+2026-09-17T23:05:47.3578814+08:00 [ERR]
+Microsoft.AspNetCore.Server.Kestrel
+Connection id "0HNOKPJ0TFRFR", Request id "0HNOKPJ0TFRFR:00000011": An unhandled exception was thrown by the application.
+System.NotSupportedException: Unsupported request method 'CONNECT'.
+   at Yarp.ReverseProxy.Forwarder.RequestUtilities.GetHttpMethod(String method)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.CreateRequestMessageAsync(HttpContext context, String destinationPrefix, HttpTransformer transformer, ForwarderRequestConfig requestConfig, Boolean isStreamingRequest, ActivityCancellationTokenSource activityToken)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.SendAsync(HttpContext context, String destinationPrefix, HttpMessageInvoker httpClient, ForwarderRequestConfig requestConfig, HttpTransformer transformer)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpReverseProxyMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpProxyPacMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.HttpProtocol.ProcessRequests[TContext](IHttpApplication`1)
+
+2026-09-17T23:05:56.4958887+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/stromblex/VartaPack/releases/download/v1.1.3-mc1.20.1/vartapack-forge-mc1.20.1-1.1.3-mc1.20.1.jar responded 302 in 1652.7182 ms
+
+2026-09-17T23:05:56.5032792+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+release-assets.githubusercontent.com->127.0.0.1
+
+2026-09-17T23:05:56.5062431+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+release-assets.githubusercontent.com->::1
+
+2026-09-17T23:05:56.5088423+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+release-assets.githubusercontent.com->::1
+
+2026-09-17T23:05:56.5964841+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/service-worker-cb356ea864bb5bb5.js responded 200 in 750.6742 ms
+
+2026-09-17T23:05:58.5381721+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://api.github.com/_private/browser/stats responded 200 in 682.8932 ms
+
+2026-09-17T23:05:58.8804175+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+release-assets.githubusercontent.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-17T23:05:59.1024468+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+release-assets.githubusercontent.com:443->[185.199.110.133, 185.199.108.133, 185.199.109.133]
+
+2026-09-17T23:06:03.3926352+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 531.2953 ms
+
+2026-09-17T23:06:05.5862039+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://release-assets.githubusercontent.com/github-production-release-asset/1247673667/354bf259-bbf6-4ddb-ba27-377f02d36799 responded 200 in 8893.2629 ms
+
+2026-09-17T23:06:21.7269890+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 279.1817 ms
+
+2026-09-17T23:06:22.5687887+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+collector.github.com:443->[140.82.113.22, 140.82.112.21, 140.82.114.21]
+
+2026-09-17T23:07:36.7666004+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+codeload.github.com:443->[20.205.243.165, 140.82.113.9, 4.208.26.199]
+
+2026-09-17T23:08:02.4448277+08:00 [ERR]
+Microsoft.AspNetCore.Server.Kestrel
+Connection id "0HNOKPJ0TFRFR", Request id "0HNOKPJ0TFRFR:00000013": An unhandled exception was thrown by the application.
+System.NotSupportedException: Unsupported request method 'CONNECT'.
+   at Yarp.ReverseProxy.Forwarder.RequestUtilities.GetHttpMethod(String method)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.CreateRequestMessageAsync(HttpContext context, String destinationPrefix, HttpTransformer transformer, ForwarderRequestConfig requestConfig, Boolean isStreamingRequest, ActivityCancellationTokenSource activityToken)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.SendAsync(HttpContext context, String destinationPrefix, HttpMessageInvoker httpClient, ForwarderRequestConfig requestConfig, HttpTransformer transformer)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpReverseProxyMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpProxyPacMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.HttpProtocol.ProcessRequests[TContext](IHttpApplication`1)
+
+2026-09-17T23:08:03.5435027+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+mozilla.map.fastly.net->::1
+
+2026-09-17T23:08:03.5450829+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+mozilla.map.fastly.net->127.0.0.1
+
+2026-09-17T23:08:27.5422361+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+api.github.com:443->[20.205.243.168, 140.82.112.6, 140.82.114.5]
+
+2026-09-17T23:08:28.9103434+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+github.githubassets.com:443->[185.199.108.215, 2606:50c0:8003::215, 2606:50c0:8002::215]
+
+2026-09-17T23:08:33.6845728+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+collector.github.com:443->[140.82.113.22, 140.82.112.21, 140.82.112.22]
+
+2026-09-17T23:08:37.7804983+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+release-assets.githubusercontent.com:443->[185.199.111.133, 185.199.109.133, 185.199.108.133]
+
+2026-09-17T23:08:39.0184269+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+avatars.githubusercontent.com:443->[2606:50c0:8003::154, 2606:50c0:8001::154, 2606:50c0:8002::154]
+
+2026-09-17T23:08:39.0202938+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+raw.githubusercontent.com:443->[2606:50c0:8003::154, 2606:50c0:8001::154, 2606:50c0:8002::154]
+
+2026-09-17T23:09:28.7135932+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+api.github.com:443->[20.205.243.168, 140.82.112.6, 140.82.114.6]
+
+2026-09-17T23:09:48.5749580+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+collector.github.com:443->[140.82.113.22, 140.82.112.22, 140.82.114.22]
+
+2026-09-17T23:09:53.8652873+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+codeload.github.com:443->[20.27.177.114, 20.205.243.165, 140.82.113.9]
+
+2026-09-17T23:10:31.5946385+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+api.github.com:443->[20.205.243.168, 140.82.114.5, 140.82.112.6]
+
+2026-09-17T23:11:31.5548848+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+collector.github.com:443->[140.82.112.22, 140.82.114.22, 140.82.114.21]
+
+2026-09-17T23:11:41.4940845+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+api.github.com:443->[20.205.243.168, 140.82.113.6, 140.82.114.5]
+
+2026-09-17T23:12:26.0374287+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+alive.github.com->127.0.0.1
+
+2026-09-17T23:12:26.0427533+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+alive.github.com->::1
+
+2026-09-17T23:12:26.0449142+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+alive.github.com->127.0.0.1
+
+2026-09-17T23:12:26.0465666+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+alive.github.com->::1
+

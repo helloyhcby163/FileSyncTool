@@ -392,6 +392,13 @@ class FolderConfigPage(ctk.CTkFrame):
             self._show_error_message(str(e))
             return
         
+        # v7.7: AI 配置导入的筛选模板套用到全部子文件夹（不覆盖已有配置）
+        template = self.task_config.get("ai_filter_template") or {}
+        if template:
+            for folder_name in self.subfolders:
+                if folder_name not in self.folder_filters:
+                    self.folder_filters[folder_name] = dict(template)
+        
         if not self.subfolders:
             self._show_empty_message()
             return

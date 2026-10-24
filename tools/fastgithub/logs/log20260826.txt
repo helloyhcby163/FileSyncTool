@@ -1,0 +1,86 @@
+2026-08-26T18:23:51.4465502+08:00 [INF]
+FastGithub.HttpServer
+已监听https://localhost:443，https反向代理服务启动完成
+
+2026-08-26T18:23:51.5057478+08:00 [INF]
+FastGithub.HttpServer
+已监听http://localhost:80，http反向代理服务启动完成
+
+2026-08-26T18:23:51.5529208+08:00 [INF]
+FastGithub.HttpServer
+已监听ssh://localhost:22，github的ssh反向代理服务启动完成
+
+2026-08-26T18:23:51.5545889+08:00 [INF]
+FastGithub.HttpServer
+已监听git://localhost:9418，github的git反向代理服务启动完成
+
+2026-08-26T18:23:51.6105750+08:00 [INF]
+FastGithub.AppHostedService
+
+======[ FastGithub 启动完成，当前版本为 V2.1.5 ]======
+
+
+2026-08-26T18:23:53.9862745+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+raw.githubusercontent.com->127.0.0.1
+
+2026-08-26T18:24:11.5094222+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://raw.githubusercontent.com/DNSCrypt/dnscrypt-resolvers/master/v3/public-resolvers.md responded 200 in 17241.8067 ms
+
+2026-08-26T18:24:11.7699023+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+raw.githubusercontent.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-08-26T18:24:13.1002373+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+raw.githubusercontent.com:443->[2606:50c0:8000::154, 185.199.109.133, 2606:50c0:8001::154]
+
+2026-08-26T18:24:24.9470451+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://raw.githubusercontent.com/DNSCrypt/dnscrypt-resolvers/master/v3/public-resolvers.md.minisig responded 200 in 13433.1831 ms
+
+2026-08-26T18:24:34.4388662+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+api.github.com->127.0.0.1
+
+2026-08-26T18:24:35.8033259+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github.com->127.0.0.1
+
+2026-08-26T18:24:35.8049937+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github.com->::1
+
+2026-08-26T18:24:35.8068843+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github.com->127.0.0.1
+
+2026-08-26T18:24:35.8085465+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github.com->::1
+
+2026-08-26T18:24:35.9482924+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+mozilla.map.fastly.net->::1
+
+2026-08-26T18:24:35.9510729+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+mozilla.map.fastly.net->127.0.0.1
+
+2026-08-26T18:29:12.9257397+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+raw.githubusercontent.com:443->[2606:50c0:8003::154, 185.199.111.133, 185.199.110.133]
+
+2026-08-26T18:34:12.1002275+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+raw.githubusercontent.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-08-26T18:34:13.1692503+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+raw.githubusercontent.com:443->[2606:50c0:8002::154, 2606:50c0:8000::154, 185.199.109.133]
+
+2026-08-26T18:34:14.6024646+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+raw.githubusercontent.com:443->[2606:50c0:8000::154, 185.199.109.133, 185.199.108.133]
+

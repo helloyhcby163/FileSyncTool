@@ -1,0 +1,2470 @@
+2026-09-26T22:46:29.4321835+08:00 [INF]
+FastGithub.HttpServer
+已监听https://localhost:443，https反向代理服务启动完成
+
+2026-09-26T22:46:29.5060636+08:00 [INF]
+FastGithub.HttpServer
+已监听http://localhost:80，http反向代理服务启动完成
+
+2026-09-26T22:46:29.6235030+08:00 [INF]
+FastGithub.HttpServer
+已监听ssh://localhost:22，github的ssh反向代理服务启动完成
+
+2026-09-26T22:46:29.6266615+08:00 [INF]
+FastGithub.HttpServer
+已监听git://localhost:9418，github的git反向代理服务启动完成
+
+2026-09-26T22:46:29.7100882+08:00 [INF]
+FastGithub.AppHostedService
+
+======[ FastGithub 启动完成，当前版本为 V2.1.5 ]======
+
+
+2026-09-26T22:46:44.7210059+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+release-assets.githubusercontent.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:46:45.0497237+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+release-assets.githubusercontent.com:443->[185.199.110.133, 185.199.109.133, 185.199.111.133]
+
+2026-09-26T22:46:57.8561398+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+avatars.githubusercontent.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:46:58.4603619+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+avatars.githubusercontent.com:443->[2606:50c0:8002::154, 185.199.110.133, 2606:50c0:8000::154]
+
+2026-09-26T22:47:01.7763438+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+collector.github.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:47:03.2558030+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+collector.github.com:443->[140.82.112.21, 140.82.113.22]
+
+2026-09-26T22:47:04.9715116+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+playwright-akamai.azureedge.net@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:47:06.4695898+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright-akamai.azureedge.net:443->[2603:1061:14:188::1, 150.171.110.70, 150.171.110.131]
+
+2026-09-26T22:47:09.8077894+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+github.githubassets.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:47:15.0233511+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+github.githubassets.com:443->[2606:50c0:8000::215, 185.199.111.215, 2606:50c0:8002::215]
+
+2026-09-26T22:47:18.3073823+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+raw.githubusercontent.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:47:18.5369598+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+raw.githubusercontent.com:443->[2606:50c0:8002::154, 185.199.110.133, 2606:50c0:8000::154]
+
+2026-09-26T22:47:21.2715349+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+education.github.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:47:22.0162368+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+education.github.com:443->[140.82.114.22, 140.82.114.21]
+
+2026-09-26T22:47:30.4314238+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+marketplace.visualstudio.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:47:30.8206180+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+marketplace.visualstudio.com:443->[2603:1061:10:1::16, 150.171.73.16, 150.171.74.16]
+
+2026-09-26T22:47:33.2760962+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+github.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:47:33.5954210+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+github.com:443->[20.205.243.166]
+
+2026-09-26T22:47:36.0456741+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+login.live.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:47:41.7728577+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+login.live.com:443->[20.190.144.163, 20.190.144.164, 20.190.144.138]
+
+2026-09-26T22:47:43.7936821+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+exafunction.github.io@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:47:49.9639136+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+exafunction.github.io:443->[2606:50c0:8001::153, 2606:50c0:8000::153, 2606:50c0:8003::153]
+
+2026-09-26T22:47:52.8497114+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+camo.githubusercontent.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:47:53.5976756+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+camo.githubusercontent.com:443->[185.199.110.133, 185.199.109.133, 185.199.111.133]
+
+2026-09-26T22:47:56.8662137+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+codeload.github.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:47:57.3240326+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+codeload.github.com:443->[20.205.243.165, 140.82.114.9]
+
+2026-09-26T22:48:04.2063234+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+api.github.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:48:05.2705028+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+api.github.com:443->[20.205.243.168, 140.82.114.5]
+
+2026-09-26T22:48:07.3362033+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+copilot-telemetry.githubusercontent.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:48:08.3440975+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+copilot-telemetry.githubusercontent.com:443->[140.82.113.21, 140.82.112.21]
+
+2026-09-26T22:48:35.4742551+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+playwright.azureedge.net@119.29.29.29:53->由于连接方在一段时间后没有正确答复或连接的主机没有反应，连接尝试失败。
+
+2026-09-26T22:48:36.7700033+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright.azureedge.net:443->[2620:1ec:bdf::73, 2620:1ec:bdf::60, 13.107.246.73]
+
+2026-09-26T22:48:39.3125254+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+westus-0.in.applicationinsights.azure.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:48:39.7446856+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+westus-0.in.applicationinsights.azure.com:443->[20.189.172.32, 2603:1030:a07:e::101, 20.189.172.73]
+
+2026-09-26T22:48:43.2770144+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+alive.github.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:48:43.7338948+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+alive.github.com:443->[140.82.114.25, 140.82.112.26]
+
+2026-09-26T22:48:46.9075030+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+login.microsoftonline.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:48:52.1308676+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+login.microsoftonline.com:443->[40.126.35.21, 40.126.35.134, 40.126.35.129]
+
+2026-09-26T22:48:55.5951278+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+playwright-verizon.azureedge.net@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:48:56.3264819+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright-verizon.azureedge.net:443->[150.171.110.70, 2603:1061:14:189::1, 150.171.110.134]
+
+2026-09-26T22:48:58.6763112+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+js.monitor.azure.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:49:00.1185513+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+js.monitor.azure.com:443->[150.171.110.66, 150.171.110.68, 2603:1061:14:143::1]
+
+2026-09-26T22:49:15.0682989+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+github.com:443->[20.205.243.166, 140.82.112.4]
+
+2026-09-26T22:49:24.1794363+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+collector.github.com:443->[140.82.112.21, 140.82.113.22, 140.82.112.22]
+
+2026-09-26T22:49:26.5382194+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+education.github.com:443->[140.82.114.22, 140.82.114.21, 140.82.112.22]
+
+2026-09-26T22:49:31.9683486+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+copilot-telemetry.githubusercontent.com:443->[140.82.114.21, 140.82.113.21, 140.82.112.21]
+
+2026-09-26T22:49:33.9334114+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+alive.github.com:443->[140.82.114.26, 140.82.114.25, 140.82.112.26]
+
+2026-09-26T22:49:49.3596449+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright-akamai.azureedge.net:443->[150.171.110.103, 2603:1061:14:188::1, 150.171.110.70]
+
+2026-09-26T22:49:50.9120030+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright-verizon.azureedge.net:443->[150.171.110.70, 2603:1061:14:189::1, 2603:1061:14:16b::1]
+
+2026-09-26T22:49:53.7832254+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+js.monitor.azure.com:443->[150.171.110.66, 2603:1061:14:145::1, 150.171.110.68]
+
+2026-09-26T22:50:07.6044364+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+codeload.github.com:443->[20.205.243.165, 140.82.114.9, 140.82.113.10]
+
+2026-09-26T22:50:15.7387174+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+education.github.com:443->[140.82.114.22, 140.82.114.21, 140.82.112.21]
+
+2026-09-26T22:50:31.3109156+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright-verizon.azureedge.net:443->[150.171.110.70, 150.171.110.66, 2603:1061:14:189::1]
+
+2026-09-26T22:50:33.1010766+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+js.monitor.azure.com:443->[150.171.110.65, 150.171.110.66, 2603:1061:14:145::1]
+
+2026-09-26T22:50:40.6824149+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+collector.github.com:443->[140.82.114.21, 140.82.112.21, 140.82.113.22]
+
+2026-09-26T22:50:47.1554277+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+education.github.com:443->[140.82.114.22, 140.82.114.21, 140.82.113.21]
+
+2026-09-26T22:51:00.5458323+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright-verizon.azureedge.net:443->[150.171.110.70, 150.171.110.65, 150.171.110.66]
+
+2026-09-26T22:51:03.8676527+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+js.monitor.azure.com:443->[150.171.110.65, 150.171.110.66, 2603:1061:14:16b::1]
+
+2026-09-26T22:51:39.5101651+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright-akamai.azureedge.net:443->[150.171.110.103, 2603:1061:14:188::1, 150.171.110.108]
+
+2026-09-26T22:51:42.1212888+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright-verizon.azureedge.net:443->[150.171.110.108, 150.171.110.70, 150.171.110.65]
+
+2026-09-26T22:51:43.7720107+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+js.monitor.azure.com:443->[150.171.110.70, 150.171.110.65, 150.171.110.66]
+
+2026-09-26T22:51:58.3456798+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+release-assets.githubusercontent.com:443->[185.199.108.133, 185.199.111.133, 185.199.110.133]
+
+2026-09-26T22:52:00.0194202+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+camo.githubusercontent.com:443->[185.199.108.133, 185.199.111.133, 185.199.110.133]
+
+2026-09-26T22:52:03.1470146+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+copilot-telemetry.githubusercontent.com:443->[140.82.114.22, 140.82.114.21, 140.82.113.21]
+
+2026-09-26T22:52:05.6147653+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+alive.github.com:443->[140.82.113.25, 140.82.114.26, 140.82.114.25]
+
+2026-09-26T22:52:11.8208055+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+github.githubassets.com:443->[2606:50c0:8002::215, 185.199.111.215, 2606:50c0:8001::215]
+
+2026-09-26T22:52:17.1928960+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+avatars.githubusercontent.com:443->[2606:50c0:8003::154, 2606:50c0:8001::154, 2606:50c0:8000::154]
+
+2026-09-26T22:52:25.2131707+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+raw.githubusercontent.com:443->[2606:50c0:8003::154, 2606:50c0:8001::154, 2606:50c0:8000::154]
+
+2026-09-26T22:52:33.2604675+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+js.monitor.azure.com:443->[150.171.110.65, 150.171.110.66, 150.171.110.70]
+
+2026-09-26T22:52:34.7114417+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright-verizon.azureedge.net:443->[150.171.110.108, 150.171.110.65, 150.171.110.66]
+
+2026-09-26T22:52:38.6526012+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+api.github.com:443->[20.205.243.168, 140.82.114.5, 172.182.252.137]
+
+2026-09-26T22:52:45.8698170+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+collector.github.com:443->[140.82.114.21, 140.82.113.22, 140.82.112.21]
+
+2026-09-26T22:52:48.0550308+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+marketplace.visualstudio.com:443->[150.171.74.16, 150.171.73.16, 2603:1061:10::16]
+
+2026-09-26T22:52:50.7308155+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+copilot-telemetry.githubusercontent.com:443->[140.82.114.22, 140.82.113.21, 140.82.114.21]
+
+2026-09-26T22:52:55.5448593+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+education.github.com:443->[140.82.114.22, 140.82.113.21, 140.82.114.21]
+
+2026-09-26T22:53:01.6617113+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+exafunction.github.io:443->[185.199.110.153, 185.199.108.153, 2606:50c0:8001::153]
+
+2026-09-26T22:53:16.2647968+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+js.monitor.azure.com:443->[150.171.110.108, 150.171.110.65, 150.171.110.66]
+
+2026-09-26T22:53:18.6192145+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright-verizon.azureedge.net:443->[150.171.110.101, 150.171.110.108, 150.171.110.65]
+
+2026-09-26T22:53:25.8485571+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+login.live.com:443->[20.190.148.165, 20.190.144.162, 20.190.144.136]
+
+2026-09-26T22:53:47.4596385+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+codeload.github.com:443->[140.82.113.10, 140.82.114.9, 20.205.243.165]
+
+2026-09-26T22:53:49.5174662+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+copilot-telemetry.githubusercontent.com:443->[140.82.114.22, 140.82.114.21, 140.82.113.21]
+
+2026-09-26T22:53:54.1170405+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+alive.github.com:443->[140.82.113.25, 140.82.114.26, 140.82.112.25]
+
+2026-09-26T22:53:55.5535342+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+education.github.com:443->[140.82.114.22, 140.82.114.21, 140.82.113.21]
+
+2026-09-26T22:53:59.3596651+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+westus-0.in.applicationinsights.azure.com:443->[2603:1030:a07:9::320, 2603:1030:a07:e::100, 20.189.172.73]
+
+2026-09-26T22:54:00.4237322+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright.azureedge.net:443->[2620:1ec:bdf::73, 2620:1ec:bdf::60, 13.107.246.74]
+
+2026-09-26T22:54:01.8422397+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+js.monitor.azure.com:443->[150.171.110.108, 150.171.110.65, 150.171.110.70]
+
+2026-09-26T22:54:13.5250954+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+login.microsoftonline.com:443->[40.126.35.84, 40.126.35.134, 40.126.35.21]
+
+2026-09-26T22:54:26.3693086+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+copilot-telemetry.githubusercontent.com:443->[140.82.114.22, 140.82.114.21, 140.82.112.22]
+
+2026-09-26T22:54:28.0577048+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+education.github.com:443->[140.82.114.22, 140.82.114.21, 140.82.112.22]
+
+2026-09-26T22:54:50.0994753+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright-akamai.azureedge.net:443->[2603:1061:14:188::1, 150.171.110.108, 150.171.110.65]
+
+2026-09-26T22:54:55.3684109+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+api.github.com:443->[20.205.243.168, 140.82.114.5, 140.82.112.5]
+
+2026-09-26T22:54:55.8147749+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+collector.github.com:443->[140.82.114.21, 140.82.112.22, 140.82.113.22]
+
+2026-09-26T22:55:11.5418245+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+codeload.github.com:443->[140.82.114.9, 20.205.243.165, 140.82.113.10]
+
+2026-09-26T22:55:15.7971619+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+alive.github.com:443->[140.82.113.25, 140.82.112.25, 140.82.114.26]
+
+2026-09-26T22:55:17.6782488+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+westus-0.in.applicationinsights.azure.com:443->[2603:1030:a07:e::100, 2603:1030:a07:9::320, 20.189.172.73]
+
+2026-09-26T22:55:22.9407658+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright.azureedge.net:443->[2620:1ec:bdf::73, 13.107.246.53, 13.107.246.76]
+
+2026-09-26T22:55:43.5649414+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+github.com:443->[20.205.243.166, 140.82.112.3, 140.82.112.4]
+
+2026-09-26T22:55:54.7810129+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+js.monitor.azure.com:443->[150.171.110.65, 150.171.110.108, 150.171.110.70]
+
+2026-09-26T22:55:56.5745992+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright-verizon.azureedge.net:443->[150.171.110.101, 150.171.110.65, 150.171.110.108]
+
+2026-09-26T22:55:57.7527200+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright-akamai.azureedge.net:443->[2603:1061:14:188::1, 150.171.110.65, 150.171.110.108]
+
+2026-09-26T22:56:06.5629608+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+westus-0.in.applicationinsights.azure.com:443->[2603:1030:a07:9::320, 2603:1030:a07:e::100, 20.189.172.73]
+
+2026-09-26T22:56:53.4030004+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+js.monitor.azure.com:443->[150.171.110.65, 150.171.110.70, 150.171.110.66]
+
+2026-09-26T22:56:57.9279834+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright-verizon.azureedge.net:443->[150.171.110.101, 150.171.110.65, 150.171.110.70]
+
+2026-09-26T22:56:59.5664930+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright-akamai.azureedge.net:443->[2603:1061:14:188::1, 150.171.110.65, 2603:1061:14:182::1]
+
+2026-09-26T22:57:01.8161712+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+login.live.com:443->[40.126.35.134, 40.126.35.21, 40.126.35.85]
+
+2026-09-26T22:57:21.7734471+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+release-assets.githubusercontent.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:57:22.0801814+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+release-assets.githubusercontent.com:443->[185.199.109.133, 185.199.111.133, 185.199.108.133]
+
+2026-09-26T22:57:23.9417372+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+collector.github.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:57:24.1974259+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+collector.github.com:443->[140.82.114.22, 140.82.112.21, 140.82.113.22]
+
+2026-09-26T22:57:26.7271767+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+camo.githubusercontent.com:443->[185.199.109.133, 185.199.111.133, 185.199.108.133]
+
+2026-09-26T22:57:39.7807424+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+copilot-telemetry.githubusercontent.com:443->[140.82.114.22, 140.82.112.21, 140.82.114.21]
+
+2026-09-26T22:57:43.5060744+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+education.github.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:57:43.5079936+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+education.github.com:443->[140.82.114.22, 140.82.112.21, 140.82.113.22]
+
+2026-09-26T22:57:46.2368666+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+exafunction.github.io@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:57:48.5351311+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+avatars.githubusercontent.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:57:48.8469285+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+avatars.githubusercontent.com:443->[185.199.109.133, 185.199.111.133, 185.199.108.133]
+
+2026-09-26T22:57:50.0965813+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+github.githubassets.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:57:51.3816090+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+github.githubassets.com:443->[2606:50c0:8001::215, 2606:50c0:8000::215, 185.199.110.215]
+
+2026-09-26T22:57:54.2302780+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+raw.githubusercontent.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:57:54.4717941+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+raw.githubusercontent.com:443->[185.199.109.133, 185.199.111.133, 185.199.108.133]
+
+2026-09-26T22:57:58.9572438+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+js.monitor.azure.com:443->[150.171.110.65, 150.171.110.66, 2603:1061:14:16b::1]
+
+2026-09-26T22:58:04.2592289+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+playwright-akamai.azureedge.net@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:58:07.6218960+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright-verizon.azureedge.net:443->[150.171.110.101, 150.171.110.65, 150.171.110.66]
+
+2026-09-26T22:58:07.9744141+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+login.live.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:58:23.9949737+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+github.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:58:25.1139999+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+github.com:443->[140.82.112.3, 140.82.112.4, 20.205.243.166]
+
+2026-09-26T22:58:28.1695319+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+marketplace.visualstudio.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:58:28.8602832+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+marketplace.visualstudio.com:443->[150.171.74.16, 150.171.76.16, 2603:1061:10:1::16]
+
+2026-09-26T22:58:30.0915225+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+camo.githubusercontent.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:58:32.5331724+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+codeload.github.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:58:37.5361208+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+codeload.github.com:443->[140.82.114.10, 140.82.114.9, 20.205.243.165]
+
+2026-09-26T22:58:39.0379657+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+api.github.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:58:39.2680020+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+api.github.com:443->[20.205.243.168, 172.182.252.137, 140.82.114.5]
+
+2026-09-26T22:58:41.1485111+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+collector.github.com:443->[140.82.114.22, 140.82.112.21, 140.82.114.21]
+
+2026-09-26T22:58:44.1270574+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+copilot-telemetry.githubusercontent.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:58:47.0741626+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+alive.github.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:58:48.4070824+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+education.github.com:443->[140.82.114.22, 140.82.112.21, 140.82.114.21]
+
+2026-09-26T22:58:53.9162235+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+exafunction.github.io:443->[185.199.110.153, 185.199.109.153, 2606:50c0:8003::153]
+
+2026-09-26T22:58:54.4598916+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+westus-0.in.applicationinsights.azure.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:59:00.3755530+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+playwright.azureedge.net@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:59:03.4102688+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+playwright-verizon.azureedge.net@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:59:04.5299183+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright-verizon.azureedge.net:443->[150.171.110.101, 150.171.110.65, 2603:1061:14:16b::1]
+
+2026-09-26T22:59:08.4872108+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+login.live.com:443->[40.126.35.134, 40.126.35.21, 40.126.35.150]
+
+2026-09-26T22:59:08.5897778+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+login.microsoftonline.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:59:13.5916256+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+login.microsoftonline.com:443->[40.126.35.84, 40.126.35.134, 40.126.35.144]
+
+2026-09-26T22:59:21.4192836+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+codeload.github.com:443->[20.205.243.165, 140.82.114.10, 140.82.114.9]
+
+2026-09-26T22:59:28.1693111+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+alive.github.com:443->[140.82.113.25, 140.82.112.26, 140.82.114.25]
+
+2026-09-26T22:59:30.6389827+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+education.github.com:443->[140.82.114.22, 140.82.112.22, 140.82.112.21]
+
+2026-09-26T22:59:33.2445463+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+westus-0.in.applicationinsights.azure.com:443->[2603:1030:a07:9::320, 20.189.172.33, 2603:1030:a07:e::102]
+
+2026-09-26T22:59:34.7882063+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+js.monitor.azure.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T22:59:34.7901514+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+js.monitor.azure.com:443->[150.171.110.65, 2603:1061:14:16b::1, 2603:1061:14:145::1]
+
+2026-09-26T22:59:35.0643637+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright.azureedge.net:443->[2620:1ec:bdf::74, 13.107.246.53, 13.107.246.76]
+
+2026-09-26T22:59:45.3752823+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright-verizon.azureedge.net:443->[150.171.110.101, 2603:1061:14:188::1, 2603:1061:14:189::1]
+
+2026-09-26T22:59:45.6550379+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+login.live.com:443->[40.126.35.150, 40.126.35.134, 40.126.35.21]
+
+2026-09-26T22:59:51.1412487+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+login.microsoftonline.com:443->[40.126.35.84, 40.126.35.87, 40.126.35.144]
+
+2026-09-26T22:59:56.6934407+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+codeload.github.com:443->[20.205.243.165, 140.82.114.10, 140.82.113.10]
+
+2026-09-26T22:59:58.7227967+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+api.github.com:443->[20.205.243.168, 172.182.252.137, 140.82.112.5]
+
+2026-09-26T22:59:59.1946636+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+collector.github.com:443->[140.82.114.22, 140.82.112.22, 140.82.112.21]
+
+2026-09-26T23:00:03.6443198+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+copilot-telemetry.githubusercontent.com:443->[140.82.114.22, 140.82.112.22, 140.82.112.21]
+
+2026-09-26T23:00:16.2040723+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright-akamai.azureedge.net:443->[150.171.110.103, 2603:1061:14:188::1, 150.171.110.65]
+
+2026-09-26T23:00:24.1018184+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+mozilla.map.fastly.net->127.0.0.1
+
+2026-09-26T23:00:24.1049430+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+mozilla.map.fastly.net->::1
+
+2026-09-26T23:00:25.7466062+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+login.live.com:443->[40.126.35.64, 40.126.35.81, 40.126.35.144]
+
+2026-09-26T23:00:34.5964263+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+js.monitor.azure.com:443->[150.171.110.65, 150.171.110.66, 150.171.110.68]
+
+2026-09-26T23:00:37.0658072+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright.azureedge.net:443->[2620:1ec:bdf::74, 13.107.246.74, 13.107.246.44]
+
+2026-09-26T23:00:47.3374161+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+api.github.com:443->[20.205.243.168, 172.182.252.137, 140.82.112.6]
+
+2026-09-26T23:00:47.5921355+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+github.com:443->[140.82.112.3, 20.205.243.166, 20.29.134.23]
+
+2026-09-26T23:00:48.7198839+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+copilot-telemetry.githubusercontent.com:443->[140.82.114.22, 140.82.112.21, 140.82.114.21]
+
+2026-09-26T23:01:12.7302006+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+westus-0.in.applicationinsights.azure.com:443->[20.189.172.33, 2603:1030:a07:e::102, 20.189.172.32]
+
+2026-09-26T23:01:19.5692596+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright-akamai.azureedge.net:443->[150.171.110.103, 2603:1061:14:188::1, 2603:1061:14:182::1]
+
+2026-09-26T23:01:53.4158519+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright-akamai.azureedge.net:443->[150.171.110.103, 2603:1061:14:182::1, 150.171.110.65]
+
+2026-09-26T23:01:56.1531652+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+codeload.github.com:443->[20.205.243.165, 140.82.114.10]
+
+2026-09-26T23:01:56.5810709+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+js.monitor.azure.com:443->[150.171.110.108, 150.171.110.65, 150.171.110.66]
+
+2026-09-26T23:02:07.7546399+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright-akamai.azureedge.net:443->[150.171.110.103, 150.171.110.108, 2603:1061:14:182::1]
+
+2026-09-26T23:02:24.0712658+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+avatars.githubusercontent.com:443->[185.199.110.133, 2606:50c0:8002::154, 2606:50c0:8000::154]
+
+2026-09-26T23:02:24.5399179+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+raw.githubusercontent.com:443->[185.199.110.133, 2606:50c0:8002::154, 2606:50c0:8000::154]
+
+2026-09-26T23:02:41.8264014+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+login.microsoftonline.com:443->[40.126.35.84, 40.126.35.87, 40.126.35.81]
+
+2026-09-26T23:02:42.8319125+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+release-assets.githubusercontent.com:443->[185.199.110.133, 185.199.108.133, 185.199.111.133]
+
+2026-09-26T23:02:42.8361609+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+camo.githubusercontent.com:443->[185.199.110.133, 185.199.108.133, 185.199.111.133]
+
+2026-09-26T23:02:43.0981586+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+copilot-telemetry.githubusercontent.com:443->[140.82.114.22, 140.82.114.21, 140.82.112.21]
+
+2026-09-26T23:02:44.7630172+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+collector.github.com:443->[140.82.114.22, 140.82.112.22, 140.82.114.21]
+
+2026-09-26T23:02:44.7669300+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+education.github.com:443->[140.82.114.22, 140.82.112.22, 140.82.114.21]
+
+2026-09-26T23:02:54.7105526+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+codeload.github.com:443->[20.205.243.165, 140.82.114.10, 140.82.114.9]
+
+2026-09-26T23:03:04.1242611+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+avatars.githubusercontent.com:443->[2606:50c0:8000::154, 2606:50c0:8001::154, 185.199.110.133]
+
+2026-09-26T23:03:05.2251380+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+github.githubassets.com:443->[185.199.108.215, 2606:50c0:8003::215, 2606:50c0:8000::215]
+
+2026-09-26T23:03:05.4622460+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+raw.githubusercontent.com:443->[2606:50c0:8000::154, 2606:50c0:8001::154, 185.199.110.133]
+
+2026-09-26T23:03:06.6841009+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright.azureedge.net:443->[2620:1ec:bdf::74, 2620:1ec:bdf::72, 13.107.246.74]
+
+2026-09-26T23:03:13.8945776+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright-verizon.azureedge.net:443->[150.171.110.101, 2603:1061:14:189::1, 2603:1061:14:188::1]
+
+2026-09-26T23:03:29.6714181+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+github.com:443->[20.205.243.166, 140.82.112.3, 20.29.134.23]
+
+2026-09-26T23:03:42.2385004+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+collector.github.com:443->[140.82.112.22, 140.82.114.21, 140.82.114.22]
+
+2026-09-26T23:03:42.2408937+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+education.github.com:443->[140.82.112.22, 140.82.114.21, 140.82.114.22]
+
+2026-09-26T23:03:44.6858044+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+marketplace.visualstudio.com:443->[150.171.74.16, 150.171.75.16, 2603:1061:10:1::16]
+
+2026-09-26T23:04:05.0383673+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+github.com:443->[20.205.243.166, 140.82.114.4, 140.82.112.3]
+
+2026-09-26T23:04:07.4744346+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+api.github.com:443->[20.205.243.168, 140.82.112.6, 140.82.112.5]
+
+2026-09-26T23:04:07.9276648+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+copilot-telemetry.githubusercontent.com:443->[140.82.114.21, 140.82.114.22, 140.82.112.21]
+
+2026-09-26T23:04:26.3404405+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+exafunction.github.io:443->[185.199.110.153, 2606:50c0:8002::153, 2606:50c0:8001::153]
+
+2026-09-26T23:04:26.9253428+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+github.githubassets.com:443->[2606:50c0:8003::215, 2606:50c0:8000::215, 185.199.108.215]
+
+2026-09-26T23:04:30.8245146+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+js.monitor.azure.com:443->[150.171.110.108, 2603:1061:14:143::1, 150.171.110.65]
+
+2026-09-26T23:04:34.8677925+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright-akamai.azureedge.net:443->[150.171.110.103, 150.171.110.108, 2603:1061:14:143::1]
+
+2026-09-26T23:04:40.9609117+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+login.live.com:443->[40.126.35.87, 40.126.35.64, 40.126.35.81]
+
+2026-09-26T23:04:45.9671721+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+login.microsoftonline.com:443->[40.126.35.87, 40.126.35.81, 40.126.35.144]
+
+2026-09-26T23:04:51.4849885+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+github.com:443->[20.205.243.166, 20.29.134.23, 140.82.114.4]
+
+2026-09-26T23:04:59.8389970+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+alive.github.com:443->[140.82.113.25, 140.82.112.25, 140.82.114.26]
+
+2026-09-26T23:05:20.5568477+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+westus-0.in.applicationinsights.azure.com:443->[20.189.172.76, 20.189.172.73, 20.189.172.32]
+
+2026-09-26T23:05:22.0130345+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright.azureedge.net:443->[2620:1ec:bdf::72, 2620:1ec:46::73, 2620:1ec:bdf::73]
+
+2026-09-26T23:05:34.5397932+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright-akamai.azureedge.net:443->[150.171.110.108, 2603:1061:14:143::1, 2603:1061:14:182::1]
+
+2026-09-26T23:05:37.9577197+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright-verizon.azureedge.net:443->[2603:1061:14:188::1, 2603:1061:14:189::1, 150.171.110.108]
+
+2026-09-26T23:05:44.2177384+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+login.live.com:443->[40.126.35.85, 40.126.35.80, 40.126.35.64]
+
+2026-09-26T23:05:51.1899868+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+login.microsoftonline.com:443->[40.126.35.80, 40.126.35.145, 40.126.35.21]
+
+2026-09-26T23:05:53.9004422+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+codeload.github.com:443->[20.27.177.114, 20.205.243.165, 140.82.114.10]
+
+2026-09-26T23:06:01.1571427+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+api.github.com:443->[20.205.243.168, 140.82.112.5, 140.82.112.6]
+
+2026-09-26T23:06:15.0008286+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+westus-0.in.applicationinsights.azure.com:443->[20.189.172.76, 20.189.172.73, 2603:1030:a07:9::320]
+
+2026-09-26T23:06:21.5111496+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+js.monitor.azure.com:443->[150.171.110.108, 2603:1061:14:143::1, 2603:1061:14:141::1]
+
+2026-09-26T23:06:22.7292441+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright.azureedge.net:443->[2620:1ec:bdf::72, 2620:1ec:bdf::73, 13.107.246.74]
+
+2026-09-26T23:06:34.7001419+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+github.com:443->[20.27.177.113, 20.205.243.166, 20.29.134.23]
+
+2026-09-26T23:07:09.7654308+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+api.github.com:443->[20.205.243.168, 140.82.112.6]
+
+2026-09-26T23:07:23.9954405+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github.com->127.0.0.1
+
+2026-09-26T23:07:23.9993297+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github.com->::1
+
+2026-09-26T23:07:24.0019559+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github.com->127.0.0.1
+
+2026-09-26T23:07:24.0037934+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github.com->::1
+
+2026-09-26T23:07:25.0647269+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github.githubassets.com->127.0.0.1
+
+2026-09-26T23:07:25.0671715+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github.githubassets.com->::1
+
+2026-09-26T23:07:25.0707239+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github.githubassets.com->::1
+
+2026-09-26T23:07:25.5716832+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+avatars.githubusercontent.com->127.0.0.1
+
+2026-09-26T23:07:25.5737065+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github-cloud.s3.amazonaws.com->127.0.0.1
+
+2026-09-26T23:07:25.5754856+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github-cloud.s3.amazonaws.com->::1
+
+2026-09-26T23:07:25.5774876+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+avatars.githubusercontent.com->::1
+
+2026-09-26T23:07:25.5802994+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+user-images.githubusercontent.com->127.0.0.1
+
+2026-09-26T23:07:25.5824677+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+user-images.githubusercontent.com->::1
+
+2026-09-26T23:07:25.5847985+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github-cloud.s3.amazonaws.com->127.0.0.1
+
+2026-09-26T23:07:25.5870720+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+avatars.githubusercontent.com->127.0.0.1
+
+2026-09-26T23:07:25.5890045+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+user-images.githubusercontent.com->127.0.0.1
+
+2026-09-26T23:07:25.5908978+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github-cloud.s3.amazonaws.com->::1
+
+2026-09-26T23:07:25.5927809+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+avatars.githubusercontent.com->::1
+
+2026-09-26T23:07:25.5952262+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+user-images.githubusercontent.com->::1
+
+2026-09-26T23:07:26.0223439+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/ql0.bdd6be015c087bbc.module.css responded 200 in 355.8615 ms
+
+2026-09-26T23:07:26.0460167+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/global-nav-bar-32d70f7f50c554ef.js responded 200 in 360.7271 ms
+
+2026-09-26T23:07:26.0547980+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/b1-ddee25d94441be77.js responded 200 in 373.1813 ms
+
+2026-09-26T23:07:26.0658810+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/environment-a3b33b022e640cb5.js responded 200 in 394.6654 ms
+
+2026-09-26T23:07:26.0658810+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/pk3-2ac6b83fe20865a5.js responded 200 in 387.3634 ms
+
+2026-09-26T23:07:26.0659588+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/keyboard-shortcuts-dialog.595c7e0164e20af0.module.css responded 200 in 400.2317 ms
+
+2026-09-26T23:07:26.0661441+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/settings-923e48a901ae870c.css responded 200 in 402.3788 ms
+
+2026-09-26T23:07:26.0801345+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/i6-0173af0719dbd0d1.js responded 200 in 395.2331 ms
+
+2026-09-26T23:07:26.1252483+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/runtime-helpers-2b437fe146e9028f.js responded 200 in 451.7427 ms
+
+2026-09-26T23:07:26.1362272+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/settings/profile responded 200 in 1731.9816 ms
+
+2026-09-26T23:07:26.1681635+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/wo-f3e3b96584d99034.js responded 200 in 492.257 ms
+
+2026-09-26T23:07:26.1694551+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/mc-e7e6f3b5e1eb5485.js responded 200 in 486.9964 ms
+
+2026-09-26T23:07:26.1694650+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/keyboard-shortcuts-dialog-4c0a40c25d058e31.js responded 200 in 489.0763 ms
+
+2026-09-26T23:07:26.1800003+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/element-registry-8f51d0f3df67da74.js responded 200 in 506.808 ms
+
+2026-09-26T23:07:26.1909397+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://avatars.githubusercontent.com/u/318166824 responded 304 in 368.9787 ms
+
+2026-09-26T23:07:26.2126275+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/primer-react-css.76a197f9dce25e3c.module.css responded 200 in 547.4071 ms
+
+2026-09-26T23:07:26.2129086+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/bn-d38851ab272ec8b4.js responded 200 in 528.7805 ms
+
+2026-09-26T23:07:26.2226897+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://avatars.githubusercontent.com/u/318166824 responded 200 in 354.4378 ms
+
+2026-09-26T23:07:26.2238192+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/dh-dbdba065d438a3e6.js responded 200 in 542.2976 ms
+
+2026-09-26T23:07:26.2682162+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/li-9637187fecd51dde.js responded 200 in 584.4151 ms
+
+2026-09-26T23:07:26.2723692+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/app-runtime-4be01a352ea0cb93.js responded 200 in 601.666 ms
+
+2026-09-26T23:07:26.2728209+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/settings-1ce6bfc49fa7f438.js responded 200 in 594.1618 ms
+
+2026-09-26T23:07:26.2729522+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/9y-450e92679e273d9f.js responded 200 in 596.6803 ms
+
+2026-09-26T23:07:26.2958071+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/j8s-7712b3dd24d5f13c.js responded 200 in 614.9613 ms
+
+2026-09-26T23:07:26.3024319+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/wp-runtime-e1f5bc7239a5e9d7.js responded 200 in 632.0341 ms
+
+2026-09-26T23:07:26.3282893+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/global-nav-bar.9d18c09e5b81e600.module.css responded 200 in 661.245 ms
+
+2026-09-26T23:07:26.3912464+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/react-core.83cecac4ceaa4904.module.css responded 200 in 726.2925 ms
+
+2026-09-26T23:07:26.4168421+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/github-elements-f3d3090f1f0c97b2.js responded 200 in 743.8871 ms
+
+2026-09-26T23:07:26.4283346+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://avatars.githubusercontent.com/u/318166824 responded 200 in 562.5679 ms
+
+2026-09-26T23:07:26.4363722+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/af-3c21fbee2d52e5df.js responded 200 in 752.3872 ms
+
+2026-09-26T23:07:26.4507101+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/0r-e0ed1791a4c5206c.js responded 200 in 769.5865 ms
+
+2026-09-26T23:07:26.4593086+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/t0-ba3694f373fc552d.js responded 200 in 775.2448 ms
+
+2026-09-26T23:07:26.5191684+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/app-runtime.19d34abf60f22685.module.css responded 200 in 855.029 ms
+
+2026-09-26T23:07:26.5552714+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/behaviors-e4d23ae3a97e8e17.js responded 200 in 877.444 ms
+
+2026-09-26T23:07:26.6745969+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/dgq-dd5294e5dfa63e98.js responded 200 in 991.2183 ms
+
+2026-09-26T23:07:26.7098988+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/react-core-edd2738d37eff336.js responded 200 in 1035.7972 ms
+
+2026-09-26T23:07:26.7906536+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/ql0-d154b9935a526802.js responded 200 in 1107.6264 ms
+
+2026-09-26T23:07:26.8646033+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/2j-eb51f21e460f20e4.js responded 200 in 1180.0572 ms
+
+2026-09-26T23:07:26.8855673+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/assets-cdn/worker/service-worker-610f12baa3682d2d.js responded 200 in 1820.0964 ms
+
+2026-09-26T23:07:27.2443533+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/j05-1b324859b9512e2d.js responded 200 in 1571.5621 ms
+
+2026-09-26T23:07:27.3704836+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/xg-6382ef33ae456242.js responded 200 in 87.1799 ms
+
+2026-09-26T23:07:27.3873901+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+alive.github.com->127.0.0.1
+
+2026-09-26T23:07:27.3894653+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+alive.github.com->::1
+
+2026-09-26T23:07:27.3920789+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+alive.github.com->127.0.0.1
+
+2026-09-26T23:07:27.3944255+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+alive.github.com->::1
+
+2026-09-26T23:07:27.4046598+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-lazy-element-track-view-ae06cd757f67ea38.js responded 200 in 88.4949 ms
+
+2026-09-26T23:07:27.4056737+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-lazy-element-cookie-consent-link-0b3046383a14e4ce.js responded 200 in 83.8153 ms
+
+2026-09-26T23:07:27.4058055+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-lazy-element-navigation-list-8d31f1ea8930814f.js responded 200 in 88.7803 ms
+
+2026-09-26T23:07:27.4241088+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-lazy-element-ghcc-consent-dbdc93d9ffc7498e.js responded 200 in 101.9152 ms
+
+2026-09-26T23:07:27.5304853+08:00 [ERR]
+Microsoft.AspNetCore.Server.Kestrel
+Connection id "0HNORRJPNC6LF", Request id "0HNORRJPNC6LF:00000003": An unhandled exception was thrown by the application.
+System.NotSupportedException: Unsupported request method 'CONNECT'.
+   at Yarp.ReverseProxy.Forwarder.RequestUtilities.GetHttpMethod(String method)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.CreateRequestMessageAsync(HttpContext context, String destinationPrefix, HttpTransformer transformer, ForwarderRequestConfig requestConfig, Boolean isStreamingRequest, ActivityCancellationTokenSource activityToken)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.SendAsync(HttpContext context, String destinationPrefix, HttpMessageInvoker httpClient, ForwarderRequestConfig requestConfig, HttpTransformer transformer)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpReverseProxyMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpProxyPacMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.HttpProtocol.ProcessRequests[TContext](IHttpApplication`1)
+
+2026-09-26T23:07:27.5735981+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/in-product-messaging/code-scanning-ai-findings-preview-banner responded 204 in 248.6396 ms
+
+2026-09-26T23:07:27.6756284+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/in-product-messaging/copilot-budget-request-banner responded 200 in 350.7899 ms
+
+2026-09-26T23:07:27.6820164+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/bv.6f47255106d7dc4f.module.css responded 200 in 358.8202 ms
+
+2026-09-26T23:07:27.7060046+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-3m-7b6147c07cf4e097.js responded 200 in 422.6596 ms
+
+2026-09-26T23:07:27.9342305+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-lazy-react-partial-global-nav-bar-b92b7b2aa68e379a.js responded 200 in 610.877 ms
+
+2026-09-26T23:07:27.9480545+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+collector.github.com->127.0.0.1
+
+2026-09-26T23:07:27.9506822+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+collector.github.com->::1
+
+2026-09-26T23:07:27.9535286+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+collector.github.com->::1
+
+2026-09-26T23:07:28.0685076+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+api.github.com->127.0.0.1
+
+2026-09-26T23:07:28.0707400+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+api.github.com->::1
+
+2026-09-26T23:07:28.0736763+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+api.github.com->::1
+
+2026-09-26T23:07:28.2094711+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/5.1f291bf29d68017d.module.css responded 200 in 123.4765 ms
+
+2026-09-26T23:07:28.3764345+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/ku-081b6429c1485be9.js responded 200 in 297.956 ms
+
+2026-09-26T23:07:28.4755386+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/service-worker-610f12baa3682d2d.js responded 200 in 3294.3487 ms
+
+2026-09-26T23:07:28.4843993+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/_global-navigation/payloads.json responded 200 in 397.1246 ms
+
+2026-09-26T23:07:28.5478854+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/notifications/indicator responded 304 in 436.0866 ms
+
+2026-09-26T23:07:28.5985314+08:00 [ERR]
+Microsoft.AspNetCore.Server.Kestrel
+Connection id "0HNORRJPNC6LF", Request id "0HNORRJPNC6LF:00000005": An unhandled exception was thrown by the application.
+System.NotSupportedException: Unsupported request method 'CONNECT'.
+   at Yarp.ReverseProxy.Forwarder.RequestUtilities.GetHttpMethod(String method)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.CreateRequestMessageAsync(HttpContext context, String destinationPrefix, HttpTransformer transformer, ForwarderRequestConfig requestConfig, Boolean isStreamingRequest, ActivityCancellationTokenSource activityToken)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.SendAsync(HttpContext context, String destinationPrefix, HttpMessageInvoker httpClient, ForwarderRequestConfig requestConfig, HttpTransformer transformer)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpReverseProxyMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpProxyPacMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.HttpProtocol.ProcessRequests[TContext](IHttpApplication`1)
+
+2026-09-26T23:07:28.7493671+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/assets-cdn/worker/service-worker-610f12baa3682d2d.js responded 200 in 268.4651 ms
+
+2026-09-26T23:07:28.7616785+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-5-adaf7f8172bed977.js responded 200 in 675.3235 ms
+
+2026-09-26T23:07:28.7756374+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/github-copilot/chat responded 200 in 661.2563 ms
+
+2026-09-26T23:07:29.0100526+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/gq.47aeb27276f789d7.module.css responded 200 in 101.6292 ms
+
+2026-09-26T23:07:29.0105573+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/du-fee6a27cf2b1eb08.js responded 200 in 106.2615 ms
+
+2026-09-26T23:07:29.0132643+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/yt.774776795345a425.module.css responded 200 in 110.4229 ms
+
+2026-09-26T23:07:29.0134329+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/ux-424308bfc60b1b36.js responded 200 in 100.6326 ms
+
+2026-09-26T23:07:29.0135303+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/qt.2959c2f57d8ef379.module.css responded 200 in 96.8112 ms
+
+2026-09-26T23:07:29.0186361+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/v.ac72b8d266d3017b.module.css responded 200 in 106.5976 ms
+
+2026-09-26T23:07:29.0197365+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/29.75665280dda6b4d0.module.css responded 200 in 117.8251 ms
+
+2026-09-26T23:07:29.0199848+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/github-copilot/chat/entitlement responded 304 in 909.4805 ms
+
+2026-09-26T23:07:29.0248256+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/20x-0accf1379e91ba86.js responded 200 in 120.0056 ms
+
+2026-09-26T23:07:29.0381550+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/oq-52d148b1fe33dce0.js responded 200 in 123.8249 ms
+
+2026-09-26T23:07:29.0386404+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/_side-panels/user.json responded 200 in 252.9522 ms
+
+2026-09-26T23:07:29.0486662+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/29-196f3c5ea0aeb5fa.js responded 200 in 146.1147 ms
+
+2026-09-26T23:07:29.0761132+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/in-product-messaging/organization-new-tasks-indicator.json responded 304 in 287.5364 ms
+
+2026-09-26T23:07:29.1341007+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/om-22f00d95dee74391.js responded 200 in 227.632 ms
+
+2026-09-26T23:07:29.1461959+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/fu-63548b17ca238431.js responded 200 in 240.8869 ms
+
+2026-09-26T23:07:29.1463743+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/jx-e26e796576f677e7.js responded 200 in 234.5651 ms
+
+2026-09-26T23:07:29.1621275+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/k6-87d050457ff8170d.js responded 200 in 242.2234 ms
+
+2026-09-26T23:07:29.1628343+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/k7k-52ed6bde340e8e2a.js responded 200 in 258.8193 ms
+
+2026-09-26T23:07:29.1680617+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/lk-5b6fd3e030906268.js responded 200 in 266.9269 ms
+
+2026-09-26T23:07:29.1685537+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/okb-280b2e0566d3af74.js responded 200 in 250.4131 ms
+
+2026-09-26T23:07:29.1690392+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/51s-6cbdf019af1ca397.js responded 200 in 267.7565 ms
+
+2026-09-26T23:07:29.1737884+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/te.1288ac5c9584fbf2.module.css responded 200 in 255.0287 ms
+
+2026-09-26T23:07:29.1737886+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/ph-a1c60306920e6ed3.js responded 200 in 268.1187 ms
+
+2026-09-26T23:07:29.2190447+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/yb-399698d852f1c94e.js responded 200 in 313.2275 ms
+
+2026-09-26T23:07:29.2480168+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/1r-06fb20f744036426.js responded 200 in 357.5935 ms
+
+2026-09-26T23:07:29.2499016+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/s.f6917eab64067c42.module.css responded 200 in 324.9141 ms
+
+2026-09-26T23:07:29.2552082+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/6j2-4acb35bfe60750b1.js responded 200 in 346.14 ms
+
+2026-09-26T23:07:29.2862600+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/q.fb4f3ee9d1eb9392.module.css responded 200 in 364.9154 ms
+
+2026-09-26T23:07:29.3276808+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/v-c00ec61ca4d552f0.js responded 200 in 415.1813 ms
+
+2026-09-26T23:07:29.3698793+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/2.bdac02460e48511c.module.css responded 200 in 449.329 ms
+
+2026-09-26T23:07:29.3786818+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/in-product-messaging/enterprise-new-tasks-indicator.json responded 304 in 588.3044 ms
+
+2026-09-26T23:07:29.3867395+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/yt-cd700fc7779c59ff.js responded 200 in 483.433 ms
+
+2026-09-26T23:07:29.3867402+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/2kc-60c5b6059fd0fec1.js responded 200 in 462.7959 ms
+
+2026-09-26T23:07:29.4195254+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/l54.0df357d0d0869a29.module.css responded 200 in 493.9132 ms
+
+2026-09-26T23:07:29.4362094+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/ph.8571b699cf5ec668.module.css responded 200 in 530.6367 ms
+
+2026-09-26T23:07:29.4538746+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/f2y-b469c84f08ee9548.js responded 200 in 534.2239 ms
+
+2026-09-26T23:07:29.4625686+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/tc-f3438bce155c55ac.js responded 200 in 556.4826 ms
+
+2026-09-26T23:07:29.4929280+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://api.github.com/_private/browser/stats responded 200 in 1258.5833 ms
+
+2026-09-26T23:07:29.5471281+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 1054.2797 ms
+
+2026-09-26T23:07:29.5552858+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/dg7-e03fbd1f9f4bc7d8.js responded 200 in 630.6182 ms
+
+2026-09-26T23:07:29.5564562+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/ph8-30874ddce1d89aec.js responded 200 in 684.1815 ms
+
+2026-09-26T23:07:29.5833777+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/s-4b83cc9904a300c0.js responded 200 in 658.1105 ms
+
+2026-09-26T23:07:29.5930795+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/16-e8d107f2c1f01ef5.js responded 200 in 679.1793 ms
+
+2026-09-26T23:07:29.6083184+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/ji-8c6c1b952444a327.js responded 200 in 684.0214 ms
+
+2026-09-26T23:07:29.6588837+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/jd-475e5545e5b27486.js responded 200 in 757.2424 ms
+
+2026-09-26T23:07:29.6588837+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/cz-7ed01b7965d9f8e4.js responded 200 in 747.4431 ms
+
+2026-09-26T23:07:29.6607861+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/07-d9b6573c5006e7df.js responded 200 in 733.0818 ms
+
+2026-09-26T23:07:29.6674955+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/qt-b753e23e9511cec3.js responded 200 in 750.1901 ms
+
+2026-09-26T23:07:29.6793319+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/gq-000a47ba38ce4102.js responded 200 in 770.5067 ms
+
+2026-09-26T23:07:29.7065863+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/gk-c9b138706b86405e.js responded 200 in 808.3375 ms
+
+2026-09-26T23:07:29.7366828+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/0l5-ff65210c0318d88e.js responded 200 in 848.9701 ms
+
+2026-09-26T23:07:29.7827410+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/mo-a92a5826776e8221.js responded 200 in 889.4454 ms
+
+2026-09-26T23:07:29.8465518+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/l54-076de347da3502bd.js responded 200 in 920.7806 ms
+
+2026-09-26T23:07:30.0134696+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/te-9302ad5358e5989f.js responded 200 in 1094.1194 ms
+
+2026-09-26T23:07:30.0324801+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 1912.6107 ms
+
+2026-09-26T23:07:30.1397104+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/2kc.515b84ebf89935c6.module.css responded 200 in 1217.2098 ms
+
+2026-09-26T23:07:30.7697242+08:00 [ERR]
+Microsoft.AspNetCore.Server.Kestrel
+Connection id "0HNORRJPNC6LF", Request id "0HNORRJPNC6LF:00000007": An unhandled exception was thrown by the application.
+System.NotSupportedException: Unsupported request method 'CONNECT'.
+   at Yarp.ReverseProxy.Forwarder.RequestUtilities.GetHttpMethod(String method)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.CreateRequestMessageAsync(HttpContext context, String destinationPrefix, HttpTransformer transformer, ForwarderRequestConfig requestConfig, Boolean isStreamingRequest, ActivityCancellationTokenSource activityToken)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.SendAsync(HttpContext context, String destinationPrefix, HttpMessageInvoker httpClient, ForwarderRequestConfig requestConfig, HttpTransformer transformer)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpReverseProxyMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpProxyPacMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.HttpProtocol.ProcessRequests[TContext](IHttpApplication`1)
+
+2026-09-26T23:07:31.0110525+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/q-447bcd2f1d8e949f.js responded 200 in 2089.4282 ms
+
+2026-09-26T23:07:31.6955353+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/pz-171c6a759b117249.js responded 200 in 2791.8952 ms
+
+2026-09-26T23:07:32.0766089+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/l6l-d0243739e6e6f958.js responded 200 in 3191.6975 ms
+
+2026-09-26T23:07:33.9606426+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/2-5d949d58df52a826.js responded 200 in 5039.9344 ms
+
+2026-09-26T23:07:34.0519557+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 491.8581 ms
+
+2026-09-26T23:07:35.0617023+08:00 [ERR]
+Microsoft.AspNetCore.Server.Kestrel
+Connection id "0HNORRJPNC6LF", Request id "0HNORRJPNC6LF:00000009": An unhandled exception was thrown by the application.
+System.NotSupportedException: Unsupported request method 'CONNECT'.
+   at Yarp.ReverseProxy.Forwarder.RequestUtilities.GetHttpMethod(String method)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.CreateRequestMessageAsync(HttpContext context, String destinationPrefix, HttpTransformer transformer, ForwarderRequestConfig requestConfig, Boolean isStreamingRequest, ActivityCancellationTokenSource activityToken)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.SendAsync(HttpContext context, String destinationPrefix, HttpMessageInvoker httpClient, ForwarderRequestConfig requestConfig, HttpTransformer transformer)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpReverseProxyMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpProxyPacMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.HttpProtocol.ProcessRequests[TContext](IHttpApplication`1)
+
+2026-09-26T23:07:39.1516065+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+release-assets.githubusercontent.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T23:07:40.0311101+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 767.3129 ms
+
+2026-09-26T23:07:42.7069793+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-k6x-d53fb698c8b55386.js responded 200 in 8668.4818 ms
+
+2026-09-26T23:07:42.7911591+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/settings/repositories responded 200 in 853.6099 ms
+
+2026-09-26T23:07:43.1171137+08:00 [ERR]
+Microsoft.AspNetCore.Server.Kestrel
+Connection id "0HNORRJPNC6LF", Request id "0HNORRJPNC6LF:0000000B": An unhandled exception was thrown by the application.
+System.NotSupportedException: Unsupported request method 'CONNECT'.
+   at Yarp.ReverseProxy.Forwarder.RequestUtilities.GetHttpMethod(String method)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.CreateRequestMessageAsync(HttpContext context, String destinationPrefix, HttpTransformer transformer, ForwarderRequestConfig requestConfig, Boolean isStreamingRequest, ActivityCancellationTokenSource activityToken)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.SendAsync(HttpContext context, String destinationPrefix, HttpMessageInvoker httpClient, ForwarderRequestConfig requestConfig, HttpTransformer transformer)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpReverseProxyMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpProxyPacMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.HttpProtocol.ProcessRequests[TContext](IHttpApplication`1)
+
+2026-09-26T23:07:44.0475792+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/github-copilot/chat/implicit-context/settings/repositories/%2Fsettings%2Frepositories responded 404 in 740.9963 ms
+
+2026-09-26T23:07:44.1057500+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 1201.5549 ms
+
+2026-09-26T23:07:44.3555532+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+release-assets.githubusercontent.com:443->[185.199.111.133, 185.199.110.133, 185.199.108.133]
+
+2026-09-26T23:07:44.3579870+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+camo.githubusercontent.com:443->[185.199.111.133, 185.199.110.133, 185.199.108.133]
+
+2026-09-26T23:07:44.6084816+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+copilot-telemetry.githubusercontent.com:443->[140.82.112.21, 140.82.114.21, 140.82.114.22]
+
+2026-09-26T23:07:44.7109696+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+collector.github.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T23:07:44.7129395+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+collector.github.com:443->[140.82.112.21, 140.82.112.22, 140.82.114.21]
+
+2026-09-26T23:07:44.8130296+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+education.github.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T23:07:45.0586198+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+education.github.com:443->[140.82.113.22, 140.82.112.21, 140.82.112.22]
+
+2026-09-26T23:07:47.6295908+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 500.532 ms
+
+2026-09-26T23:07:48.7508949+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://api.github.com/_private/browser/stats responded 200 in 855.5057 ms
+
+2026-09-26T23:07:48.9829345+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+exafunction.github.io@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T23:07:50.3086136+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+avatars.githubusercontent.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T23:07:50.5068676+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+avatars.githubusercontent.com:443->[2606:50c0:8000::154, 185.199.111.133, 2606:50c0:8001::154]
+
+2026-09-26T23:07:50.8466990+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+github.githubassets.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T23:07:52.2147265+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+raw.githubusercontent.com:443->[2606:50c0:8000::154, 185.199.111.133, 2606:50c0:8001::154]
+
+2026-09-26T23:07:53.9293272+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/settings/installations responded 200 in 1346.8176 ms
+
+2026-09-26T23:07:54.3301710+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://avatars.githubusercontent.com/in/2759298 responded 200 in 381.2039 ms
+
+2026-09-26T23:07:54.5118477+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 490.2952 ms
+
+2026-09-26T23:07:54.7170211+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/github-copilot/chat/implicit-context/settings/installations/%2Fsettings%2Finstallations responded 404 in 264.5531 ms
+
+2026-09-26T23:07:59.2836873+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/settings/apps/authorizations responded 200 in 1203.2962 ms
+
+2026-09-26T23:07:59.3195698+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 254.6988 ms
+
+2026-09-26T23:07:59.4604956+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://api.github.com/_private/browser/stats responded 200 in 440.352 ms
+
+2026-09-26T23:07:59.5498362+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://avatars.githubusercontent.com/u/318166824 responded 200 in 106.2568 ms
+
+2026-09-26T23:07:59.6021308+08:00 [ERR]
+Microsoft.AspNetCore.Server.Kestrel
+Connection id "0HNORRJPNC6LF", Request id "0HNORRJPNC6LF:0000000D": An unhandled exception was thrown by the application.
+System.NotSupportedException: Unsupported request method 'CONNECT'.
+   at Yarp.ReverseProxy.Forwarder.RequestUtilities.GetHttpMethod(String method)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.CreateRequestMessageAsync(HttpContext context, String destinationPrefix, HttpTransformer transformer, ForwarderRequestConfig requestConfig, Boolean isStreamingRequest, ActivityCancellationTokenSource activityToken)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.SendAsync(HttpContext context, String destinationPrefix, HttpMessageInvoker httpClient, ForwarderRequestConfig requestConfig, HttpTransformer transformer)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpReverseProxyMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpProxyPacMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.HttpProtocol.ProcessRequests[TContext](IHttpApplication`1)
+
+2026-09-26T23:07:59.9029263+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/in-product-messaging/copilot-budget-request-banner responded 200 in 413.5312 ms
+
+2026-09-26T23:08:00.0595109+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 495.2178 ms
+
+2026-09-26T23:08:00.2956750+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://api.github.com/_private/browser/stats responded 200 in 722.5289 ms
+
+2026-09-26T23:08:00.3338805+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/in-product-messaging/code-scanning-ai-findings-preview-banner responded 204 in 844.087 ms
+
+2026-09-26T23:08:04.8637539+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 274.8906 ms
+
+2026-09-26T23:08:05.1626249+08:00 [WRN]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/favicon.ico responded 502 in 140.0262 ms
+System.Threading.Tasks.TaskCanceledException: The operation was canceled.
+System.IO.IOException: Unable to read data from the transport connection: 由于线程退出或应用程序请求，已中止 I/O 操作。.
+System.Net.Sockets.SocketException: 由于线程退出或应用程序请求，已中止 I/O 操作。
+
+
+2026-09-26T23:08:07.4738102+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+api.github.com:443->[20.205.243.168, 140.82.116.5, 140.82.112.6]
+
+2026-09-26T23:08:09.1514905+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 258.9197 ms
+
+2026-09-26T23:08:10.4621673+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/settings/profile responded 200 in 1563.4694 ms
+
+2026-09-26T23:08:11.2399478+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/github-copilot/chat/implicit-context/settings/profile/%2Fsettings%2Fprofile responded 404 in 252.9475 ms
+
+2026-09-26T23:08:11.6614441+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 1051.8054 ms
+
+2026-09-26T23:08:14.4426562+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+copilot-telemetry.githubusercontent.com:443->[140.82.113.22, 140.82.112.21, 140.82.114.21]
+
+2026-09-26T23:08:16.0638679+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+collector.github.com:443->[140.82.113.22, 140.82.112.21, 140.82.112.22]
+
+2026-09-26T23:08:16.1478451+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://api.github.com/_private/browser/stats responded 200 in 432.8492 ms
+
+2026-09-26T23:08:16.6257266+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 806.9612 ms
+
+2026-09-26T23:08:17.1635575+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/settings/profile responded 200 in 3410.1787 ms
+
+2026-09-26T23:08:17.6466104+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/in-product-messaging/code-scanning-ai-findings-preview-banner responded 204 in 406.5475 ms
+
+2026-09-26T23:08:17.7014555+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://api.github.com/_private/browser/stats responded 200 in 458.5389 ms
+
+2026-09-26T23:08:17.7647348+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/notifications/indicator responded 304 in 464.9099 ms
+
+2026-09-26T23:08:17.7698029+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 499.0272 ms
+
+2026-09-26T23:08:17.7752601+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/in-product-messaging/enterprise-new-tasks-indicator.json responded 304 in 437.0728 ms
+
+2026-09-26T23:08:17.8303682+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/github-copilot/chat responded 304 in 527.1513 ms
+
+2026-09-26T23:08:17.8712171+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/in-product-messaging/copilot-budget-request-banner responded 200 in 632.6162 ms
+
+2026-09-26T23:08:17.9022874+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/in-product-messaging/organization-new-tasks-indicator.json responded 304 in 564.7073 ms
+
+2026-09-26T23:08:17.9964185+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://api.github.com/_private/browser/stats responded 200 in 644.8805 ms
+
+2026-09-26T23:08:18.0086436+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/_side-panels/user.json responded 200 in 671.5558 ms
+
+2026-09-26T23:08:18.1004358+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://api.github.com/_private/browser/stats responded 200 in 857.2807 ms
+
+2026-09-26T23:08:18.2103694+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/github-copilot/chat/entitlement responded 304 in 915.0034 ms
+
+2026-09-26T23:08:20.6774798+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-k6x-d53fb698c8b55386.js responded 200 in 2571.1347 ms
+
+2026-09-26T23:08:20.7688222+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+avatars.githubusercontent.com:443->[2606:50c0:8000::154, 185.199.111.133, 2606:50c0:8003::154]
+
+2026-09-26T23:08:21.1250305+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+raw.githubusercontent.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T23:08:21.1273389+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+raw.githubusercontent.com:443->[2606:50c0:8000::154, 185.199.111.133, 2606:50c0:8003::154]
+
+2026-09-26T23:08:22.5756368+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 266.1821 ms
+
+2026-09-26T23:08:23.5022173+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://api.github.com/_private/browser/stats responded 200 in 334.0003 ms
+
+2026-09-26T23:08:23.5424550+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://api.github.com/_private/browser/stats responded 200 in 335.0364 ms
+
+2026-09-26T23:08:26.7092071+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+github.githubassets.com:443->[2606:50c0:8002::215, 2606:50c0:8003::215, 185.199.108.215]
+
+2026-09-26T23:08:28.8390106+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright.azureedge.net:443->[2620:1ec:bdf::73, 13.107.246.74, 13.107.213.35]
+
+2026-09-26T23:08:30.6482933+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 253.8586 ms
+
+2026-09-26T23:08:30.7913462+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+js.monitor.azure.com:443->[150.171.110.108, 2603:1061:14:143::1, 150.171.110.70]
+
+2026-09-26T23:08:32.5643738+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+playwright-akamai.azureedge.net@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T23:08:33.0232751+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright-akamai.azureedge.net:443->[2603:1061:14:182::1, 150.171.110.108, 2603:1061:14:168::1]
+
+2026-09-26T23:08:35.3886857+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright-verizon.azureedge.net:443->[2603:1061:14:189::1, 2603:1061:14:188::1, 150.171.110.108]
+
+2026-09-26T23:08:36.5632211+08:00 [ERR]
+Microsoft.AspNetCore.Server.Kestrel
+Connection id "0HNORRJPNC6LF", Request id "0HNORRJPNC6LF:0000000F": An unhandled exception was thrown by the application.
+System.NotSupportedException: Unsupported request method 'CONNECT'.
+   at Yarp.ReverseProxy.Forwarder.RequestUtilities.GetHttpMethod(String method)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.CreateRequestMessageAsync(HttpContext context, String destinationPrefix, HttpTransformer transformer, ForwarderRequestConfig requestConfig, Boolean isStreamingRequest, ActivityCancellationTokenSource activityToken)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.SendAsync(HttpContext context, String destinationPrefix, HttpMessageInvoker httpClient, ForwarderRequestConfig requestConfig, HttpTransformer transformer)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpReverseProxyMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpProxyPacMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.HttpProtocol.ProcessRequests[TContext](IHttpApplication`1)
+
+2026-09-26T23:08:44.0232212+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+login.live.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T23:08:54.4291256+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-lf-4b06787fa60d0642.js responded 200 in 359.3512 ms
+
+2026-09-26T23:08:54.4560336+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-jcc-fa93d743c363d15f.js responded 200 in 386.061 ms
+
+2026-09-26T23:08:54.4733313+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/dmf-ed3028324205d5d2.js responded 200 in 404.3835 ms
+
+2026-09-26T23:08:54.4835085+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-k9-81189b854e16251e.js responded 200 in 413.1504 ms
+
+2026-09-26T23:08:54.5135947+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/k9.ffd11ffe2d06208c.module.css responded 200 in 443.4118 ms
+
+2026-09-26T23:08:54.9095267+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/_filter/organizations responded 304 in 415.6997 ms
+
+2026-09-26T23:08:55.0627611+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/_filter/repositories responded 304 in 569.3355 ms
+
+2026-09-26T23:09:02.9073657+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://api.github.com/_private/browser/stats responded 200 in 712.0743 ms
+
+2026-09-26T23:09:03.9882476+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+camo.githubusercontent.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T23:09:06.0453660+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+api.github.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T23:09:07.7938106+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 583.3363 ms
+
+2026-09-26T23:09:08.6076263+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://github.com/users/helloyhcby163 responded 302 in 515.2781 ms
+
+2026-09-26T23:09:08.8402351+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+github.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T23:09:10.0946750+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/settings/profile responded 200 in 1477.0175 ms
+
+2026-09-26T23:09:10.2788999+08:00 [ERR]
+Microsoft.AspNetCore.Server.Kestrel
+Connection id "0HNORRJPNC6LF", Request id "0HNORRJPNC6LF:00000011": An unhandled exception was thrown by the application.
+System.NotSupportedException: Unsupported request method 'CONNECT'.
+   at Yarp.ReverseProxy.Forwarder.RequestUtilities.GetHttpMethod(String method)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.CreateRequestMessageAsync(HttpContext context, String destinationPrefix, HttpTransformer transformer, ForwarderRequestConfig requestConfig, Boolean isStreamingRequest, ActivityCancellationTokenSource activityToken)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.SendAsync(HttpContext context, String destinationPrefix, HttpMessageInvoker httpClient, ForwarderRequestConfig requestConfig, HttpTransformer transformer)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpReverseProxyMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpProxyPacMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.HttpProtocol.ProcessRequests[TContext](IHttpApplication`1)
+
+2026-09-26T23:09:10.4546931+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/in-product-messaging/code-scanning-ai-findings-preview-banner responded 204 in 286.9102 ms
+
+2026-09-26T23:09:10.5379443+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/in-product-messaging/copilot-budget-request-banner responded 200 in 370.3172 ms
+
+2026-09-26T23:09:10.6823760+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://api.github.com/_private/browser/stats responded 200 in 1080.9611 ms
+
+2026-09-26T23:09:10.7096862+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 499.9558 ms
+
+2026-09-26T23:09:10.9214824+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/github-copilot/chat/entitlement responded 304 in 685.1194 ms
+
+2026-09-26T23:09:10.9708334+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://api.github.com/_private/browser/stats responded 200 in 688.3951 ms
+
+2026-09-26T23:09:10.9988534+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/github-copilot/chat responded 304 in 754.2289 ms
+
+2026-09-26T23:09:11.1821399+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/_side-panels/user.json responded 200 in 914.5411 ms
+
+2026-09-26T23:09:11.2119090+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/in-product-messaging/enterprise-new-tasks-indicator.json responded 304 in 942.9505 ms
+
+2026-09-26T23:09:11.3887939+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/in-product-messaging/organization-new-tasks-indicator.json responded 304 in 1120.8477 ms
+
+2026-09-26T23:09:11.5413097+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/notifications/indicator responded 304 in 1300.1885 ms
+
+2026-09-26T23:09:13.3012896+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 267.5298 ms
+
+2026-09-26T23:09:15.4327790+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+codeload.github.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T23:09:15.6905288+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+codeload.github.com:443->[20.27.177.114, 20.205.243.165, 140.82.114.9]
+
+2026-09-26T23:09:16.3737822+08:00 [ERR]
+Microsoft.AspNetCore.Server.Kestrel
+Connection id "0HNORRJPNC6LF", Request id "0HNORRJPNC6LF:00000013": An unhandled exception was thrown by the application.
+System.NotSupportedException: Unsupported request method 'CONNECT'.
+   at Yarp.ReverseProxy.Forwarder.RequestUtilities.GetHttpMethod(String method)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.CreateRequestMessageAsync(HttpContext context, String destinationPrefix, HttpTransformer transformer, ForwarderRequestConfig requestConfig, Boolean isStreamingRequest, ActivityCancellationTokenSource activityToken)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.SendAsync(HttpContext context, String destinationPrefix, HttpMessageInvoker httpClient, ForwarderRequestConfig requestConfig, HttpTransformer transformer)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpReverseProxyMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpProxyPacMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.HttpProtocol.ProcessRequests[TContext](IHttpApplication`1)
+
+2026-09-26T23:09:17.8904573+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-k6x-d53fb698c8b55386.js responded 200 in 6608.8795 ms
+
+2026-09-26T23:09:21.0738154+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 766.9496 ms
+
+2026-09-26T23:09:21.9832853+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+copilot-telemetry.githubusercontent.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T23:09:23.5649071+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+collector.github.com:443->[140.82.113.22, 140.82.112.21, 140.82.114.21]
+
+2026-09-26T23:09:25.4606434+08:00 [ERR]
+Microsoft.AspNetCore.Server.Kestrel
+Connection id "0HNORRJPNC6LF", Request id "0HNORRJPNC6LF:00000015": An unhandled exception was thrown by the application.
+System.NotSupportedException: Unsupported request method 'CONNECT'.
+   at Yarp.ReverseProxy.Forwarder.RequestUtilities.GetHttpMethod(String method)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.CreateRequestMessageAsync(HttpContext context, String destinationPrefix, HttpTransformer transformer, ForwarderRequestConfig requestConfig, Boolean isStreamingRequest, ActivityCancellationTokenSource activityToken)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.SendAsync(HttpContext context, String destinationPrefix, HttpMessageInvoker httpClient, ForwarderRequestConfig requestConfig, HttpTransformer transformer)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpReverseProxyMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpProxyPacMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.HttpProtocol.ProcessRequests[TContext](IHttpApplication`1)
+
+2026-09-26T23:09:33.5991067+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+education.github.com:443->[140.82.113.22, 140.82.112.21, 140.82.114.21]
+
+2026-09-26T23:09:36.8679477+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+marketplace.visualstudio.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T23:09:37.1508512+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+marketplace.visualstudio.com:443->[150.171.73.16, 150.171.74.16, 2603:1061:10:1::16]
+
+2026-09-26T23:09:39.3701994+08:00 [ERR]
+Microsoft.AspNetCore.Server.Kestrel
+Connection id "0HNORRJPNC6LF", Request id "0HNORRJPNC6LF:00000017": An unhandled exception was thrown by the application.
+System.NotSupportedException: Unsupported request method 'CONNECT'.
+   at Yarp.ReverseProxy.Forwarder.RequestUtilities.GetHttpMethod(String method)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.CreateRequestMessageAsync(HttpContext context, String destinationPrefix, HttpTransformer transformer, ForwarderRequestConfig requestConfig, Boolean isStreamingRequest, ActivityCancellationTokenSource activityToken)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.SendAsync(HttpContext context, String destinationPrefix, HttpMessageInvoker httpClient, ForwarderRequestConfig requestConfig, HttpTransformer transformer)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpReverseProxyMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpProxyPacMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.HttpProtocol.ProcessRequests[TContext](IHttpApplication`1)
+
+2026-09-26T23:09:43.2027466+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+alive.github.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T23:09:45.6379328+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 1000.6199 ms
+
+2026-09-26T23:09:48.6649297+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+exafunction.github.io:443->[185.199.108.153, 2606:50c0:8000::153, 185.199.110.153]
+
+2026-09-26T23:09:56.7768016+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+github.githubassets.com:443->[2606:50c0:8002::215, 2606:50c0:8003::215, 185.199.110.215]
+
+2026-09-26T23:09:58.5156689+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+westus-0.in.applicationinsights.azure.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T23:09:58.9178803+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 257.5637 ms
+
+2026-09-26T23:09:59.7721749+08:00 [ERR]
+Microsoft.AspNetCore.Server.Kestrel
+Connection id "0HNORRJPNC6LF", Request id "0HNORRJPNC6LF:00000019": An unhandled exception was thrown by the application.
+System.NotSupportedException: Unsupported request method 'CONNECT'.
+   at Yarp.ReverseProxy.Forwarder.RequestUtilities.GetHttpMethod(String method)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.CreateRequestMessageAsync(HttpContext context, String destinationPrefix, HttpTransformer transformer, ForwarderRequestConfig requestConfig, Boolean isStreamingRequest, ActivityCancellationTokenSource activityToken)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.SendAsync(HttpContext context, String destinationPrefix, HttpMessageInvoker httpClient, ForwarderRequestConfig requestConfig, HttpTransformer transformer)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpReverseProxyMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpProxyPacMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.HttpProtocol.ProcessRequests[TContext](IHttpApplication`1)
+
+2026-09-26T23:10:02.5019289+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+playwright.azureedge.net@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T23:10:03.5863375+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright.azureedge.net:443->[2620:1ec:bdf::73, 13.107.246.74, 13.107.246.70]
+
+2026-09-26T23:10:06.3093168+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+js.monitor.azure.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T23:10:06.5722548+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+js.monitor.azure.com:443->[150.171.110.108, 150.171.110.66, 150.171.110.70]
+
+2026-09-26T23:10:08.9060076+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright-akamai.azureedge.net:443->[2603:1061:14:182::1, 150.171.110.108, 150.171.110.66]
+
+2026-09-26T23:10:11.5186647+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+playwright-verizon.azureedge.net@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T23:10:18.2455093+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+login.live.com:443->[40.126.35.150, 40.126.35.64, 40.126.35.145]
+
+2026-09-26T23:10:23.6503300+08:00 [WRN]
+FastGithub.DomainResolve.DnsClient
+login.microsoftonline.com@119.29.29.29:53->Unable to read data from the transport connection: 远程主机强迫关闭了一个现有的连接。.
+
+2026-09-26T23:10:26.9432381+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+login.microsoftonline.com:443->[40.126.35.80, 40.126.35.150, 40.126.35.145]
+
+2026-09-26T23:10:30.4083825+08:00 [ERR]
+Microsoft.AspNetCore.Server.Kestrel
+Connection id "0HNORRJPNC6LF", Request id "0HNORRJPNC6LF:0000001B": An unhandled exception was thrown by the application.
+System.NotSupportedException: Unsupported request method 'CONNECT'.
+   at Yarp.ReverseProxy.Forwarder.RequestUtilities.GetHttpMethod(String method)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.CreateRequestMessageAsync(HttpContext context, String destinationPrefix, HttpTransformer transformer, ForwarderRequestConfig requestConfig, Boolean isStreamingRequest, ActivityCancellationTokenSource activityToken)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.SendAsync(HttpContext context, String destinationPrefix, HttpMessageInvoker httpClient, ForwarderRequestConfig requestConfig, HttpTransformer transformer)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpReverseProxyMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpProxyPacMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.HttpProtocol.ProcessRequests[TContext](IHttpApplication`1)
+
+2026-09-26T23:10:36.7937842+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+codeload.github.com:443->[20.27.177.114, 20.205.243.165, 140.82.116.9]
+
+2026-09-26T23:10:45.1109971+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+alive.github.com:443->[140.82.113.25, 140.82.114.25, 140.82.112.25]
+
+2026-09-26T23:10:48.4210178+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/_filter/repositories responded 304 in 1010.2714 ms
+
+2026-09-26T23:10:48.9032195+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/_filter/organizations responded 304 in 1490.7099 ms
+
+2026-09-26T23:10:49.3960837+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+westus-0.in.applicationinsights.azure.com:443->[2603:1030:a07:e::101, 20.189.172.76, 2603:1030:a07:e::102]
+
+2026-09-26T23:10:53.3431651+08:00 [INF]
+FastGithub.DomainResolve.DomainResolver
+playwright.azureedge.net:443->[13.107.246.70, 2620:1ec:bdf::67, 2620:1ec:bdf::66]
+
+2026-09-26T23:11:08.2765255+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 803.0595 ms
+
+2026-09-26T23:11:16.4170515+08:00 [ERR]
+Microsoft.AspNetCore.Server.Kestrel
+Connection id "0HNORRJPNC6LF", Request id "0HNORRJPNC6LF:0000001D": An unhandled exception was thrown by the application.
+System.NotSupportedException: Unsupported request method 'CONNECT'.
+   at Yarp.ReverseProxy.Forwarder.RequestUtilities.GetHttpMethod(String method)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.CreateRequestMessageAsync(HttpContext context, String destinationPrefix, HttpTransformer transformer, ForwarderRequestConfig requestConfig, Boolean isStreamingRequest, ActivityCancellationTokenSource activityToken)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.SendAsync(HttpContext context, String destinationPrefix, HttpMessageInvoker httpClient, ForwarderRequestConfig requestConfig, HttpTransformer transformer)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpReverseProxyMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpProxyPacMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.HttpProtocol.ProcessRequests[TContext](IHttpApplication`1)
+
+2026-09-26T23:12:08.0407189+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://github.com/users/helloyhcby163 responded 302 in 688.5091 ms
+
+2026-09-26T23:12:09.2789858+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/settings/profile responded 200 in 1225.8586 ms
+
+2026-09-26T23:12:09.7741547+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/in-product-messaging/copilot-budget-request-banner responded 200 in 410.2343 ms
+
+2026-09-26T23:12:09.8934874+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 510.5573 ms
+
+2026-09-26T23:12:09.9111132+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/in-product-messaging/organization-new-tasks-indicator.json responded 304 in 442.3974 ms
+
+2026-09-26T23:12:09.9266007+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/notifications/indicator responded 304 in 491.1008 ms
+
+2026-09-26T23:12:09.9403286+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/in-product-messaging/enterprise-new-tasks-indicator.json responded 304 in 470.4507 ms
+
+2026-09-26T23:12:10.0282043+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/_side-panels/user.json responded 200 in 560.5875 ms
+
+2026-09-26T23:12:10.0729292+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/github-copilot/chat responded 304 in 633.8743 ms
+
+2026-09-26T23:12:10.2520373+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/in-product-messaging/code-scanning-ai-findings-preview-banner responded 204 in 887.8915 ms
+
+2026-09-26T23:12:10.8464308+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/github-copilot/chat/entitlement responded 304 in 1414.9407 ms
+
+2026-09-26T23:12:11.1897501+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://api.github.com/_private/browser/stats responded 200 in 1812.37 ms
+
+2026-09-26T23:12:14.7529913+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 268.8935 ms
+
+2026-09-26T23:12:16.4920377+08:00 [ERR]
+Microsoft.AspNetCore.Server.Kestrel
+Connection id "0HNORRJPNC6LF", Request id "0HNORRJPNC6LF:0000001F": An unhandled exception was thrown by the application.
+System.NotSupportedException: Unsupported request method 'CONNECT'.
+   at Yarp.ReverseProxy.Forwarder.RequestUtilities.GetHttpMethod(String method)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.CreateRequestMessageAsync(HttpContext context, String destinationPrefix, HttpTransformer transformer, ForwarderRequestConfig requestConfig, Boolean isStreamingRequest, ActivityCancellationTokenSource activityToken)
+   at Yarp.ReverseProxy.Forwarder.HttpForwarder.SendAsync(HttpContext context, String destinationPrefix, HttpMessageInvoker httpClient, ForwarderRequestConfig requestConfig, HttpTransformer transformer)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpReverseProxyMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at FastGithub.HttpServer.HttpMiddlewares.HttpProxyPacMiddleware.InvokeAsync(HttpContext context, RequestDelegate next)
+   at Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.HttpProtocol.ProcessRequests[TContext](IHttpApplication`1)
+
+2026-09-26T23:12:16.7640889+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-k6x-d53fb698c8b55386.js responded 200 in 6392.1232 ms
+
+2026-09-26T23:12:18.4059260+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://github.com/users/helloyhcby163 responded 302 in 573.3161 ms
+
+2026-09-26T23:12:20.3350169+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/settings/profile responded 200 in 1920.6909 ms
+
+2026-09-26T23:12:20.7674582+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/in-product-messaging/code-scanning-ai-findings-preview-banner responded 204 in 353.404 ms
+
+2026-09-26T23:12:20.7864564+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/in-product-messaging/copilot-budget-request-banner responded 200 in 372.5722 ms
+
+2026-09-26T23:12:20.7985098+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/in-product-messaging/organization-new-tasks-indicator.json responded 304 in 282.4668 ms
+
+2026-09-26T23:12:20.8021853+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/_side-panels/user.json responded 200 in 288.3777 ms
+
+2026-09-26T23:12:20.8841853+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/notifications/indicator responded 304 in 405.3912 ms
+
+2026-09-26T23:12:20.9485006+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://api.github.com/_private/browser/stats responded 200 in 434.7782 ms
+
+2026-09-26T23:12:20.9686542+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/in-product-messaging/enterprise-new-tasks-indicator.json responded 304 in 452.0077 ms
+
+2026-09-26T23:12:20.9850378+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/github-copilot/chat/entitlement responded 304 in 511.0568 ms
+
+2026-09-26T23:12:21.3209011+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/github-copilot/chat responded 304 in 837.6256 ms
+
+2026-09-26T23:12:22.2197377+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 1788.8617 ms
+
+2026-09-26T23:12:22.4846588+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 996.6003 ms
+
+2026-09-26T23:12:22.5495772+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/settings/admin responded 200 in 1061.641 ms
+
+2026-09-26T23:12:23.1497342+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 507.7927 ms
+
+2026-09-26T23:12:23.9312112+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/github-copilot/chat/implicit-context/settings/admin/%2Fsettings%2Fadmin responded 404 in 869.2244 ms
+
+2026-09-26T23:12:26.9390235+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github.com->127.0.0.1
+
+2026-09-26T23:12:26.9411236+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github.com->::1
+
+2026-09-26T23:12:26.9471876+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github.com->127.0.0.1
+
+2026-09-26T23:12:26.9490958+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github.com->::1
+
+2026-09-26T23:12:27.2249644+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 548.7032 ms
+
+2026-09-26T23:12:28.0834619+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://api.github.com/_private/browser/stats responded 200 in 442.5255 ms
+
+2026-09-26T23:12:30.9021286+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/settings/profile responded 200 in 3883.4356 ms
+
+2026-09-26T23:12:30.9817192+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github.githubassets.com->127.0.0.1
+
+2026-09-26T23:12:30.9838591+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+user-images.githubusercontent.com->127.0.0.1
+
+2026-09-26T23:12:30.9858148+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+avatars.githubusercontent.com->127.0.0.1
+
+2026-09-26T23:12:30.9885056+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github.githubassets.com->::1
+
+2026-09-26T23:12:30.9915566+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github-cloud.s3.amazonaws.com->127.0.0.1
+
+2026-09-26T23:12:30.9936887+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+avatars.githubusercontent.com->::1
+
+2026-09-26T23:12:30.9953934+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+user-images.githubusercontent.com->::1
+
+2026-09-26T23:12:30.9973411+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github-cloud.s3.amazonaws.com->::1
+
+2026-09-26T23:12:30.9994703+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+collector.github.com->127.0.0.1
+
+2026-09-26T23:12:31.0013030+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+collector.github.com->::1
+
+2026-09-26T23:12:31.0032753+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github.githubassets.com->127.0.0.1
+
+2026-09-26T23:12:31.0057548+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+avatars.githubusercontent.com->127.0.0.1
+
+2026-09-26T23:12:31.0084000+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+user-images.githubusercontent.com->127.0.0.1
+
+2026-09-26T23:12:31.0105263+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github-cloud.s3.amazonaws.com->127.0.0.1
+
+2026-09-26T23:12:31.0127089+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+collector.github.com->::1
+
+2026-09-26T23:12:31.0145569+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github.githubassets.com->::1
+
+2026-09-26T23:12:31.0162524+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+avatars.githubusercontent.com->::1
+
+2026-09-26T23:12:31.0179680+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+user-images.githubusercontent.com->::1
+
+2026-09-26T23:12:31.0196197+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github-cloud.s3.amazonaws.com->::1
+
+2026-09-26T23:12:31.7214475+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+alive.github.com->127.0.0.1
+
+2026-09-26T23:12:31.7232799+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+alive.github.com->::1
+
+2026-09-26T23:12:31.7255004+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+alive.github.com->127.0.0.1
+
+2026-09-26T23:12:31.7270618+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+alive.github.com->::1
+
+2026-09-26T23:12:31.9882069+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.com/github-copilot/chat/implicit-context/settings/profile/%2Fsettings%2Fprofile responded 404 in 568.2919 ms
+
+2026-09-26T23:12:32.0756801+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 1082.0627 ms
+
+2026-09-26T23:12:33.4997122+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+GET https://github.githubassets.com/assets/chunk-k6x-d53fb698c8b55386.js responded 200 in 11887.4732 ms
+
+2026-09-26T23:12:35.9929886+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+api.github.com->127.0.0.1
+
+2026-09-26T23:12:35.9948604+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+api.github.com->::1
+
+2026-09-26T23:12:35.9966175+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+api.github.com->::1
+
+2026-09-26T23:12:36.3157591+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://collector.github.com/github/collect responded 204 in 268.5238 ms
+
+2026-09-26T23:12:36.4301064+08:00 [INF]
+FastGithub.HttpServer.HttpMiddlewares.RequestLoggingMiddleware
+POST https://api.github.com/_private/browser/stats responded 200 in 438.9659 ms
+
+2026-09-26T23:15:24.3550742+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+mozilla.map.fastly.net->127.0.0.1
+
+2026-09-26T23:15:24.3624471+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+mozilla.map.fastly.net->::1
+
+2026-09-26T23:17:37.3762052+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github.com->127.0.0.1
+
+2026-09-26T23:17:37.3802847+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github.com->::1
+
+2026-09-26T23:17:37.3837382+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github.com->127.0.0.1
+
+2026-09-26T23:17:37.3868622+08:00 [INF]
+FastGithub.PacketIntercept.Dns.DnsInterceptor
+github.com->::1
+

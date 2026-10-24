@@ -18,7 +18,8 @@ class CreateTaskPage(ctk.CTkFrame):
                  on_folder_config: Optional[Callable] = None,
                  on_save: Optional[Callable] = None,
                  task_id: Optional[str] = None,
-                 edit_mode: bool = False):
+                 edit_mode: bool = False,
+                 prefill_config: Optional[Dict] = None):
         """
         初始化创建任务页面
         
@@ -33,12 +34,20 @@ class CreateTaskPage(ctk.CTkFrame):
             on_save: 保存回调函数（用于编辑模式）
             task_id: 任务ID（用于编辑模式）
             edit_mode: 是否为编辑模式
+            prefill_config: v7.7 预填配置（AI 生成 / U 盘引导创建）
         """
         super().__init__(master)
         
         self.language_manager = language_manager
         self.config_manager = config_manager
         self.task_manager = task_manager
+        # v7.7: 获取主窗口引用（沿用原有「跳过配置」跳转逻辑所需的 app）
+        self.app = getattr(master, "app", None)
+        if self.app is None:
+            try:
+                self.app = master.winfo_toplevel()
+            except Exception:
+                self.app = None
         self.on_next_step = on_next_step
         self.on_cancel = on_cancel
         self.on_folder_config = on_folder_config
@@ -56,6 +65,16 @@ class CreateTaskPage(ctk.CTkFrame):
         self.default_strategy = "conservative"  # conservative, newest_wins, source_wins, target_wins
         # v7.6: 同步成功后执行的命令（可选，留空不执行）
         self.post_sync_command = ""
+        # v7.7: U 盘自动同步绑定
+        self.usb_auto_sync = False
+        self.usb_binding: Dict = {}
+        self._usb_devices: list = []
+        # v7.7: AI 配置导入的筛选模板（由文件夹配置页套用到子文件夹）
+        self.ai_filter_template: Dict = {}
+        # v7.7: AI 配置导入的任务名称（可为空）
+        self.task_name = ""
+        # v7.7: 预填配置（须在控件创建后应用）
+        self.prefill_config: Dict = dict(prefill_config or {})
         
         # 创建界面
         self._create_widgets()
@@ -63,6 +82,10 @@ class CreateTaskPage(ctk.CTkFrame):
         # 如果是编辑模式，加载任务数据
         if self.edit_mode and self.task_id and self.task_manager:
             self._load_task_data()
+        
+        # v7.7: 应用预填配置（AI 生成 / U 盘引导）
+        if self.prefill_config:
+            self._apply_prefill(self.prefill_config)
     
     def _create_widgets(self):
         """创建界面组件"""
@@ -327,6 +350,9 @@ class CreateTaskPage(ctk.CTkFrame):
 
         # ========== v7.6: 同步后执行命令（可选） ==========
         self._create_post_sync_command_section()
+
+        # ========== v7.7: 插入指定 U 盘时自动同步 ==========
+        self._create_usb_bind_section()
 
         # ========== 底部按钮区域 ==========
         self.bottom_frame = ctk.CTkFrame(self)
@@ -686,6 +712,221 @@ class CreateTaskPage(ctk.CTkFrame):
             return self.post_sync_entry.get().strip()
         return self.post_sync_command
 
+    # ===================== v7.7: U 盘自动同步绑定 =====================
+
+    def _create_usb_bind_section(self):
+        """自动同步（U 盘）区域：复选框 + 当前设备选择 + 刷新"""
+        self.usb_bind_frame = ctk.CTkFrame(self.content_frame)
+        self.usb_bind_frame.grid(row=9, column=0, columnspan=2, padx=5, pady=10, sticky="ew")
+        self.usb_bind_frame.grid_columnconfigure(0, weight=1)
+
+        self.usb_bind_title = ctk.CTkLabel(
+            self.usb_bind_frame,
+            text=self.language_manager.get_text("usb_bind_section", "自动同步（U 盘）"),
+            font=get_font(size=14, weight="bold")
+        )
+        self.usb_bind_title.grid(row=0, column=0, padx=10, pady=(10, 5), sticky="w")
+
+        self.usb_bind_var = ctk.BooleanVar(value=False)
+        self.usb_bind_checkbox = ctk.CTkCheckBox(
+            self.usb_bind_frame,
+            text=self.language_manager.get_text(
+                "usb_bind_checkbox", "当插入特定 U 盘时自动同步"
+            ),
+            variable=self.usb_bind_var,
+            font=get_font(size=14),
+            checkbox_width=22,
+            checkbox_height=22,
+            command=self._on_usb_bind_toggle
+        )
+        self.usb_bind_checkbox.grid(row=1, column=0, padx=10, pady=(0, 6), sticky="w")
+
+        device_row = ctk.CTkFrame(self.usb_bind_frame, fg_color="transparent")
+        device_row.grid(row=2, column=0, padx=10, pady=(0, 6), sticky="ew")
+
+        self.usb_device_label = ctk.CTkLabel(
+            device_row,
+            text=self.language_manager.get_text("usb_bind_current_device", "当前 U 盘"),
+            font=get_font(size=13)
+        )
+        self.usb_device_label.pack(side="left", padx=(0, 8))
+
+        self.usb_device_combo = ctk.CTkComboBox(
+            device_row,
+            values=[],
+            width=320,
+            height=32,
+            font=get_font(size=13),
+            dropdown_font=get_font(size=13),
+            state="readonly"
+        )
+        self.usb_device_combo.pack(side="left", padx=(0, 8))
+
+        self.usb_refresh_btn = ctk.CTkButton(
+            device_row,
+            text=self.language_manager.get_text("usb_bind_refresh", "刷新设备列表"),
+            width=110,
+            height=32,
+            font=get_font(size=13),
+            command=lambda: self._refresh_usb_devices(notify=True)
+        )
+        self.usb_refresh_btn.pack(side="left")
+
+        self.usb_bind_hint = ctk.CTkLabel(
+            self.usb_bind_frame,
+            text=self.language_manager.get_text(
+                "usb_bind_hint",
+                "绑定当前 U 盘的唯一标识；之后插入同一 U 盘时自动同步本任务。"
+            ),
+            font=get_font(size=12),
+            text_color="gray",
+            justify="left",
+            wraplength=600,
+            anchor="w"
+        )
+        self.usb_bind_hint.grid(row=3, column=0, padx=10, pady=(0, 10), sticky="w")
+
+        self._refresh_usb_devices()
+
+    def _usb_display(self, device: Dict) -> str:
+        name = device.get("label") or device.get("serial") or device.get("mount") or ""
+        return f"{name} ({device.get('mount', '')})"
+
+    def _refresh_usb_devices(self, notify: bool = False) -> list:
+        """读取当前插入的移动设备，刷新下拉框。"""
+        from backend.usb_monitor import snapshot_devices
+
+        self._usb_devices = snapshot_devices()
+        self._usb_displays = [self._usb_display(d) for d in self._usb_devices]
+        displays = self._usb_displays or [
+            self.language_manager.get_text(
+                "usb_bind_no_device", "未检测到 U 盘，请插入后刷新"
+            )
+        ]
+        self.usb_device_combo.configure(values=displays)
+        self.usb_device_combo.set(displays[0])
+        try:
+            self.usb_device_combo.configure(
+                state="readonly" if self._usb_devices else "disabled"
+            )
+        except Exception:
+            pass
+        if notify:
+            self.usb_bind_hint.configure(
+                text=self.language_manager.get_text(
+                    "usb_bind_hint",
+                    "绑定当前 U 盘的唯一标识；之后插入同一 U 盘时自动同步本任务。"
+                ),
+                text_color="gray"
+            )
+        return self._usb_devices
+
+    def _selected_usb_device(self):
+        if not self._usb_devices:
+            return None
+        try:
+            index = self._usb_displays.index(self.usb_device_combo.get())
+        except (ValueError, AttributeError):
+            return self._usb_devices[0] if len(self._usb_devices) == 1 else None
+        return self._usb_devices[index]
+
+    def _on_usb_bind_toggle(self):
+        """勾选时校验当前是否有可用 U 盘。"""
+        if not self.usb_bind_var.get():
+            self.usb_auto_sync = False
+            self.usb_binding = {}
+            return
+        if not self._usb_devices:
+            self._refresh_usb_devices()
+        if not self._usb_devices:
+            self.usb_bind_var.set(False)
+            self.usb_auto_sync = False
+            self._show_error(
+                self.language_manager.get_text(
+                    "usb_bind_need_usb", "当前没有检测到 U 盘，无法绑定"
+                )
+            )
+            return
+        self.usb_auto_sync = True
+
+    def _build_usb_binding(self) -> Dict:
+        """按当前输入路径与所选设备生成绑定信息。"""
+        if not self.usb_auto_sync:
+            return {}
+        from backend.usb_monitor import parse_relative_subpath
+
+        device = self._selected_usb_device()
+        if not device:
+            return dict(self.usb_binding or {})
+        source = self.source_entry.get().strip() if hasattr(self, "source_entry") else ""
+        target = self.target_entry.get().strip() if hasattr(self, "target_entry") else ""
+        source_sub = parse_relative_subpath(source, device.get("mount", ""))
+        target_sub = parse_relative_subpath(target, device.get("mount", ""))
+        return {
+            "serial": device.get("serial", ""),
+            "label": device.get("label", ""),
+            "mount": device.get("mount", ""),
+            "source_on_usb": source_sub is not None,
+            "source_subpath": source_sub or "",
+            "target_on_usb": target_sub is not None,
+            "target_subpath": target_sub or "",
+        }
+
+    def _finalize_config(self, config: Dict) -> Dict:
+        """补齐 v7.7 新增字段（U 盘绑定 / AI 筛选模板 / AI 任务名）。"""
+        config["usb_auto_sync"] = bool(self.usb_auto_sync)
+        config["usb_binding"] = self._build_usb_binding()
+        if self.ai_filter_template:
+            config["ai_filter_template"] = dict(self.ai_filter_template)
+        if self.task_name:
+            config["name"] = self.task_name
+        return config
+
+    def _apply_prefill(self, cfg: Dict):
+        """应用 AI / U 盘引导的预填配置。"""
+        if cfg.get("name"):
+            self.task_name = str(cfg["name"])
+        if cfg.get("source"):
+            self.source_dir = str(cfg["source"])
+            self.source_entry.delete(0, "end")
+            self.source_entry.insert(0, self.source_dir)
+        if cfg.get("target"):
+            self.target_dir = str(cfg["target"])
+            self.target_entry.delete(0, "end")
+            self.target_entry.insert(0, self.target_dir)
+        if cfg.get("sync_direction"):
+            self._set_sync_direction(cfg["sync_direction"])
+        if cfg.get("mode"):
+            self._set_run_mode(cfg["mode"])
+        if cfg.get("default_strategy"):
+            self._set_strategy(cfg["default_strategy"])
+        # v7.7: 场景预设的多线程开关（必须先于后续配置应用）
+        if cfg.get("use_multithreading_scan"):
+            self._set_scan_thread_mode(True)
+        if cfg.get("use_multithreading_copy"):
+            self._set_copy_thread_mode(True)
+        if cfg.get("ai_filter_template"):
+            self.ai_filter_template = dict(cfg["ai_filter_template"])
+        if cfg.get("usb_auto_sync"):
+            self.usb_auto_sync = True
+            self.usb_binding = dict(cfg.get("usb_binding") or {})
+            self.usb_bind_var.set(True)
+            binding_serial = str(self.usb_binding.get("serial", "")).lower()
+            matched = None
+            for index, device in enumerate(self._usb_devices):
+                if binding_serial and str(device.get("serial", "")).lower() == binding_serial:
+                    matched = index
+                    break
+            if matched is not None:
+                self.usb_device_combo.set(self._usb_displays[matched])
+            elif self.usb_binding.get("label"):
+                self.usb_bind_hint.configure(
+                    text=self.language_manager.get_text(
+                        "usb_bind_hint", "绑定当前 U 盘的唯一标识；之后插入同一 U 盘时自动同步本任务。"
+                    ) + f"（{self.usb_binding.get('label')}）",
+                    text_color="gray"
+                )
+
     def _on_folder_config_click(self):
         """单独配置文件夹按钮点击事件"""
         # 验证源目录和目标目录
@@ -779,7 +1020,7 @@ class CreateTaskPage(ctk.CTkFrame):
             return
         
         # 构建任务配置
-        task_config = {
+        task_config = self._finalize_config({
             "source": self.source_dir,
             "target": self.target_dir,
             "sync_direction": self.sync_direction,
@@ -792,7 +1033,7 @@ class CreateTaskPage(ctk.CTkFrame):
             "root_included": False,
             "root_strategy": self.default_strategy,
             "post_sync_command": self._read_post_sync_command()
-        }
+        })
 
         if self.on_next_step:
             self.on_next_step(task_config)
@@ -822,7 +1063,7 @@ class CreateTaskPage(ctk.CTkFrame):
             return
         
         # 构建任务配置（使用默认策略，跳过文件夹配置）
-        task_config = {
+        task_config = self._finalize_config({
             "source": self.source_dir,
             "target": self.target_dir,
             "sync_direction": self.sync_direction,
@@ -835,7 +1076,7 @@ class CreateTaskPage(ctk.CTkFrame):
             "root_included": True,
             "root_strategy": self.default_strategy,
             "post_sync_command": self._read_post_sync_command()
-        }
+        })
         
         # 直接跳转到同步确认页面
         if self.app:
@@ -866,7 +1107,7 @@ class CreateTaskPage(ctk.CTkFrame):
         Returns:
             任务配置字典
         """
-        return {
+        return self._finalize_config({
             "source": self.source_dir,
             "target": self.target_dir,
             "sync_direction": self.sync_direction,
@@ -875,7 +1116,7 @@ class CreateTaskPage(ctk.CTkFrame):
             "mode": self.run_mode,
             "default_strategy": self.default_strategy,
             "post_sync_command": self._read_post_sync_command()
-        }
+        })
     
     def _load_task_data(self):
         """加载任务数据到表单（兼容旧任务格式）"""
@@ -896,6 +1137,9 @@ class CreateTaskPage(ctk.CTkFrame):
         self.run_mode = task.get("mode", task.get("run_mode", "safe"))
         self.default_strategy = task.get("default_strategy", "conservative")
         self.post_sync_command = task.get("post_sync_command", "") or ""
+        # v7.7: U 盘绑定
+        self.usb_auto_sync = bool(task.get("usb_auto_sync", False))
+        self.usb_binding = dict(task.get("usb_binding") or {})
         
         # 更新UI显示
         if hasattr(self, 'source_entry'):
@@ -926,6 +1170,13 @@ class CreateTaskPage(ctk.CTkFrame):
         
         if hasattr(self, '_set_strategy'):
             self._set_strategy(self.default_strategy)
+
+        # v7.7: 回填 U 盘绑定状态（绑定的 U 盘未插入时保留原绑定）
+        if self.usb_auto_sync and hasattr(self, "usb_bind_var"):
+            self._apply_prefill({
+                "usb_auto_sync": True,
+                "usb_binding": self.usb_binding,
+            })
     
     def reset(self):
         """重置页面状态"""
@@ -936,6 +1187,13 @@ class CreateTaskPage(ctk.CTkFrame):
         self.run_mode = "safe"
         self.default_strategy = "conservative"
         self.post_sync_command = ""
+        # v7.7: 重置 U 盘绑定与 AI 预填
+        self.usb_auto_sync = False
+        self.usb_binding = {}
+        self.ai_filter_template = {}
+        self.task_name = ""
+        if hasattr(self, "usb_bind_var"):
+            self.usb_bind_var.set(False)
 
         # 清空输入框
         self.source_entry.delete(0, "end")
@@ -1037,6 +1295,29 @@ class CreateTaskPage(ctk.CTkFrame):
                 text=self.language_manager.get_text(
                     "post_sync_command_security_hint",
                     "⚠️ 请确认命令来源可信，不要运行来源不明的命令"
+                )
+            )
+
+        # v7.7: U 盘自动同步区域
+        if hasattr(self, 'usb_bind_title'):
+            self.usb_bind_title.configure(
+                text=self.language_manager.get_text("usb_bind_section", "自动同步（U 盘）")
+            )
+            self.usb_bind_checkbox.configure(
+                text=self.language_manager.get_text(
+                    "usb_bind_checkbox", "当插入特定 U 盘时自动同步"
+                )
+            )
+            self.usb_device_label.configure(
+                text=self.language_manager.get_text("usb_bind_current_device", "当前 U 盘")
+            )
+            self.usb_refresh_btn.configure(
+                text=self.language_manager.get_text("usb_bind_refresh", "刷新设备列表")
+            )
+            self.usb_bind_hint.configure(
+                text=self.language_manager.get_text(
+                    "usb_bind_hint",
+                    "绑定当前 U 盘的唯一标识；之后插入同一 U 盘时自动同步本任务。"
                 )
             )
         

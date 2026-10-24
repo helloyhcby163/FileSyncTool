@@ -1,0 +1,122 @@
+[
+  {
+    "host": "release-assets.githubusercontent.com",
+    "port": 443
+  },
+  {
+    "host": "login.live.com",
+    "port": 443
+  },
+  {
+    "host": "az416426.vo.msecnd.net",
+    "port": 443
+  },
+  {
+    "host": "api.github.com",
+    "port": 443
+  },
+  {
+    "host": "edge-cloud-resource-static.azureedge.net",
+    "port": 443
+  },
+  {
+    "host": "viewscreen.githubusercontent.com",
+    "port": 443
+  },
+  {
+    "host": "avatars.githubusercontent.com",
+    "port": 443
+  },
+  {
+    "host": "playwright-akamai.azureedge.net",
+    "port": 443
+  },
+  {
+    "host": "challenges.cloudflare.com",
+    "port": 443
+  },
+  {
+    "host": "github.com",
+    "port": 9418
+  },
+  {
+    "host": "education.github.com",
+    "port": 443
+  },
+  {
+    "host": "marketplace.visualstudio.com",
+    "port": 443
+  },
+  {
+    "host": "alive.github.com",
+    "port": 443
+  },
+  {
+    "host": "playwright.azureedge.net",
+    "port": 443
+  },
+  {
+    "host": "westus-0.in.applicationinsights.azure.com",
+    "port": 443
+  },
+  {
+    "host": "login.microsoftonline.com",
+    "port": 443
+  },
+  {
+    "host": "cdn.v2ex.com",
+    "port": 443
+  },
+  {
+    "host": "collector.github.com",
+    "port": 443
+  },
+  {
+    "host": "exafunction.github.io",
+    "port": 443
+  },
+  {
+    "host": "csp-reporting.cloudflare.com",
+    "port": 443
+  },
+  {
+    "host": "js.monitor.azure.com",
+    "port": 443
+  },
+  {
+    "host": "raw.githubusercontent.com",
+    "port": 443
+  },
+  {
+    "host": "camo.githubusercontent.com",
+    "port": 443
+  },
+  {
+    "host": "github.githubassets.com",
+    "port": 443
+  },
+  {
+    "host": "dc.services.visualstudio.com",
+    "port": 443
+  },
+  {
+    "host": "www.v2ex.com",
+    "port": 443
+  },
+  {
+    "host": "codeload.github.com",
+    "port": 443
+  },
+  {
+    "host": "github.com",
+    "port": 443
+  },
+  {
+    "host": "playwright-verizon.azureedge.net",
+    "port": 443
+  },
+  {
+    "host": "copilot-telemetry.githubusercontent.com",
+    "port": 443
+  }
+]

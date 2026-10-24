@@ -4,11 +4,23 @@
 """
 
 import customtkinter as ctk
+import webbrowser
 from backend.language_manager import get_font
 from typing import Optional, List, Dict, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .app import FileSyncApp
+
+
+# v7.7: 帮助与支持链接
+GITHUB_REPO_URL = "https://github.com/helloyhcby163/FileSyncTool"
+GITEE_REPO_URL = "https://gitee.com/hello-yhc/FileSyncTool"
+GITHUB_ISSUES_URL = "https://github.com/helloyhcby163/FileSyncTool/issues/new"
+GITEE_ISSUES_URL = "https://gitee.com/hello-yhc/FileSyncTool/issues"
+RELEASES_GITHUB_URL = GITHUB_REPO_URL + "/releases"
+RELEASES_GITEE_URL = GITEE_REPO_URL + "/releases"
+TUTORIAL_URL = "https://www.bilibili.com/video/BV18T411z7R4/"
+SUPPORT_URL = "https://afdian.com/a/helloyhc"
 
 
 class HomePage(ctk.CTkFrame):
@@ -29,13 +41,15 @@ class HomePage(ctk.CTkFrame):
         # 选中的打断任务
         self.selected_interrupted_task: Optional[Dict] = None
         
-        # 提示信息索引
+        # v7.7: “你知道吗”轮播 —— 5 张可点击卡片
         self.tip_index = 0
-        self.tips = [
-            "tip_open_source",
-            "tip_features",
-            "tip_download",
-            "tip_support"
+        self._tip_after_id = None
+        self._tip_builders = [
+            self._build_tip_star,
+            self._build_tip_coffee,
+            self._build_tip_feedback,
+            self._build_tip_download,
+            self._build_tip_opensource,
         ]
         
         # 设置布局
@@ -48,7 +62,7 @@ class HomePage(ctk.CTkFrame):
         """设置布局"""
         # 配置网格权重
         self.grid_rowconfigure(0, weight=1)
-        self.grid_columnconfigure(0, weight=0, minsize=220)  # 左列固定宽度
+        self.grid_columnconfigure(0, weight=0, minsize=250)  # 左列固定宽度（可滚动）
         self.grid_columnconfigure(1, weight=1)  # 右列自适应
         
         # 创建左列（按钮区域）
@@ -58,12 +72,12 @@ class HomePage(ctk.CTkFrame):
         self._create_right_panel()
     
     def _create_left_panel(self):
-        """创建左列按钮区域"""
+        """创建左列按钮区域（仅保留导航与场景预设，可滚动防拥挤）"""
         # 左列容器
-        self.left_panel = ctk.CTkFrame(self)
+        self.left_panel = ctk.CTkScrollableFrame(self, width=250)
         self.left_panel.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
-        self.left_panel.grid_rowconfigure(8, weight=1)  # 底部留空
-        
+        self.left_panel.grid_columnconfigure(0, weight=1)
+
         # 标题
         self.title_label = ctk.CTkLabel(
             self.left_panel,
@@ -148,15 +162,113 @@ class HomePage(ctk.CTkFrame):
             command=self._on_settings_click
         )
         self.btn_settings.grid(row=7, column=0, padx=20, pady=5, sticky="ew")
-        
+
+        # v7.7: ✨ 场景预设与 AI 配置
+        self.presets_frame = ctk.CTkFrame(self.left_panel, fg_color="transparent")
+        self.presets_frame.grid(row=8, column=0, padx=8, pady=(10, 0), sticky="ew")
+        self.presets_frame.grid_columnconfigure(0, weight=1)
+
+        self.presets_title = ctk.CTkLabel(
+            self.presets_frame,
+            text=self.app.get_text("home_presets_title", "✨ 任务场景预设与 AI 配置"),
+            font=get_font(size=13, weight="bold"),
+            anchor="w"
+        )
+        self.presets_title.grid(row=0, column=0, pady=(0, 6), sticky="w")
+
+        # 按钮 A：使用预设（跳转新建任务页并预置一套均衡参数）
+        self.btn_preset_guide = ctk.CTkButton(
+            self.presets_frame,
+            text=self.app.get_text(
+                "home_preset_guide_btn", "不想慢慢调设置？使用预设"
+            ),
+            height=40,
+            font=get_font(size=11),
+            command=self._on_preset_guide_click,
+        )
+        self.btn_preset_guide.grid(row=1, column=0, pady=(0, 6), sticky="ew")
+
+        # 按钮 B：AI 配置
+        self.btn_ai_guide = ctk.CTkButton(
+            self.presets_frame,
+            text=self.app.get_text(
+                "home_ai_guide_btn", "不想研究任务怎么配置？让 AI 帮你配置"
+            ),
+            height=40,
+            font=get_font(size=11),
+            fg_color="#6A1B9A",
+            hover_color="#4A148C",
+            command=self._on_ai_config_click,
+        )
+        self.btn_ai_guide.grid(row=2, column=0, pady=(0, 10), sticky="ew")
+
+        # 两个具体场景预设（按钮 + 介绍文本，分层排版避免拥挤）
+        self.btn_preset_usb = ctk.CTkButton(
+            self.presets_frame,
+            text=self.app.get_text("preset_usb_backup", "U盘极速备份"),
+            height=34,
+            font=get_font(size=12),
+            fg_color="transparent",
+            text_color=("black", "white"),
+            hover_color=("gray85", "gray25"),
+            border_width=1,
+            border_color=("#3B8ED0", "#1F6AA5"),
+            command=self._on_preset_usb_backup,
+        )
+        self.btn_preset_usb.grid(row=3, column=0, pady=(0, 2), sticky="ew")
+
+        self.preset_usb_desc = ctk.CTkLabel(
+            self.presets_frame,
+            text=self.app.get_text(
+                "preset_usb_backup_desc",
+                "将电脑文件单向快速备份到 U 盘。自带安全校验，"
+                "不覆盖目标端已有文件，保护 U 盘寿命。",
+            ),
+            font=get_font(size=11),
+            text_color="gray",
+            justify="left",
+            anchor="w",
+            wraplength=215,
+        )
+        self.preset_usb_desc.grid(row=4, column=0, pady=(0, 8), sticky="w")
+
+        self.btn_preset_dual = ctk.CTkButton(
+            self.presets_frame,
+            text=self.app.get_text("preset_dual_sync", "双向工作同步"),
+            height=34,
+            font=get_font(size=12),
+            fg_color="transparent",
+            text_color=("black", "white"),
+            hover_color=("gray85", "gray25"),
+            border_width=1,
+            border_color=("#3B8ED0", "#1F6AA5"),
+            command=self._on_preset_dual_sync,
+        )
+        self.btn_preset_dual.grid(row=5, column=0, pady=(0, 2), sticky="ew")
+
+        self.preset_dual_desc = ctk.CTkLabel(
+            self.presets_frame,
+            text=self.app.get_text(
+                "preset_dual_sync_desc",
+                "让电脑和 U 盘里的文件保持双向一致。"
+                "如果两边都有修改，优先保留时间最新的版本。",
+            ),
+            font=get_font(size=11),
+            text_color="gray",
+            justify="left",
+            anchor="w",
+            wraplength=215,
+        )
+        self.preset_dual_desc.grid(row=6, column=0, pady=(0, 4), sticky="w")
+
         # 分隔线
         self.separator = ctk.CTkFrame(
             self.left_panel,
             height=2,
             fg_color="#4a4a4a"
         )
-        self.separator.grid(row=9, column=0, padx=20, pady=15, sticky="ew")
-        
+        self.separator.grid(row=9, column=0, padx=20, pady=12, sticky="ew")
+
         # 退出按钮
         self.btn_exit = ctk.CTkButton(
             self.left_panel,
@@ -264,32 +376,158 @@ class HomePage(ctk.CTkFrame):
         self.btn_view.grid(row=0, column=2, padx=5, sticky="ew")
     
     def _create_tips_panel(self):
-        """创建提示信息面板"""
+        """创建「你知道吗」轮播面板：5 张卡片依次显示，每张都可点击跳转"""
         # 下方容器
         self.tips_panel = ctk.CTkFrame(self.right_panel)
         self.tips_panel.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
-        self.tips_panel.grid_rowconfigure(0, weight=1)
+        self.tips_panel.grid_rowconfigure(1, weight=1)
         self.tips_panel.grid_columnconfigure(0, weight=1)
-        
-        # 提示信息标签
-        self.tip_label = ctk.CTkLabel(
+
+        self.tip_title_label = ctk.CTkLabel(
             self.tips_panel,
-            text=self.app.get_text(self.tips[self.tip_index]),
-            font=get_font(size=13),
-            wraplength=500
+            text=self.app.get_text("tip_title", "你知道吗"),
+            font=get_font(size=13, weight="bold"),
+            anchor="w"
         )
-        self.tip_label.grid(row=0, column=0, padx=20, pady=20, sticky="nsew")
-        
-        # 自动切换提示信息
+        self.tip_title_label.grid(row=0, column=0, padx=20, pady=(12, 4), sticky="w")
+
+        # 卡片容器：每次轮播销毁旧内容并重建当前卡片
+        self.tip_card_frame = ctk.CTkFrame(self.tips_panel, fg_color="transparent")
+        self.tip_card_frame.grid(row=1, column=0, padx=20, pady=(4, 14), sticky="nsew")
+        self.tip_card_frame.grid_columnconfigure(0, weight=1)
+
+        # 启动轮播
         self._auto_switch_tip()
-    
+
     def _auto_switch_tip(self):
-        """自动切换提示信息"""
-        self.tip_index = (self.tip_index + 1) % len(self.tips)
-        self.tip_label.configure(text=self.app.get_text(self.tips[self.tip_index]))
-        
-        # 每 5 秒切换一次
-        self.after(5000, self._auto_switch_tip)
+        """每 5 秒轮播一张卡片"""
+        self._show_tip_card(self.tip_index)
+        self.tip_index = (self.tip_index + 1) % len(self._tip_builders)
+        try:
+            self._tip_after_id = self.after(5000, self._auto_switch_tip)
+        except Exception:
+            self._tip_after_id = None
+
+    def _show_tip_card(self, index: int):
+        """清空容器并渲染指定索引的卡片"""
+        for child in self.tip_card_frame.winfo_children():
+            try:
+                child.destroy()
+            except Exception:
+                pass
+        try:
+            self._tip_builders[index % len(self._tip_builders)]()
+        except Exception as exc:
+            print(f"渲染轮播卡片失败: {exc}")
+
+    # ===================== 5 张轮播卡片 =====================
+
+    def _build_tip_star(self):
+        """卡片 1：Star 支持作者（GitHub / Gitee 可点击）"""
+        row = ctk.CTkFrame(self.tip_card_frame, fg_color="transparent")
+        row.grid(row=0, column=0, sticky="w")
+        ctk.CTkLabel(
+            row,
+            text=self.app.get_text(
+                "tip_star_text", "如果觉得好用，请 Star 支持作者："
+            ),
+            font=get_font(size=13),
+        ).pack(side="left")
+        self._create_link_label(row, "GitHub", GITHUB_REPO_URL)
+        ctk.CTkLabel(
+            row,
+            text=self.app.get_text("tip_or", "或"),
+            font=get_font(size=13),
+        ).pack(side="left", padx=2)
+        self._create_link_label(row, "Gitee", GITEE_REPO_URL)
+
+    def _build_tip_coffee(self):
+        """卡片 2：请我喝一杯咖啡（整按钮跳转爱发电）"""
+        ctk.CTkButton(
+            self.tip_card_frame,
+            text=self.app.get_text("tip_coffee", "☕ 请我喝一杯咖啡"),
+            height=42,
+            font=get_font(size=14),
+            fg_color="#8D6E63",
+            hover_color="#6D4C41",
+            command=self._on_support_click,
+        ).grid(row=0, column=0, sticky="ew")
+
+    def _build_tip_feedback(self):
+        """卡片 3：反馈与教程（三个可点击入口）"""
+        ctk.CTkLabel(
+            self.tip_card_frame,
+            text=self.app.get_text(
+                "tip_feedback_text",
+                "如果您对工具有新的意见或想法，欢迎提交反馈。"
+                "如果不知道怎么操作，可以看教程。",
+            ),
+            font=get_font(size=13),
+            justify="left",
+            anchor="w",
+            wraplength=760,
+        ).grid(row=0, column=0, sticky="w")
+
+        btn_row = ctk.CTkFrame(self.tip_card_frame, fg_color="transparent")
+        btn_row.grid(row=1, column=0, pady=(10, 0), sticky="ew")
+        btn_row.grid_columnconfigure((0, 1, 2), weight=1)
+
+        entries = [
+            ("github_issues", "GitHub Issues", GITHUB_ISSUES_URL),
+            ("gitee_issues", "Gitee Issues", GITEE_ISSUES_URL),
+            ("bilibili_tutorial", "B站教程", TUTORIAL_URL),
+        ]
+        for col, (key, default, url) in enumerate(entries):
+            ctk.CTkButton(
+                btn_row,
+                text=self.app.get_text(key, default),
+                height=36,
+                font=get_font(size=13),
+                command=lambda u=url: self._open_url(u),
+            ).grid(row=0, column=col, padx=4, sticky="ew")
+
+    def _build_tip_download(self):
+        """卡片 4：官方下载渠道（Releases 可点击）"""
+        row = ctk.CTkFrame(self.tip_card_frame, fg_color="transparent")
+        row.grid(row=0, column=0, sticky="w")
+        ctk.CTkLabel(
+            row,
+            text=self.app.get_text("download_hint", "请从官方仓库下载本工具："),
+            font=get_font(size=13),
+        ).pack(side="left")
+        self._create_link_label(row, "GitHub Releases", RELEASES_GITHUB_URL)
+        ctk.CTkLabel(
+            row,
+            text=self.app.get_text("tip_or", "或"),
+            font=get_font(size=13),
+        ).pack(side="left", padx=2)
+        self._create_link_label(row, "Gitee Releases", RELEASES_GITEE_URL)
+
+    def _build_tip_opensource(self):
+        """卡片 5：开源地址（GitHub / Gitee 可点击）"""
+        row = ctk.CTkFrame(self.tip_card_frame, fg_color="transparent")
+        row.grid(row=0, column=0, sticky="w")
+        ctk.CTkLabel(
+            row,
+            text=self.app.get_text("opensource_hint", "开源地址："),
+            font=get_font(size=13),
+        ).pack(side="left")
+        self._create_link_label(row, "GitHub", GITHUB_REPO_URL)
+        ctk.CTkLabel(
+            row,
+            text=self.app.get_text("tip_or", "或"),
+            font=get_font(size=13),
+        ).pack(side="left", padx=2)
+        self._create_link_label(row, "Gitee", GITEE_REPO_URL)
+
+    def on_page_destroy(self):
+        """页面销毁时取消轮播定时器"""
+        if self._tip_after_id is not None:
+            try:
+                self.after_cancel(self._tip_after_id)
+            except Exception:
+                pass
+            self._tip_after_id = None
     
     def _load_data(self):
         """加载数据"""
@@ -461,6 +699,82 @@ class HomePage(ctk.CTkFrame):
     def _on_settings_click(self):
         """设置按钮点击事件"""
         self.app.show_page("settings")
+
+    # ===================== v7.7: 场景预设与 AI 配置 =====================
+
+    def _create_link_label(self, parent, text: str, url: str, font_size: int = 13):
+        """创建可点击的文字链接（卡片内横向排列）"""
+        label = ctk.CTkLabel(
+            parent,
+            text=text,
+            font=get_font(size=font_size),
+            text_color=("#3B8ED0", "#6FB3E0"),
+            cursor="hand2",
+        )
+        label.pack(side="left", padx=2)
+        label.bind("<Button-1>", lambda _event, u=url: self._open_url(u))
+        return label
+
+    def _open_url(self, url: str):
+        """在系统浏览器中打开链接"""
+        try:
+            webbrowser.open(url)
+        except Exception as exc:
+            print(f"打开链接失败: {exc}")
+
+    def _open_preset_task(self, prefill: Dict[str, Any]):
+        """安全跳转创建任务页：仅通过 kwargs 传参，并做类型与空值校验"""
+        if not isinstance(prefill, dict) or not prefill:
+            return
+        try:
+            self.app.show_page("create_task", prefill_config=dict(prefill))
+        except Exception as exc:
+            print(f"打开创建任务页失败: {exc}")
+
+    def _on_preset_guide_click(self):
+        """按钮 A：带一套均衡预设参数进入新建任务页"""
+        self._open_preset_task({
+            "mode": "safe",
+            "default_strategy": "newest_wins",
+            "use_multithreading_scan": True,
+            "use_multithreading_copy": True,
+        })
+
+    def _on_preset_usb_backup(self):
+        """U 盘极速备份：单向、快速模式、多线程"""
+        self._open_preset_task({
+            "sync_direction": "source_to_target",
+            "mode": "fast",
+            "default_strategy": "newest_wins",
+            "use_multithreading_scan": True,
+            "use_multithreading_copy": True,
+        })
+
+    def _on_preset_dual_sync(self):
+        """双向工作同步：双向、安全模式、较新优先"""
+        self._open_preset_task({
+            "sync_direction": "both",
+            "mode": "safe",
+            "default_strategy": "newest_wins",
+            "use_multithreading_scan": True,
+            "use_multithreading_copy": True,
+        })
+
+    def _on_ai_config_click(self):
+        """打开 AI 配置生成弹窗"""
+        try:
+            from .toolkit_page import AIConfigDialog
+            AIConfigDialog(self.app, self.winfo_toplevel())
+        except Exception as exc:
+            print(f"打开 AI 配置失败: {exc}")
+
+    def _on_support_click(self):
+        """打开「支持开发者」赞助弹窗"""
+        try:
+            from .toolkit_page import SupportDialog
+            SupportDialog(self.app, self.winfo_toplevel())
+        except Exception as exc:
+            print(f"打开赞助弹窗失败: {exc}")
     
     def _on_search_change(self, event):
         """搜索框内容变化事件"""
@@ -593,6 +907,45 @@ class HomePage(ctk.CTkFrame):
             self._get_language_display(self.app.language_manager.get_language())
         )
         self.btn_settings.configure(text=self.app.get_text("btn_settings", "设置"))
+
+        # v7.7: 场景预设与 AI 配置
+        self.presets_title.configure(
+            text=self.app.get_text("home_presets_title", "✨ 任务场景预设与 AI 配置")
+        )
+        self.btn_preset_guide.configure(
+            text=self.app.get_text(
+                "home_preset_guide_btn", "不想慢慢调设置？使用预设"
+            )
+        )
+        self.btn_ai_guide.configure(
+            text=self.app.get_text(
+                "home_ai_guide_btn", "不想研究任务怎么配置？让 AI 帮你配置"
+            )
+        )
+        self.btn_preset_usb.configure(
+            text=self.app.get_text("preset_usb_backup", "U盘极速备份")
+        )
+        self.preset_usb_desc.configure(
+            text=self.app.get_text(
+                "preset_usb_backup_desc",
+                "将电脑文件单向快速备份到 U 盘。自带安全校验，"
+                "不覆盖目标端已有文件，保护 U 盘寿命。",
+            )
+        )
+        self.btn_preset_dual.configure(
+            text=self.app.get_text("preset_dual_sync", "双向工作同步")
+        )
+        self.preset_dual_desc.configure(
+            text=self.app.get_text(
+                "preset_dual_sync_desc",
+                "让电脑和 U 盘里的文件保持双向一致。"
+                "如果两边都有修改，优先保留时间最新的版本。",
+            )
+        )
+        self.tip_title_label.configure(
+            text=self.app.get_text("tip_title", "你知道吗")
+        )
+        self._show_tip_card(self.tip_index)
         
         # 更新打断任务区域
         self.interrupted_title.configure(text=self.app.get_text("interrupted_tasks"))

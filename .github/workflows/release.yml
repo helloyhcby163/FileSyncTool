@@ -15,18 +15,14 @@ jobs:
     strategy:
       matrix:
         include:
-          # Windows
           - os: windows-latest
-            output_name: FileSyncTool_v7.6.1_Windows.exe
-          # macOS ARM64 (Apple Silicon)
+            output_name: FileSyncTool_v7.7_Windows.exe
           - os: macos-14
-            output_name: FileSyncTool_v7.6.1_macOS_ARM64
-          # macOS x86_64 (Intel)
+            output_name: FileSyncTool_v7.7_macOS_ARM64
           - os: macos-15-intel
-            output_name: FileSyncTool_v7.6.1_macOS_Intel
-          # Linux
+            output_name: FileSyncTool_v7.7_macOS_Intel
           - os: ubuntu-latest
-            output_name: FileSyncTool_v7.6.1_Linux
+            output_name: FileSyncTool_v7.7_Linux
 
     steps:
       - uses: actions/checkout@v4
@@ -87,3 +83,40 @@ jobs:
           files: artifacts/*/*
           draft: false
           generate_release_notes: true
+
+  sync-to-gitee:
+    needs: release
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create Gitee Release
+        id: create_release  # ⚠️ 必须加这一行，下面才能拿到 ID
+        uses: nICEnnnnnnnLee/action-gitee-release@v2.0.0
+        with:
+          gitee_action: create_release
+          gitee_owner: hello-yhc
+          gitee_repo: FileSyncTool
+          gitee_token: ${{ secrets.GITEE_TOKEN }}
+          gitee_tag_name: ${{ github.ref_name }}
+          gitee_release_name: ${{ github.ref_name }}
+          gitee_release_body: "Release ${{ github.ref_name }}"
+
+      - name: Upload Assets to Gitee
+        uses: nICEnnnnnnnLee/action-gitee-release@v2.0.0
+        with:
+          gitee_action: upload_asset
+          gitee_owner: hello-yhc
+          gitee_repo: FileSyncTool
+          gitee_token: ${{ secrets.GITEE_TOKEN }}
+          gitee_release_id: ${{ steps.create_release.outputs.release-id }}
+          gitee_upload_retry_times: 3
+          gitee_files: |
+            artifacts/*/*

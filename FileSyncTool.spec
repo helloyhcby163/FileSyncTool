@@ -1,6 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 """
-文件同步工具 v7.6 - PyInstaller 打包配置文件
+文件同步工具 v7.7 - PyInstaller 打包配置文件
 
 修复要点：
 - hiddenimports 包含 plyer 各平台通知模块，防止打包后通知功能失效
@@ -33,12 +33,16 @@ plyer_extra_imports = [
     'plyer.platforms.macos',
 ]
 
-# 数据文件：多语言、帮助文档、图标
+# 数据文件：多语言、帮助文档、图标、加速下载工具
 ctk_datas = [
     (str(project_root / 'translations'), 'translations'),
     (str(project_root / 'docs'), 'docs'),
     (str(project_root / 'FileSyncTool.ico'), '.'),
 ]
+# v7.7: 打包 aria2c 以支持多线程下载（fastgithub 目录过大，不打包）
+_aria2_exe = project_root / 'tools' / 'aria2' / 'aria2c.exe'
+if _aria2_exe.is_file():
+    ctk_datas.append((str(_aria2_exe), 'tools/aria2'))
 
 # 尝试收集 CustomTkinter 的主题数据
 try:

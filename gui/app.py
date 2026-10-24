@@ -4,6 +4,7 @@
 """
 
 import os
+import sys
 import queue
 import threading
 import customtkinter as ctk
@@ -21,6 +22,13 @@ from backend.sync_engine import FileSyncEngine as SyncEngine
 from backend.notification_manager import NotificationManager
 from backend.theme_manager import ThemeManager
 from backend.platform_utils import get_default_config_dir
+from backend import update_checker, updater
+from backend.usb_monitor import (
+    EVENT_REMOVED,
+    UsbMonitor,
+    join_subpath,
+    parse_relative_subpath,
+)
 
 
 class FileSyncApp(ctk.CTk):
@@ -75,6 +83,10 @@ class FileSyncApp(ctk.CTk):
 
         # 10. 状态栏显示就绪
         self._update_status("ready")
+
+        # 11. v7.7: 启动 U 盘监听，并在 3 秒后执行自动更新检查
+        self.apply_usb_auto_sync_setting()
+        self.after(3000, self._maybe_auto_check_update)
     
     def _check_recovery_on_start(self):
         """
@@ -204,6 +216,11 @@ class FileSyncApp(ctk.CTk):
         
         # 当前运行的任务列表
         self.running_tasks: list = []
+        # v7.7: 已提示过的 U 盘（同一 U 盘一次插入只提示一次）
+        self._usb_prompted = set()
+        # v7.7: U 盘引导同步后待询问绑定的任务 {event, task_name}
+        self._pending_usb_bind: Optional[Dict[str, Any]] = None
+        self.usb_monitor = None
         
         # 当前正在编辑的任务配置
         self.current_task_config: Dict[str, Any] = {}
@@ -320,7 +337,607 @@ class FileSyncApp(ctk.CTk):
                 self._ui_event_after_id = self.after(100, self._poll_ui_events)
         except Exception:
             self._ui_event_after_id = None
-    
+
+    # ===================== v7.7: 插入 U 盘自动同步 =====================
+
+    def apply_usb_auto_sync_setting(self):
+        """按设置启停 U 盘监听线程（可由设置页即时调用）。"""
+        settings = self.config_manager.get_settings()
+        enabled = bool(settings.get("usb_auto_sync_enabled", True))
+        monitor = getattr(self, "usb_monitor", None)
+        if enabled:
+            if monitor is None or not monitor.is_alive():
+                self.usb_monitor = UsbMonitor(
+                    on_event=lambda event: self.post_ui(
+                        lambda ev=event: self._handle_usb_event(ev)
+                    )
+                )
+                self.usb_monitor.start()
+        elif monitor is not None:
+            monitor.stop()
+            self.usb_monitor = None
+
+    def _handle_usb_event(self, event):
+        """主线程处理监听线程投递的插拔事件。"""
+        serial = str(event.get("serial") or "").lower()
+        if event.get("type") == EVENT_REMOVED:
+            self._usb_prompted.discard(serial)
+            return
+
+        settings = self.config_manager.get_settings()
+        if not settings.get("usb_auto_sync_enabled", True):
+            return
+
+        tasks = self._match_usb_tasks(event)
+        if tasks:
+            for task in tasks:
+                config = self._rewrite_usb_paths(task, event)
+                if self.task_manager.is_directory_in_use(
+                    config.get("source", ""), config.get("target", "")
+                ):
+                    print(
+                        "⚠️ "
+                        + self.get_text(
+                            "usb_sync_skipped",
+                            "任务「{name}」正在同步中，本次自动触发已跳过",
+                        ).format(name=task.get("name", ""))
+                    )
+                    continue
+                try:
+                    self.status_label.configure(
+                        text=self.get_text(
+                            "usb_sync_started",
+                            "已检测到 U 盘「{label}」，正在自动同步：{name}",
+                        ).format(
+                            label=event.get("label") or event.get("mount", ""),
+                            name=task.get("name", ""),
+                        )
+                    )
+                except Exception:
+                    pass
+                self._start_sync(config)
+            return
+
+        if serial and serial in self._usb_prompted:
+            return
+        if serial:
+            self._usb_prompted.add(serial)
+        self._prompt_usb_task_creation(event)
+
+    def _match_usb_tasks(self, event):
+        """返回绑定了该设备的任务列表（serial 优先，缺失时按卷标匹配）。"""
+        serial = str(event.get("serial") or "").lower()
+        label = str(event.get("label") or "").lower()
+        matched = []
+        for task in self.task_manager.get_all_tasks():
+            if not task.get("usb_auto_sync"):
+                continue
+            binding = task.get("usb_binding") or {}
+            binding_serial = str(binding.get("serial") or "").lower()
+            if binding_serial:
+                if binding_serial == serial:
+                    matched.append(task)
+            elif label and str(binding.get("label") or "").lower() == label:
+                matched.append(task)
+        return matched
+
+    def _rewrite_usb_paths(self, task, event):
+        """按本次挂载点重写任务路径副本（不回写任务配置）。"""
+        config = dict(task)
+        binding = task.get("usb_binding") or {}
+        mount = event.get("mount") or binding.get("mount") or ""
+        if binding.get("source_on_usb"):
+            config["source"] = join_subpath(mount, binding.get("source_subpath", ""))
+        if binding.get("target_on_usb"):
+            config["target"] = join_subpath(mount, binding.get("target_subpath", ""))
+        return config
+
+    def _prompt_usb_task_creation(self, event):
+        """已插入 U 盘但没有任务绑定：选择已有任务立即同步，或新建自动同步任务。"""
+        mount = event.get("mount", "")
+        label = event.get("label") or mount
+        tasks = [task for task in self.task_manager.get_all_tasks() if task.get("name")]
+        names = [task.get("name", "") for task in tasks]
+
+        dialog = ctk.CTkToplevel(self)
+        dialog.title(self.get_text("usb_prompt_title", "检测到 U 盘"))
+        dialog.geometry("640x330")
+        dialog.resizable(False, False)
+        dialog.transient(self)
+        dialog.grab_set()
+
+        ctk.CTkLabel(
+            dialog,
+            text=self.get_text("usb_prompt_title", "检测到 U 盘"),
+            font=get_font(size=16, weight="bold"),
+        ).pack(padx=20, pady=(20, 8), anchor="w")
+
+        ctk.CTkLabel(
+            dialog,
+            text=self.get_text(
+                "usb_prompt_message",
+                "检测到 U 盘「{label}」插入，但没有任务绑定它。\n"
+                "可选择一个已有任务立即同步，或新建自动同步任务。",
+            ).format(label=label),
+            font=get_font(size=13),
+            justify="left",
+            wraplength=580,
+            anchor="w",
+        ).pack(padx=20, pady=(0, 12), anchor="w")
+
+        select_row = ctk.CTkFrame(dialog, fg_color="transparent")
+        select_row.pack(fill="x", padx=20, pady=(0, 12))
+        ctk.CTkLabel(
+            select_row,
+            text=self.get_text("usb_prompt_select_task", "选择要同步的任务"),
+            font=get_font(size=13),
+        ).pack(side="left", padx=(0, 8))
+        combo = ctk.CTkComboBox(
+            select_row,
+            values=names or [self.get_text("usb_prompt_no_tasks", "暂无已保存的任务")],
+            width=360,
+            state="readonly" if names else "disabled",
+            font=get_font(size=13),
+            dropdown_font=get_font(size=13),
+        )
+        combo.pack(side="left")
+        if names:
+            combo.set(names[0])
+
+        btn_row = ctk.CTkFrame(dialog, fg_color="transparent")
+        btn_row.pack(fill="x", padx=20, pady=(12, 20))
+
+        def start_selected():
+            name = combo.get()
+            task = next((t for t in tasks if t.get("name") == name), None)
+            dialog.destroy()
+            if not task:
+                return
+            # 同步成功后询问是否把该任务绑定到本 U 盘
+            self._pending_usb_bind = {"event": dict(event), "task_name": name}
+            self._start_sync(dict(task))
+
+        def create_new():
+            dialog.destroy()
+            self.show_page(
+                "create_task",
+                prefill_config={
+                    "source": mount,
+                    "usb_auto_sync": True,
+                    "usb_binding": {
+                        "serial": event.get("serial", ""),
+                        "label": event.get("label", ""),
+                        "mount": mount,
+                        "source_on_usb": True,
+                        "source_subpath": "",
+                        "target_on_usb": False,
+                        "target_subpath": "",
+                    },
+                },
+            )
+
+        sync_btn = ctk.CTkButton(
+            btn_row,
+            text=self.get_text("usb_sync_selected", "立即同步所选任务"),
+            height=40,
+            width=170,
+            font=get_font(size=13, weight="bold"),
+            fg_color="#2E7D32",
+            hover_color="#1B5E20",
+            command=start_selected,
+        )
+        if not names:
+            sync_btn.configure(state="disabled")
+        sync_btn.pack(side="left", padx=(0, 8))
+
+        new_btn = ctk.CTkButton(
+            btn_row,
+            text=self.get_text("usb_new_task", "新建任务"),
+            height=40,
+            width=110,
+            font=get_font(size=13),
+            fg_color="#1F6AA5",
+            hover_color="#154E7A",
+            command=create_new,
+        )
+        new_btn.pack(side="left", padx=(0, 8))
+
+        ctk.CTkButton(
+            btn_row,
+            text=self.get_text("cancel", "取消"),
+            height=40,
+            width=90,
+            font=get_font(size=13),
+            fg_color="transparent",
+            text_color=("black", "white"),
+            hover_color=("gray85", "gray25"),
+            border_width=2,
+            border_color=("gray70", "gray30"),
+            command=dialog.destroy,
+        ).pack(side="left")
+
+    def _ask_bind_usb_after_sync(self, task, event):
+        """U 盘引导同步成功后：询问是否将该任务绑定到此 U 盘。"""
+        from tkinter import messagebox
+
+        task_id = task.get("id")
+        name = task.get("name", "")
+        if not task_id or not name:
+            return
+        if not messagebox.askyesno(
+            self.get_text("usb_bind_after_title", "绑定自动同步"),
+            self.get_text(
+                "usb_bind_after_message",
+                "是否将任务「{name}」绑定到此 U 盘？以后插入此 U 盘将自动同步。",
+            ).format(name=name),
+            parent=self,
+        ):
+            return
+
+        mount = event.get("mount", "")
+        source_sub = parse_relative_subpath(task.get("source", ""), mount)
+        target_sub = parse_relative_subpath(task.get("target", ""), mount)
+        binding = {
+            "serial": event.get("serial", ""),
+            "label": event.get("label", ""),
+            "mount": mount,
+            "source_on_usb": source_sub is not None,
+            "source_subpath": source_sub or "",
+            "target_on_usb": target_sub is not None,
+            "target_subpath": target_sub or "",
+        }
+        try:
+            self.task_manager.update_task(
+                task_id, {"usb_auto_sync": True, "usb_binding": binding}
+            )
+        except Exception as exc:  # noqa: BLE001
+            print(f"绑定 U 盘失败: {exc}")
+            return
+        messagebox.showinfo(
+            self.get_text("usb_bind_after_title", "绑定自动同步"),
+            self.get_text(
+                "usb_bind_saved",
+                "已绑定，插入此 U 盘时将自动同步任务「{name}」",
+            ).format(name=name),
+            parent=self,
+        )
+
+    # ===================== v7.7: 自动版本更新 =====================
+
+    def _maybe_auto_check_update(self):
+        """启动后自动检查更新（24 小时节流，同步进行中则推迟）。"""
+        try:
+            if self.has_active_sync_activity():
+                self.after(30000, self._maybe_auto_check_update)
+                return
+            if not update_checker.should_auto_check(self.config_manager):
+                return
+        except Exception as exc:  # noqa: BLE001
+            print(f"自动更新检查跳过: {exc}")
+            return
+        self._spawn_update_check(manual=False)
+
+    def check_updates_manual(self):
+        """工具包页「检查更新」按钮入口。"""
+        self._spawn_update_check(manual=True)
+
+    def _spawn_update_check(self, manual=False):
+        if getattr(self, "_update_check_running", False):
+            return
+        self._update_check_running = True
+        if manual:
+            try:
+                self.status_label.configure(
+                    text=self.get_text("update_checking", "正在检查更新…")
+                )
+            except Exception:
+                pass
+
+        def worker():
+            info = update_checker.check_for_update()
+            self.post_ui(lambda: self._on_update_checked(info, manual))
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _on_update_checked(self, info, manual):
+        from tkinter import messagebox
+
+        self._update_check_running = False
+        if info is None:
+            if manual:
+                messagebox.showerror(
+                    self.get_text("update_section", "软件更新"),
+                    self.get_text("update_failed", "检查更新失败，请稍后重试"),
+                    parent=self,
+                )
+            return
+
+        update_checker.record_check_time(self.config_manager)
+        reason = info.get("reason")
+        if reason == "up_to_date":
+            if manual:
+                messagebox.showinfo(
+                    self.get_text("update_section", "软件更新"),
+                    self.get_text("update_up_to_date", "已是最新版本"),
+                    parent=self,
+                )
+            return
+        if reason == "too_new":
+            if manual:
+                messagebox.showinfo(
+                    self.get_text("update_section", "软件更新"),
+                    self.get_text(
+                        "update_too_new", "新版本发布不足 24 小时，稍后再提示"
+                    ),
+                    parent=self,
+                )
+            return
+        self._show_update_available(info)
+
+    def _show_update_available(self, info):
+        from tkinter import messagebox
+
+        title = self.get_text(
+            "update_available_title", "发现新版本 v{version}"
+        ).format(version=info.get("version", ""))
+        notes = (info.get("notes") or "").strip()
+        if len(notes) > 800:
+            notes = notes[:800] + "…"
+        message = self.get_text(
+            "update_available_message",
+            "发布时间：{date}\n\n更新内容：\n{notes}",
+        ).format(date=info.get("published_at", ""), notes=notes or "-")
+
+        if not info.get("asset_url"):
+            if messagebox.askyesno(
+                title,
+                message + "\n\n" + self.get_text(
+                    "update_manual_title", "请手动完成更新"
+                ),
+                parent=self,
+            ):
+                import webbrowser
+                webbrowser.open(info.get("page_url") or updater.release_page_url())
+            return
+
+        if messagebox.askyesno(
+            title,
+            message + "\n\n" + self.get_text("update_download", "下载并更新"),
+            parent=self,
+        ):
+            self._download_update(info)
+
+    def _download_update(self, info):
+        from tkinter import messagebox
+
+        if self.has_active_sync_activity():
+            messagebox.showinfo(
+                self.get_text("update_section", "软件更新"),
+                self.get_text(
+                    "update_wait_sync", "请等待当前同步任务结束后再更新。"
+                ),
+                parent=self,
+            )
+            return
+
+        state = {"last": -100, "speed": 0}
+
+        def on_status(status):
+            # 后台线程：只更新纯数据字典，不触碰任何 Tk 组件
+            try:
+                state["speed"] = status.get("speed_kbps") or 0
+            except Exception:
+                state["speed"] = 0
+
+        def progress(received, total):
+            percent = int(received * 100 / total) if total and total > 0 else -1
+            if percent < 0:
+                return
+            if percent >= 100 or percent - state["last"] >= 5:
+                state["last"] = percent
+                self.post_ui(
+                    lambda p=percent, s=state["speed"]: self._set_update_progress(p, s)
+                )
+
+        def worker():
+            try:
+                path = updater.download_update(
+                    info, progress_cb=progress, on_status=on_status
+                )
+                self.post_ui(lambda p=path: self._on_update_downloaded(info, p))
+            except Exception as exc:  # noqa: BLE001
+                self.post_ui(
+                    lambda err=exc: messagebox.showerror(
+                        self.get_text("update_section", "软件更新"),
+                        str(err),
+                        parent=self,
+                    )
+                )
+
+        self._set_update_progress(0, 0)
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _set_update_progress(self, percent, speed=None):
+        try:
+            self.status_label.configure(
+                text=self.get_text(
+                    "update_downloading", "正在下载更新：{percent}%（{speed} KB/s）"
+                ).format(percent=percent, speed=speed or 0)
+            )
+        except Exception:
+            pass
+
+    def _on_update_downloaded(self, info, path):
+        from tkinter import messagebox
+
+        ready_title = self.get_text("update_download_done_title", "下载完成")
+        ready_message = self.get_text(
+            "update_download_ready",
+            "更新准备就绪，即将重启应用。如果您的安全软件弹出拦截提示，请选择“允许”。",
+        )
+
+        if updater.is_frozen() and os.name == "nt" and updater.can_replace():
+            try:
+                bat_path = updater.write_windows_update_script(path)
+            except Exception as exc:  # noqa: BLE001
+                print(f"生成更新脚本失败: {exc}")
+                self._show_manual_update(path)
+                return
+            if messagebox.askyesno(ready_title, ready_message, parent=self):
+                try:
+                    updater.launch_update_script(bat_path)
+                except Exception as exc:  # noqa: BLE001
+                    print(f"启动更新脚本失败: {exc}")
+                    self._show_manual_update(path)
+                    return
+                self.safe_exit()
+            return
+
+        self._show_manual_update(path)
+
+    def _show_manual_update(self, path):
+        """非 frozen / 无权限场景：引导手动替换。"""
+        from tkinter import messagebox
+
+        title = self.get_text("update_manual_title", "请手动完成更新")
+        message = self.get_text(
+            "update_manual_message",
+            "新的程序文件已下载到：\n{path}\n\n请关闭本程序后，用该文件替换当前程序。",
+        ).format(path=str(path))
+        if messagebox.askyesno(
+            title,
+            message + "\n\n" + self.get_text("update_open_folder", "打开下载目录"),
+            parent=self,
+        ):
+            try:
+                folder = str(path.parent)
+                if os.name == "nt":
+                    os.startfile(folder)
+                else:
+                    import subprocess
+                    subprocess.Popen(
+                        ["open" if sys.platform == "darwin" else "xdg-open", folder]
+                    )
+            except Exception as exc:  # noqa: BLE001
+                print(f"打开下载目录失败: {exc}")
+        if messagebox.askyesno(
+            title,
+            self.get_text("update_open_page", "打开发布页"),
+            parent=self,
+        ):
+            import webbrowser
+            webbrowser.open(updater.release_page_url())
+
+    def _stop_background_monitors(self):
+        """停止 U 盘监听等后台线程。"""
+        monitor = getattr(self, "usb_monitor", None)
+        if monitor is not None:
+            try:
+                monitor.stop()
+            except Exception:
+                pass
+            self.usb_monitor = None
+
+    # ===================== v7.7: 异常退出反馈引导 =====================
+
+    def show_crash_recovery_dialog(self):
+        """上次异常退出：展示接地气的排查与反馈引导。"""
+        import subprocess
+        import webbrowser
+
+        dialog = ctk.CTkToplevel(self)
+        dialog.title(self.get_text("crash_title", "上次运行出现异常"))
+        dialog.geometry("600x360")
+        dialog.resizable(False, False)
+        dialog.transient(self)
+        dialog.grab_set()
+
+        ctk.CTkLabel(
+            dialog,
+            text=self.get_text("crash_title", "上次运行出现异常"),
+            font=get_font(size=17, weight="bold"),
+        ).pack(padx=24, pady=(22, 10), anchor="w")
+
+        ctk.CTkLabel(
+            dialog,
+            text=self.get_text(
+                "crash_message",
+                "上次运行似乎遇到了一点问题导致闪退。您可以尝试以下操作：\n\n"
+                "1. 重新打开程序试试；\n"
+                "2. 检查 U 盘或磁盘是否正常；\n"
+                "3. 如果反复出现，请把问题反馈给开发者。",
+            ),
+            font=get_font(size=13),
+            justify="left",
+            wraplength=550,
+            anchor="w",
+        ).pack(padx=24, pady=(0, 16), anchor="w")
+
+        def open_help():
+            try:
+                from backend.platform_utils import get_resource_path
+
+                path = get_resource_path("docs/HELP.md")
+                if not path.is_file():
+                    return
+                if os.name == "nt":
+                    os.startfile(str(path))
+                elif sys.platform == "darwin":
+                    subprocess.Popen(["open", str(path)])
+                else:
+                    subprocess.Popen(["xdg-open", str(path)])
+            except Exception as exc:  # noqa: BLE001
+                print(f"打开帮助文档失败: {exc}")
+
+        ctk.CTkButton(
+            dialog,
+            text=self.get_text("crash_report", "一键反馈问题给开发者"),
+            height=42,
+            font=get_font(size=14, weight="bold"),
+            fg_color="#2E7D32",
+            hover_color="#1B5E20",
+            command=lambda: webbrowser.open(
+                "https://github.com/helloyhcby163/FileSyncTool/issues/new"
+                "?title=%5BBug%5D%E7%A8%8B%E5%BA%8F%E9%97%AA%E9%80%80%E4%BA%86"
+            ),
+        ).pack(fill="x", padx=24, pady=(0, 8))
+
+        ctk.CTkButton(
+            dialog,
+            text=self.get_text("crash_tutorial", "如何反馈？（B站教程）"),
+            height=42,
+            font=get_font(size=14),
+            fg_color="#1F6AA5",
+            hover_color="#154E7A",
+            command=lambda: webbrowser.open(
+                "https://www.bilibili.com/video/BV18T411z7R4/"
+            ),
+        ).pack(fill="x", padx=24, pady=(0, 8))
+
+        ctk.CTkButton(
+            dialog,
+            text=self.get_text("crash_open_help", "查看帮助文档"),
+            height=42,
+            font=get_font(size=14),
+            fg_color="transparent",
+            text_color=("black", "white"),
+            hover_color=("gray85", "gray25"),
+            border_width=2,
+            border_color=("gray70", "gray30"),
+            command=open_help,
+        ).pack(fill="x", padx=24, pady=(0, 8))
+
+        ctk.CTkButton(
+            dialog,
+            text=self.get_text("crash_close", "关闭"),
+            height=36,
+            font=get_font(size=13),
+            fg_color="transparent",
+            text_color=("gray40", "gray70"),
+            hover_color=("gray85", "gray25"),
+            command=dialog.destroy,
+        ).pack(fill="x", padx=24, pady=(0, 16))
+
     def _update_status(self, stage: str):
         """
         更新状态栏文本
@@ -409,6 +1026,9 @@ class FileSyncApp(ctk.CTk):
         # 保存配置
         self.config_manager.save_config()
         
+        # v7.7: 停止后台监听线程
+        self._stop_background_monitors()
+
         # 关闭窗口
         self.destroy()
     
@@ -535,6 +1155,7 @@ class FileSyncApp(ctk.CTk):
         
         # 步骤7：关闭窗口
         print("🚪 正在退出...")
+        self._stop_background_monitors()
         self.destroy()
     
     def _cleanup_temp_files(self):
@@ -685,7 +1306,9 @@ class FileSyncApp(ctk.CTk):
                 on_folder_config=self._on_folder_config_from_create_task,
                 on_save=self._on_save_task_edit,
                 task_id=kwargs.get("task_id"),
-                edit_mode=kwargs.get("edit_mode", False)
+                edit_mode=kwargs.get("edit_mode", False),
+                # v7.7: AI 生成 / U 盘引导创建时预填
+                prefill_config=kwargs.get("prefill_config")
             )
         
         elif page_name == "folder_config":
@@ -816,7 +1439,10 @@ class FileSyncApp(ctk.CTk):
             use_multithreading_scan=task_config.get("use_multithreading_scan", False),
             use_multithreading_copy=task_config.get("use_multithreading_copy", False),
             last_snapshot=task_config.get("last_snapshot"),
-            post_sync_command=task_config.get("post_sync_command", "")
+            post_sync_command=task_config.get("post_sync_command", ""),
+            # v7.7: U 盘自动同步绑定
+            usb_auto_sync=task_config.get("usb_auto_sync", False),
+            usb_binding=task_config.get("usb_binding") or {}
         )
         self._start_sync(task_config)
     
@@ -1125,6 +1751,18 @@ class FileSyncApp(ctk.CTk):
         # v7.6: 本批任务全部结束时，判定是否自动关机
         self._maybe_auto_shutdown()
 
+        # v7.7: U 盘引导的同步成功后，询问是否绑定该任务
+        pending = self._pending_usb_bind
+        if pending:
+            self._pending_usb_bind = None
+            if final_success and task_config.get("name") == pending.get("task_name"):
+                self.after(
+                    300,
+                    lambda t=dict(task_config), ev=pending.get("event", {}): (
+                        self._ask_bind_usb_after_sync(t, ev)
+                    ),
+                )
+
     def _show_blocked_files_dialog(self, blocked_files: list):
         """弹窗列出被安全软件拦截、未完成同步的文件"""
         import tkinter as tk
@@ -1161,6 +1799,8 @@ class FileSyncApp(ctk.CTk):
                 self._record_sync_failure(task_id)
             self.task_manager.stop_task(task_id, "interrupted")
             self._mark_sync_outcome(task_id, False)
+        # v7.7: 同步未成功完成，清除待绑定询问
+        self._pending_usb_bind = None
         # v7.5: 清除当前运行引擎引用
         self.current_sync_engine = None
         self.show_page("home")

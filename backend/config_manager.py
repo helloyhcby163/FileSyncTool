@@ -24,7 +24,7 @@ class ConfigManager:
     """配置管理器：处理配置文件的读写和版本升级"""
     
     # 配置文件版本
-    CURRENT_VERSION = "7.6"
+    CURRENT_VERSION = "7.7"
     CONFIG_FILE_NAME = "sync_config_v7_5.json"
     OLD_CONFIG_FILE_NAME = "sync_config_v7_3.json"
     BACKUP_SUFFIX = ".bak"
@@ -33,7 +33,7 @@ class ConfigManager:
     
     # 默认配置
     DEFAULT_CONFIG = {
-        "version": "7.6",
+        "version": "7.7",
         "tasks": [],
         "settings": {
             "language": "zh",
@@ -42,7 +42,7 @@ class ConfigManager:
             "recycle_limit_mb": 5120,
             "recycle_limit_gb": 5.0,
             "sync_delete_default": False,
-            "theme": "light",
+            "theme": "dark",
             "auto_check_updates": True,
             "life_protection_enabled": True,
             "usb_level": "auto",
@@ -52,6 +52,9 @@ class ConfigManager:
             "auto_shutdown_delay": 60,
             "prevent_sleep_during_sync": True,
             "user_translations_dir": "",
+            # v7.7: 插入 U 盘时自动同步总开关 / 上次更新检查时间（UTC ISO）
+            "usb_auto_sync_enabled": True,
+            "last_update_check": "",
         },
         "recent_paths": [],
         "interrupted_tasks": [],
@@ -585,8 +588,8 @@ class ConfigManager:
             return self._upgrade_from_v7_2(old_config)
         elif version == "7.3":
             return self._upgrade_from_v7_3(old_config)
-        elif version in ("7.4", "7.5", "7.6"):
-            # v7.4/v7.5/v7.6 配置结构向后兼容，仅刷新版本号
+        elif version in ("7.4", "7.5", "7.6", "7.7"):
+            # v7.4 起配置结构向后兼容，仅刷新版本号
             upgraded = old_config.copy()
             upgraded["version"] = self.CURRENT_VERSION
             return upgraded
@@ -923,12 +926,13 @@ class ConfigManager:
     
     def reset_to_default(self):
         """
-        重置所有配置为默认值
-        
-        保留版本号，清除所有任务、历史、打断任务、删除文件记录，
-        将设置恢复为默认值并保存。
+        仅把 settings 中的配置项恢复为默认值。
+
+        红线：绝不覆盖或清空用户的 tasks / interrupted_tasks /
+        deleted_files / sync_history / recent_paths 等业务数据。
         """
-        self.config = self.DEFAULT_CONFIG.copy()
+        self.config["version"] = self.CURRENT_VERSION
+        self.config["settings"] = dict(self.DEFAULT_CONFIG.get("settings", {}))
         self.save_config()
     
     def get_theme(self) -> str:
