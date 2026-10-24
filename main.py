@@ -54,13 +54,15 @@ if not IS_FROZEN:
 def _write_error_log(exc_type, exc_value, exc_tb):
     """将异常信息写入日志文件"""
     try:
-        from backend.platform_utils import get_log_file_path
+        from backend.platform_utils import get_log_file_path, sanitize_path_text
 
         log_path = get_log_file_path()
         log_path.parent.mkdir(parents=True, exist_ok=True)
 
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         tb_text = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
+        # v7.7.1: 日志脱敏（隐藏用户绝对路径中的用户名）
+        tb_text = sanitize_path_text(tb_text)
 
         with open(log_path, 'a', encoding='utf-8') as f:
             f.write(f"\n{'='*60}\n")
@@ -169,12 +171,21 @@ def global_exception_handler(exc_type, exc_value, exc_tb):
     # 写日志文件
     log_path = _write_error_log(exc_type, exc_value, exc_tb)
 
-    # 打印到控制台
+    # 打印到控制台（v7.7.1：路径脱敏）
+    try:
+        from backend.platform_utils import sanitize_path_text
+        safe_message = sanitize_path_text(str(exc_value))
+        safe_tb = sanitize_path_text(
+            "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
+        )
+        safe_log_path = sanitize_path_text(log_path) if log_path else None
+    except Exception:  # noqa: BLE001
+        safe_message, safe_tb, safe_log_path = str(exc_value), "", log_path
     print(f"\n{'='*60}")
-    print(f"未捕获的异常: {exc_type.__name__}: {exc_value}")
-    traceback.print_exception(exc_type, exc_value, exc_tb)
-    if log_path:
-        print(f"错误日志已保存到: {log_path}")
+    print(f"未捕获的异常: {exc_type.__name__}: {safe_message}")
+    print(safe_tb, end="")
+    if safe_log_path:
+        print(f"错误日志已保存到: {safe_log_path}")
 
     # 尝试弹出 GUI 错误对话框（含“查看详细信息”）
     try:
@@ -306,24 +317,176 @@ def set_window_icon(root) -> bool:
 
 
 # ========== v7.6: 命令行模式（--task / --watch / --list-tasks） ==========
+# v7.7.1 新增：--config 外部任务文件、即时传参 --source/--target/--mode/--direction
+#
+# 安全红线：CLI 只执行内置同步逻辑，不提供任何执行外部命令的接口，
+# 也不会把任何命令行参数当作 shell 命令执行。
 
-CLI_HELP_DESCRIPTION = """FileSyncTool v7.7 - 跨平台文件同步工具
+# 命令行退出码：0 成功、1 同步失败、2 参数错误
+CLI_EXIT_OK = 0
+CLI_EXIT_FAIL = 1
+CLI_EXIT_ARG_ERROR = 2
+
+# 版本号统一从 backend.version.APP_VERSION 读取，避免界面/帮助硬编码
+from backend.version import APP_VERSION
+
+_CLI_MODES = ("fast", "safe")
+_CLI_DIRECTIONS = ("both", "source_to_target", "target_to_source")
+
+CLI_HELP_DESCRIPTION = f"""FileSyncTool v{APP_VERSION} - 跨平台文件同步工具
 
 用法：
-  FileSyncTool                             启动图形界面
-  FileSyncTool --help                      显示帮助
-  FileSyncTool --list-tasks                列出所有任务
-  FileSyncTool --task "任务名"              执行指定任务
-  FileSyncTool --task "任务名" --silent      静默执行（无界面）
-  FileSyncTool --watch "任务名"             后台监听指定任务
+  FileSyncTool                                   启动图形界面
+  FileSyncTool --help                            显示帮助
+  FileSyncTool --list-tasks                      列出所有任务
+  FileSyncTool --task "任务名" [--silent]         执行指定任务
+  FileSyncTool --watch "任务名" [--idle 10]       后台监听指定任务
+  FileSyncTool --config "路径.json" [--silent]    执行外部指定的任务配置文件
+  FileSyncTool --source "源路径" --target "目标路径" --mode safe --direction source_to_target
+                                                即时传参执行一次同步
 """
 
 CLI_HELP_EPILOG = """示例：
   FileSyncTool --task "备份照片" --silent
-  FileSyncTool --watch "同步文档"
+  FileSyncTool --watch "同步文档" --idle 10
+  FileSyncTool --config "D:\\tasks.json" --silent
+  FileSyncTool --source "D:\\照片" --target "E:\\备份" --mode safe --direction source_to_target
+
+退出码：
+  0  同步成功
+  1  同步失败（目录缺失、同步出错等）
+  2  参数错误（参数缺失/取值非法/任务或配置文件不存在）
 
 更多信息：https://github.com/helloyhcby163/FileSyncTool
 """
+
+
+class CliArgumentError(ValueError):
+    """命令行参数/配置文件错误（对应退出码 2）。"""
+
+
+def _cli_error(message: str) -> int:
+    """输出参数错误信息并返回退出码 2。"""
+    print(f"❌ {message}")
+    return CLI_EXIT_ARG_ERROR
+
+
+def _resolve_cli_path(value, label: str) -> str:
+    """把命令行传入的路径强制解析为绝对路径（pathlib.Path.resolve）。"""
+    text = str(value or "").strip()
+    if not text:
+        raise CliArgumentError(f"{label}不能为空")
+    try:
+        return str(Path(text).expanduser().resolve())
+    except OSError as exc:
+        raise CliArgumentError(f"{label}无效：{exc}") from exc
+
+
+def _normalize_cli_mode(value) -> str:
+    """校验运行模式，仅允许 fast/safe。"""
+    mode = str(value or "safe").strip().lower()
+    if mode not in _CLI_MODES:
+        raise CliArgumentError(
+            f"--mode 仅支持 {'/'.join(_CLI_MODES)}，收到：{value}"
+        )
+    return mode
+
+
+def _normalize_cli_direction(value) -> str:
+    """校验同步方向，仅允许 both/source_to_target/target_to_source。"""
+    direction = str(value or "both").strip().lower()
+    if direction not in _CLI_DIRECTIONS:
+        raise CliArgumentError(
+            f"--direction 仅支持 {'/'.join(_CLI_DIRECTIONS)}，收到：{value}"
+        )
+    return direction
+
+
+def _build_inline_task(args) -> dict:
+    """由 --source/--target/--mode/--direction 构造一次性任务。"""
+    source = _resolve_cli_path(args.source, "源目录")
+    target = _resolve_cli_path(args.target, "目标目录")
+    return {
+        "id": "",
+        "name": "命令行即时同步",
+        "source": source,
+        "target": target,
+        "mode": _normalize_cli_mode(args.mode),
+        "sync_direction": _normalize_cli_direction(args.direction),
+        "folders": [],
+        "default_strategy": "conservative",
+        "folder_strategies": {},
+        "folder_filters": {},
+        "root_included": False,
+        "root_strategy": "conservative",
+        "use_multithreading_scan": False,
+        "use_multithreading_copy": False,
+        "post_sync_action": "none",
+        "last_snapshot": None,
+    }
+
+
+def load_tasks_from_config(path_value) -> list:
+    """
+    读取外部任务配置文件（--config）。
+
+    兼容三种格式：
+      1. 导出的任务包 {"version": ..., "tasks": [...]}
+      2. 任务数组 [...]
+      3. 单个任务对象 {"source": ..., "target": ...}
+
+    返回可直接执行的清洗后任务列表；格式问题抛 CliArgumentError。
+    """
+    import json
+    from backend.config_manager import sanitize_task_dict
+
+    path = Path(_resolve_cli_path(path_value, "配置文件路径"))
+    if not path.is_file():
+        raise CliArgumentError(f"配置文件不存在：{path}")
+
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise CliArgumentError(f"无法读取配置文件：{exc}") from exc
+
+    if isinstance(data, dict) and isinstance(data.get("tasks"), list):
+        raw_tasks = data["tasks"]
+    elif isinstance(data, list):
+        raw_tasks = data
+    elif isinstance(data, dict) and data.get("source") and data.get("target"):
+        raw_tasks = [data]
+    else:
+        raise CliArgumentError(
+            "配置文件格式无效：应为任务数组、包含 tasks 的对象或单个任务对象"
+        )
+
+    tasks = []
+    for index, raw in enumerate(raw_tasks, 1):
+        if not isinstance(raw, dict):
+            raise CliArgumentError(f"第 {index} 个任务格式无效（应为对象）")
+
+        # 清洗旧字段（post_sync_command 等）并归一化同步后动作
+        task = sanitize_task_dict(dict(raw))
+        # 外部任务不写入本地配置：移除 ID 与旧快照
+        task.pop("id", None)
+        task.pop("last_snapshot", None)
+        task.setdefault("name", f"配置文件任务 {index}")
+
+        task["source"] = _resolve_cli_path(
+            task.get("source"), f"第 {index} 个任务的源目录"
+        )
+        task["target"] = _resolve_cli_path(
+            task.get("target"), f"第 {index} 个任务的目标目录"
+        )
+        task["mode"] = _normalize_cli_mode(task.get("mode") or task.get("run_mode"))
+        task["sync_direction"] = _normalize_cli_direction(
+            task.get("sync_direction") or task.get("direction")
+        )
+        tasks.append(task)
+
+    if not tasks:
+        raise CliArgumentError("配置文件中没有可执行的任务")
+    return tasks
 
 
 def list_all_tasks() -> int:
@@ -337,7 +500,7 @@ def list_all_tasks() -> int:
 
     if not tasks:
         print("（暂无任务，可在图形界面中新建）")
-        return 0
+        return CLI_EXIT_OK
 
     print(f"共 {len(tasks)} 个任务：")
     for i, task in enumerate(tasks, 1):
@@ -347,7 +510,7 @@ def list_all_tasks() -> int:
         print(f"  {i}. {name}")
         print(f"     源目录：{source}")
         print(f"     目标目录：{target}")
-    return 0
+    return CLI_EXIT_OK
 
 
 def run_cli(args) -> int:
@@ -355,37 +518,72 @@ def run_cli(args) -> int:
     无界面命令行模式入口。
 
     Returns:
-        进程退出码：0 成功，1 失败
+        进程退出码：0 成功，1 同步失败，2 参数错误
     """
     from backend.config_manager import ConfigManager
     from backend.task_manager import TaskManager
     from backend.recycle_manager import RecycleManager
     from backend.cli_sync import run_task_once
-    from backend.watch_manager import WatchManager
+
+    inline_used = bool(
+        args.source or args.target or args.mode or args.direction
+    )
+
+    # ===== 参数组合校验（全部返回 2） =====
+    if args.config and inline_used:
+        return _cli_error(
+            "--config 不能与 --source/--target/--mode/--direction 同时使用"
+        )
+    if args.config and (args.task or args.watch):
+        return _cli_error("--config 不能与 --task/--watch 同时使用")
+    if inline_used and (args.task or args.watch):
+        return _cli_error("即时同步参数不能与 --task/--watch 同时使用")
+    if args.watch and inline_used:
+        return _cli_error("监听模式不支持即时同步参数")
+    if args.watch and args.config:
+        return _cli_error("监听模式不支持 --config")
+
+    if not (args.task or args.watch or args.config or inline_used):
+        return _cli_error("未指定任何任务（使用 --task/--watch/--config 或即时参数）")
 
     config_manager = ConfigManager()
     task_manager = TaskManager(config_manager)
     recycle_manager = RecycleManager(config_manager)
 
-    idle_seconds = args.idle
-    if not (3 <= idle_seconds <= 300):
-        print("❌ --idle 取值范围为 3-300 秒")
-        return 1
-
-    task_name = args.watch or args.task
-    task = task_manager.get_task_by_name(task_name)
-    if not task:
-        print(f"❌ 未找到任务：{task_name}")
-        return 1
+    # ===== 构造待执行任务列表 =====
+    if inline_used:
+        if not (args.source and args.target):
+            return _cli_error("即时同步需要同时提供 --source 与 --target")
+        try:
+            tasks = [_build_inline_task(args)]
+        except CliArgumentError as exc:
+            return _cli_error(str(exc))
+    elif args.config:
+        try:
+            tasks = load_tasks_from_config(args.config)
+        except CliArgumentError as exc:
+            return _cli_error(str(exc))
+    else:
+        task_name = args.watch or args.task
+        task = task_manager.get_task_by_name(task_name)
+        if not task:
+            return _cli_error(f"未找到任务：{task_name}")
+        tasks = [task]
 
     if args.watch:
         # ===== 常驻监听模式 =====
         import threading
 
+        idle_seconds = args.idle
+        if not (3 <= idle_seconds <= 300):
+            return _cli_error("--idle 取值范围为 3-300 秒")
+
+        task = tasks[0]
+        task_name = task.get("name", "")
         source_dir = task.get("source", "")
         if not source_dir or not os.path.isdir(source_dir):
             print(f"❌ 监听目录不存在：{source_dir or '（未配置源目录）'}，请检查 U 盘是否已插入")
-            return 1
+            return CLI_EXIT_FAIL
 
         exit_event = threading.Event()
 
@@ -419,13 +617,15 @@ def run_cli(args) -> int:
                 watch_mode=True,
             )
 
+        from backend.watch_manager import WatchManager
+
         manager = WatchManager(
             source_dir,
             idle_seconds=idle_seconds,
             on_trigger=trigger_sync,
         )
         if not manager.start():
-            return 1
+            return CLI_EXIT_FAIL
 
         # 主线程等待 Ctrl+C 或任务被删除
         try:
@@ -439,17 +639,20 @@ def run_cli(args) -> int:
             print("\n⚠️ 收到 Ctrl+C，正在退出监听...")
         finally:
             manager.stop()
-        return 0
+        return CLI_EXIT_OK
 
-    # ===== 单次执行模式 =====
-    success = run_task_once(
-        task,
-        config_manager,
-        task_manager,
-        recycle_manager=recycle_manager,
-        silent=args.silent,
-    )
-    return 0 if success else 1
+    # ===== 单次执行模式（--task / --config / 即时传参） =====
+    success = True
+    for task in tasks:
+        if not run_task_once(
+            task,
+            config_manager,
+            task_manager,
+            recycle_manager=recycle_manager,
+            silent=args.silent,
+        ):
+            success = False
+    return CLI_EXIT_OK if success else CLI_EXIT_FAIL
 
 
 def main():
@@ -480,7 +683,7 @@ def main():
     parser.add_argument(
         "--silent",
         action="store_true",
-        help="静默模式：仅输出摘要、警告与错误（配合 --task/--watch 使用）",
+        help="静默模式：不弹出图形界面，仅输出摘要、警告与错误",
     )
     parser.add_argument(
         "--idle",
@@ -488,12 +691,45 @@ def main():
         default=10,
         help="监听模式的空闲触发秒数，默认 10，范围 3-300",
     )
+    parser.add_argument(
+        "--config",
+        metavar="路径.json",
+        help="读取外部指定的任务配置文件并执行（支持导出包/任务数组/单个任务）",
+    )
+    parser.add_argument(
+        "--source",
+        metavar="路径",
+        help="即时同步：源目录（需与 --target 同时使用）",
+    )
+    parser.add_argument(
+        "--target",
+        metavar="路径",
+        help="即时同步：目标目录（需与 --source 同时使用）",
+    )
+    parser.add_argument(
+        "--mode",
+        choices=_CLI_MODES,
+        help="即时同步：运行模式 fast / safe（默认 safe）",
+    )
+    parser.add_argument(
+        "--direction",
+        choices=_CLI_DIRECTIONS,
+        help="即时同步：同步方向 both / source_to_target / target_to_source（默认 both）",
+    )
     args = parser.parse_args()
 
     # 命令行模式：不初始化 GUI
     if args.list_tasks:
         sys.exit(list_all_tasks())
-    if args.task or args.watch:
+    if (
+        args.task
+        or args.watch
+        or args.config
+        or args.source
+        or args.target
+        or args.mode
+        or args.direction
+    ):
         exit_code = run_cli(args)
         sys.exit(exit_code)
 

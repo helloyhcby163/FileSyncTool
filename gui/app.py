@@ -22,6 +22,7 @@ from backend.sync_engine import FileSyncEngine as SyncEngine
 from backend.notification_manager import NotificationManager
 from backend.theme_manager import ThemeManager
 from backend.platform_utils import get_default_config_dir
+from backend.version import format_app_title
 from backend import update_checker, updater
 from backend.usb_monitor import (
     EVENT_REMOVED,
@@ -64,7 +65,7 @@ class FileSyncApp(ctk.CTk):
         self._init_backend_modules()
         
         # 4. 更新窗口标题为正确语言
-        self.title(self.language_manager.get_text("app_title"))
+        self.title(format_app_title(self.language_manager.get_text("app_title")))
         
         # 5. 初始化页面容器
         self._init_pages()
@@ -720,14 +721,22 @@ class FileSyncApp(ctk.CTk):
             )
             return
 
-        state = {"last": -100, "speed": 0}
+        state = {"last": -100, "speed": 0, "source": ""}
 
         def on_status(status):
             # 后台线程：只更新纯数据字典，不触碰任何 Tk 组件
             try:
+                source = status.get("source") or ""
                 state["speed"] = status.get("speed_kbps") or 0
             except Exception:
+                source = ""
                 state["speed"] = 0
+            # 线路（GitHub / Gitee / 镜像）切换时立即提示当前策略
+            if source and source != state["source"]:
+                state["source"] = source
+                self.post_ui(
+                    lambda src=source: self._set_update_progress(0, 0, src)
+                )
 
         def progress(received, total):
             percent = int(received * 100 / total) if total and total > 0 else -1
@@ -736,7 +745,8 @@ class FileSyncApp(ctk.CTk):
             if percent >= 100 or percent - state["last"] >= 5:
                 state["last"] = percent
                 self.post_ui(
-                    lambda p=percent, s=state["speed"]: self._set_update_progress(p, s)
+                    lambda p=percent, s=state["speed"], src=state["source"]:
+                    self._set_update_progress(p, s, src)
                 )
 
         def worker():
@@ -745,6 +755,26 @@ class FileSyncApp(ctk.CTk):
                     info, progress_cb=progress, on_status=on_status
                 )
                 self.post_ui(lambda p=path: self._on_update_downloaded(info, p))
+            except updater.UpdateHashMismatchError:
+                # v7.7.1: 哈希不一致 → 已删除临时文件，弹安全警告
+                self.post_ui(lambda: messagebox.showwarning(
+                    self.get_text("update_security_title", "⚠️ 安全警告"),
+                    self.get_text(
+                        "update_hash_mismatch",
+                        "更新包哈希校验失败，可能已被篡改！",
+                    ),
+                    parent=self,
+                ))
+            except updater.UpdateHashMissingError:
+                # v7.7.1: 官方未提供哈希 → 中止自动更新
+                self.post_ui(lambda: messagebox.showwarning(
+                    self.get_text("update_security_title", "⚠️ 安全警告"),
+                    self.get_text(
+                        "update_hash_missing",
+                        "无法获取官方 SHA-256 哈希值，已中止自动更新。请前往发布页手动下载。",
+                    ),
+                    parent=self,
+                ))
             except Exception as exc:  # noqa: BLE001
                 self.post_ui(
                     lambda err=exc: messagebox.showerror(
@@ -757,12 +787,30 @@ class FileSyncApp(ctk.CTk):
         self._set_update_progress(0, 0)
         threading.Thread(target=worker, daemon=True).start()
 
-    def _set_update_progress(self, percent, speed=None):
+    def _set_update_progress(self, percent, speed=None, source=""):
+        # 按当前下载线路提示策略：GitHub 官方 / Gitee / 公共镜像
+        text_key, default_text = {
+            "github": (
+                "update_download_via_github",
+                "正在从 GitHub 官方源下载：{percent}%（{speed} KB/s）",
+            ),
+            "gitee": (
+                "update_download_via_gitee",
+                "正在从 Gitee 镜像源下载：{percent}%（{speed} KB/s）",
+            ),
+            "mirror": (
+                "update_download_via_mirror",
+                "正在通过镜像站下载：{percent}%（{speed} KB/s）",
+            ),
+        }.get(source, (
+            "update_downloading",
+            "正在下载更新：{percent}%（{speed} KB/s）",
+        ))
         try:
             self.status_label.configure(
-                text=self.get_text(
-                    "update_downloading", "正在下载更新：{percent}%（{speed} KB/s）"
-                ).format(percent=percent, speed=speed or 0)
+                text=self.get_text(text_key, default_text).format(
+                    percent=percent, speed=speed or 0
+                )
             )
         except Exception:
             pass
@@ -1439,7 +1487,7 @@ class FileSyncApp(ctk.CTk):
             use_multithreading_scan=task_config.get("use_multithreading_scan", False),
             use_multithreading_copy=task_config.get("use_multithreading_copy", False),
             last_snapshot=task_config.get("last_snapshot"),
-            post_sync_command=task_config.get("post_sync_command", ""),
+            post_sync_action=task_config.get("post_sync_action", "none"),
             # v7.7: U 盘自动同步绑定
             usb_auto_sync=task_config.get("usb_auto_sync", False),
             usb_binding=task_config.get("usb_binding") or {}
@@ -1729,18 +1777,18 @@ class FileSyncApp(ctk.CTk):
             # 发送通知
             self.notification_manager.send_sync_complete(task_name, file_count, has_errors)
 
-        # v7.6: 同步成功后执行任务配置的命令（失败只记日志，不阻断流程）
-        command = (task_config.get("post_sync_command") or "").strip()
-        if command:
+        # v7.7.1: 同步成功后执行任务选择的内置安全动作（无 shell、无自定义命令）
+        if final_success and sync_progress_page:
             try:
-                from backend.cli_sync import run_post_sync_command
-                run_post_sync_command(
-                    command,
+                from backend.cli_sync import run_post_sync_action
+                run_post_sync_action(
+                    task_config.get("post_sync_action", "none"),
                     task_name=task_config.get("name", ""),
-                    cwd=task_config.get("source") or None,
+                    config_manager=self.config_manager,
+                    log=lambda msg: print(msg),
                 )
             except Exception as e:
-                print(f"⚠️ 同步后命令启动失败：{e}")
+                print(f"⚠️ 同步后动作执行失败：{e}")
 
         # v7.6: Defender/安全软件拦截提示（GUI 线程中弹窗，明确到具体文件）
         if blocked_files:
@@ -2029,7 +2077,7 @@ class FileSyncApp(ctk.CTk):
     def _apply_language_change(self):
         """语言切换后的统一刷新：标题、状态栏字体与全部页面重建"""
         # 更新窗口标题
-        self.title(self.get_text("app_title"))
+        self.title(format_app_title(self.get_text("app_title")))
 
         # 状态栏字体随当前语言 meta 刷新
         if getattr(self, "status_label", None) is not None:

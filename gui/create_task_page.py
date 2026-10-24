@@ -63,8 +63,9 @@ class CreateTaskPage(ctk.CTkFrame):
         self.use_multithreading_copy = False  # 是否使用多线程复制
         self.run_mode = "safe"  # fast, safe
         self.default_strategy = "conservative"  # conservative, newest_wins, source_wins, target_wins
-        # v7.6: 同步成功后执行的命令（可选，留空不执行）
-        self.post_sync_command = ""
+        # v7.7.1: 同步完成后的内置安全动作（none/notify/shutdown）
+        self.post_sync_action = "none"
+        self._post_sync_action_labels: Dict[str, str] = {}
         # v7.7: U 盘自动同步绑定
         self.usb_auto_sync = False
         self.usb_binding: Dict = {}
@@ -348,8 +349,8 @@ class CreateTaskPage(ctk.CTkFrame):
         # v7.6: 修复与「全局策略」(row=6) 的行重叠，单独配置按钮移至 row=7
         self.folder_config_btn.grid(row=7, column=0, columnspan=2, padx=10, pady=15, sticky="ew")
 
-        # ========== v7.6: 同步后执行命令（可选） ==========
-        self._create_post_sync_command_section()
+        # ========== v7.7.1: 同步完成后的内置安全动作 ==========
+        self._create_post_sync_action_section()
 
         # ========== v7.7: 插入指定 U 盘时自动同步 ==========
         self._create_usb_bind_section()
@@ -665,52 +666,67 @@ class CreateTaskPage(ctk.CTkFrame):
                     border_color=("#3B8ED0", "#1F6AA5")
                 )
     
-    def _create_post_sync_command_section(self):
-        """v7.6：同步成功后执行命令区域（每任务一条，可选填，留空不执行）"""
+    def _create_post_sync_action_section(self):
+        """v7.7.1：同步完成后的内置安全动作（仅下拉选择，不接受任意命令）"""
         self.post_sync_frame = ctk.CTkFrame(self.content_frame)
-        # v7.6: 单独配置按钮已占用 row=7，同步后命令区移至 row=8
+        # v7.6: 单独配置按钮已占用 row=7，同步后动作区移至 row=8
         self.post_sync_frame.grid(row=8, column=0, columnspan=2, padx=5, pady=10, sticky="ew")
         self.post_sync_frame.grid_columnconfigure(0, weight=1)
 
         self.post_sync_label = ctk.CTkLabel(
             self.post_sync_frame,
             text=self.language_manager.get_text(
-                "post_sync_command", "同步后执行命令（可选）"
+                "post_sync_action", "同步完成后的操作"
             ),
             font=get_font(size=14, weight="bold")
         )
         self.post_sync_label.grid(row=0, column=0, padx=10, pady=(10, 5), sticky="w")
 
-        self.post_sync_entry = ctk.CTkEntry(
+        self._refresh_post_sync_action_labels()
+        self.post_sync_menu = ctk.CTkOptionMenu(
             self.post_sync_frame,
+            values=list(self._post_sync_action_labels.values()),
             font=get_font(size=13),
             height=35,
-            placeholder_text=self.language_manager.get_text(
-                "post_sync_command_placeholder",
-                "同步成功后运行的脚本或命令，留空则不执行"
-            )
+            command=self._on_post_sync_action_selected,
         )
-        self.post_sync_entry.grid(row=1, column=0, padx=10, pady=5, sticky="ew")
-        if self.post_sync_command:
-            self.post_sync_entry.insert(0, self.post_sync_command)
+        self.post_sync_menu.set(self._post_sync_action_labels[self.post_sync_action])
+        self.post_sync_menu.grid(row=1, column=0, padx=10, pady=5, sticky="ew")
 
         self.post_sync_hint = ctk.CTkLabel(
             self.post_sync_frame,
             text=self.language_manager.get_text(
-                "post_sync_command_security_hint",
-                "⚠️ 请确认命令来源可信，不要运行来源不明的命令"
+                "post_sync_action_hint",
+                "仅支持内置安全动作，不执行任何外部命令"
             ),
             font=get_font(size=12),
-            text_color="#D97706",
+            text_color="gray",
             anchor="w"
         )
         self.post_sync_hint.grid(row=2, column=0, padx=10, pady=(0, 10), sticky="w")
 
-    def _read_post_sync_command(self) -> str:
-        """从输入框读取同步后命令"""
-        if hasattr(self, "post_sync_entry"):
-            return self.post_sync_entry.get().strip()
-        return self.post_sync_command
+    def _refresh_post_sync_action_labels(self):
+        """刷新内置动作的本地化显示名"""
+        self._post_sync_action_labels = {
+            "none": self.language_manager.get_text("post_sync_action_none", "无操作"),
+            "notify": self.language_manager.get_text(
+                "post_sync_action_notify", "发送系统通知"
+            ),
+            "shutdown": self.language_manager.get_text(
+                "post_sync_action_shutdown", "同步完成后关机"
+            ),
+        }
+
+    def _on_post_sync_action_selected(self, choice: str):
+        """下拉框选择回调：显示名映射回内部枚举值"""
+        for key, text in self._post_sync_action_labels.items():
+            if text == choice:
+                self.post_sync_action = key
+                return
+
+    def _read_post_sync_action(self) -> str:
+        """读取当前选择的同步后内置动作"""
+        return self.post_sync_action or "none"
 
     # ===================== v7.7: U 盘自动同步绑定 =====================
 
@@ -1032,7 +1048,7 @@ class CreateTaskPage(ctk.CTkFrame):
             "folder_strategies": {},
             "root_included": False,
             "root_strategy": self.default_strategy,
-            "post_sync_command": self._read_post_sync_command()
+            "post_sync_action": self._read_post_sync_action()
         })
 
         if self.on_next_step:
@@ -1075,7 +1091,7 @@ class CreateTaskPage(ctk.CTkFrame):
             "folder_strategies": {},  # 空字典，使用全局默认策略
             "root_included": True,
             "root_strategy": self.default_strategy,
-            "post_sync_command": self._read_post_sync_command()
+            "post_sync_action": self._read_post_sync_action()
         })
         
         # 直接跳转到同步确认页面
@@ -1115,7 +1131,7 @@ class CreateTaskPage(ctk.CTkFrame):
             "use_multithreading_copy": self.use_multithreading_copy,
             "mode": self.run_mode,
             "default_strategy": self.default_strategy,
-            "post_sync_command": self._read_post_sync_command()
+            "post_sync_action": self._read_post_sync_action()
         })
     
     def _load_task_data(self):
@@ -1136,7 +1152,11 @@ class CreateTaskPage(ctk.CTkFrame):
         
         self.run_mode = task.get("mode", task.get("run_mode", "safe"))
         self.default_strategy = task.get("default_strategy", "conservative")
-        self.post_sync_command = task.get("post_sync_command", "") or ""
+        # v7.7.1: 仅加载内置安全动作；旧版 post_sync_command 由配置层丢弃
+        from backend.config_manager import normalize_post_sync_action
+        self.post_sync_action = normalize_post_sync_action(
+            task.get("post_sync_action", "none")
+        )
         # v7.7: U 盘绑定
         self.usb_auto_sync = bool(task.get("usb_auto_sync", False))
         self.usb_binding = dict(task.get("usb_binding") or {})
@@ -1150,10 +1170,15 @@ class CreateTaskPage(ctk.CTkFrame):
             self.target_entry.delete(0, 'end')
             self.target_entry.insert(0, self.target_dir)
 
-        # v7.6: 同步后命令
-        if hasattr(self, 'post_sync_entry'):
-            self.post_sync_entry.delete(0, 'end')
-            self.post_sync_entry.insert(0, self.post_sync_command)
+        # v7.7.1: 回填同步后动作下拉框
+        if hasattr(self, 'post_sync_menu'):
+            self._refresh_post_sync_action_labels()
+            self.post_sync_menu.configure(
+                values=list(self._post_sync_action_labels.values())
+            )
+            self.post_sync_menu.set(
+                self._post_sync_action_labels[self.post_sync_action]
+            )
         
         # 更新按钮状态
         if hasattr(self, '_set_sync_direction'):
@@ -1186,7 +1211,7 @@ class CreateTaskPage(ctk.CTkFrame):
         self.use_multithreading = False
         self.run_mode = "safe"
         self.default_strategy = "conservative"
-        self.post_sync_command = ""
+        self.post_sync_action = "none"
         # v7.7: 重置 U 盘绑定与 AI 预填
         self.usb_auto_sync = False
         self.usb_binding = {}
@@ -1198,8 +1223,8 @@ class CreateTaskPage(ctk.CTkFrame):
         # 清空输入框
         self.source_entry.delete(0, "end")
         self.target_entry.delete(0, "end")
-        if hasattr(self, 'post_sync_entry'):
-            self.post_sync_entry.delete(0, "end")
+        if hasattr(self, 'post_sync_menu'):
+            self.post_sync_menu.set(self._post_sync_action_labels["none"])
         
         # 重置按钮样式
         self._set_sync_direction("both")
@@ -1278,23 +1303,24 @@ class CreateTaskPage(ctk.CTkFrame):
             text=self.language_manager.get_text("run_mode_hint", "快速模式：速度快但风险较高；安全模式：建立快照更安全")
         )
 
-        # v7.6: 同步后执行命令
+        # v7.7.1: 同步完成后的内置安全动作
         if hasattr(self, 'post_sync_label'):
             self.post_sync_label.configure(
                 text=self.language_manager.get_text(
-                    "post_sync_command", "同步后执行命令（可选）"
+                    "post_sync_action", "同步完成后的操作"
                 )
             )
-            self.post_sync_entry.configure(
-                placeholder_text=self.language_manager.get_text(
-                    "post_sync_command_placeholder",
-                    "同步成功后运行的脚本或命令，留空则不执行"
-                )
+            self._refresh_post_sync_action_labels()
+            self.post_sync_menu.configure(
+                values=list(self._post_sync_action_labels.values())
+            )
+            self.post_sync_menu.set(
+                self._post_sync_action_labels[self.post_sync_action]
             )
             self.post_sync_hint.configure(
                 text=self.language_manager.get_text(
-                    "post_sync_command_security_hint",
-                    "⚠️ 请确认命令来源可信，不要运行来源不明的命令"
+                    "post_sync_action_hint",
+                    "仅支持内置安全动作，不执行任何外部命令"
                 )
             )
 

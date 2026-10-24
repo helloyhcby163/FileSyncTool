@@ -7,6 +7,7 @@ import copy
 import queue
 import customtkinter as ctk
 from backend.language_manager import get_font
+from backend.version import format_app_title
 import time
 from typing import Optional, Callable, Dict, Any, TYPE_CHECKING
 
@@ -578,9 +579,13 @@ class SyncProgressPage(ctk.CTkFrame):
             try:
                 from plyer import notification
                 notification.notify(
-                    title=self.app.get_text("app_title", "文件同步工具"),
+                    title=format_app_title(
+                        self.app.get_text("app_title", "文件同步工具 v{version}")
+                    ),
                     message=progress.current_file if progress.current_file else self.app.get_text("sync_interrupted_short", "同步中断"),
-                    app_name=self.app.get_text("app_title", "文件同步工具"),
+                    app_name=format_app_title(
+                        self.app.get_text("app_title", "文件同步工具 v{version}")
+                    ),
                     timeout=10
                 )
             except Exception:

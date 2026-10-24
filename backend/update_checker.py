@@ -9,6 +9,7 @@
 """
 
 import json
+import re
 import urllib.error
 import urllib.request
 from datetime import datetime, timedelta, timezone
@@ -17,6 +18,9 @@ from .version import APP_VERSION, RELEASES_LATEST_API, is_newer
 
 TOO_NEW_HOURS = 24
 AUTO_CHECK_INTERVAL = timedelta(hours=24)
+
+_SHA256_RE = re.compile(r"(?i)sha-?256[^0-9a-f]{0,16}([0-9a-f]{64})")
+_HEX64_RE = re.compile(r"(?i)\b([0-9a-f]{64})\b")
 
 
 def _parse_time(value):
@@ -36,6 +40,58 @@ def _pick_asset(assets):
         if name.lower().endswith(".exe"):
             return asset
     return {}
+
+
+def _fetch_checksum_asset(assets, timeout=10):
+    """从 Release 关联的 .sha256 / checksums 文件读取哈希。"""
+    if not isinstance(assets, list):
+        return ""
+    for asset in assets:
+        name = str(asset.get("name") or "").lower()
+        if not (name.endswith(".sha256") or "checksum" in name):
+            continue
+        url = str(asset.get("browser_download_url") or "")
+        if not url:
+            continue
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "FileSyncTool"})
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                text = resp.read().decode("utf-8", errors="ignore")
+        except (urllib.error.URLError, OSError, ValueError):
+            continue
+        match = _HEX64_RE.search(text)
+        if match:
+            return match.group(1).lower()
+    return ""
+
+
+def _extract_sha256(payload, timeout=10):
+    """
+    获取官方 SHA-256（v7.7.1）。
+
+    优先级：
+    1. GitHub Assets API 的 digest 字段（sha256:...）；
+    2. Release 正文中的 sha256 哈希；
+    3. Release 关联的 .sha256 / checksums 文件。
+
+    未找到时返回空字符串，由上层中止自动更新。
+    """
+    assets = payload.get("assets") if isinstance(payload, dict) else None
+
+    if isinstance(assets, list):
+        for asset in assets:
+            digest = str(asset.get("digest") or "").strip()
+            if digest.lower().startswith("sha256:"):
+                value = digest.split(":", 1)[1].strip().lower()
+                if _HEX64_RE.fullmatch(value):
+                    return value
+
+    body = str((payload or {}).get("body") or "")
+    match = _SHA256_RE.search(body)
+    if match:
+        return match.group(1).lower()
+
+    return _fetch_checksum_asset(assets, timeout=timeout)
 
 
 def check_for_update(current=APP_VERSION, timeout=10, now=None):
@@ -74,6 +130,8 @@ def check_for_update(current=APP_VERSION, timeout=10, now=None):
         "asset_url": str(asset.get("browser_download_url") or ""),
         "asset_name": str(asset.get("name") or ""),
         "asset_size": int(asset.get("size") or 0),
+        # v7.7.1：官方 SHA-256（未提供时为空，下载层将中止更新）
+        "sha256": _extract_sha256(payload, timeout=timeout),
     }
 
     if not is_newer(version, current):

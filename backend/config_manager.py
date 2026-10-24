@@ -20,6 +20,59 @@ from .platform_utils import get_default_config_dir, get_app_root_dir
 from .file_utils import delete_dir_contents, rollback_copied_files
 
 
+# v7.7.1 安全变更：同步后动作仅允许内置安全动作，禁止任意命令
+POST_SYNC_ACTIONS = ("none", "notify", "shutdown")
+_WARNED_LEGACY_TASKS: Set[str] = set()
+
+
+def normalize_post_sync_action(value: Any) -> str:
+    """把任务中的 post_sync_action 归一化为合法值，非法/缺失一律回退 none。"""
+    value = str(value or "").strip().lower()
+    return value if value in POST_SYNC_ACTIONS else "none"
+
+
+def sanitize_task_dict(task: Any) -> Any:
+    """
+    兼容并清洗单个任务字典（v7.7.1）。
+
+    - 旧版 post_sync_command 字段：直接丢弃并记录一次警告，绝不执行；
+    - 缺失/非法的 post_sync_action：归一化为 none；
+    - 其他字段原样保留，缺失或多余字段都不会抛异常。
+    """
+    if not isinstance(task, dict):
+        return task
+
+    if "post_sync_command" in task:
+        task.pop("post_sync_command", None)
+        task_key = str(task.get("id") or task.get("name") or "")
+        if task_key not in _WARNED_LEGACY_TASKS:
+            _WARNED_LEGACY_TASKS.add(task_key)
+            print(
+                f"⚠️ 任务「{task.get('name', '未命名任务')}」的旧字段 "
+                "post_sync_command 已移除：v7.7.1 起不再执行用户自定义命令"
+            )
+
+    task["post_sync_action"] = normalize_post_sync_action(task.get("post_sync_action"))
+    return task
+
+
+def sanitize_config_tasks(config: Any) -> Any:
+    """清洗配置中的任务列表（加载层兼容入口）。"""
+    if not isinstance(config, dict):
+        return config
+    tasks = config.get("tasks")
+    if isinstance(tasks, list):
+        config["tasks"] = [sanitize_task_dict(t) for t in tasks]
+
+    # 打断任务中嵌套的 task_config 同样清理旧命令字段
+    interrupted = config.get("interrupted_tasks")
+    if isinstance(interrupted, list):
+        for item in interrupted:
+            if isinstance(item, dict) and isinstance(item.get("task_config"), dict):
+                sanitize_task_dict(item["task_config"])
+    return config
+
+
 class ConfigManager:
     """配置管理器：处理配置文件的读写和版本升级"""
     
@@ -208,10 +261,10 @@ class ConfigManager:
                 
                 # 检查版本号
                 if config.get("version") == self.CURRENT_VERSION:
-                    return config
+                    return sanitize_config_tasks(config)
                 else:
                     # 版本不匹配，尝试升级
-                    return self._upgrade_config(config)
+                    return sanitize_config_tasks(self._upgrade_config(config))
             except Exception as e:
                 print(f"加载配置文件失败: {e}")
                 return self.DEFAULT_CONFIG.copy()
@@ -225,7 +278,7 @@ class ConfigManager:
             if selected_file:
                 # 提示用户是否升级
                 if self._ask_user_to_upgrade(selected_file):
-                    return self._upgrade_from_old_version(selected_file)
+                    return sanitize_config_tasks(self._upgrade_from_old_version(selected_file))
         
         # 没有任何配置文件，首次运行：检测系统语言并保存初始配置
         config = self.DEFAULT_CONFIG.copy()

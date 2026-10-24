@@ -10,6 +10,7 @@ Windows 替换流程：
 非 frozen（开发环境）/ 非 Windows / 目录不可写时不做替换，仅提示手动处理。
 """
 
+import hashlib
 import os
 import subprocess
 import sys
@@ -19,6 +20,34 @@ from pathlib import Path
 from .version import APP_VERSION, RELEASES_PAGE
 
 
+class UpdateIntegrityError(RuntimeError):
+    """更新包完整性校验失败（v7.7.1）。"""
+
+
+class UpdateHashMissingError(UpdateIntegrityError):
+    """官方未提供 SHA-256，出于安全考虑中止自动更新。"""
+
+
+class UpdateHashMismatchError(UpdateIntegrityError):
+    """下载文件的 SHA-256 与官方值不一致，可能被篡改。"""
+
+
+def _sha256_of(path):
+    """计算文件 SHA-256（分块读取，避免大文件占满内存）。"""
+    digest = hashlib.sha256()
+    with open(path, "rb") as fh:
+        for chunk in iter(lambda: fh.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _remove_safely(path):
+    try:
+        Path(path).unlink()
+    except OSError:
+        pass
+
+
 def update_temp_dir():
     path = Path(tempfile.gettempdir()) / "FileSyncTool_update"
     path.mkdir(parents=True, exist_ok=True)
@@ -26,18 +55,39 @@ def update_temp_dir():
 
 
 def download_update(info, progress_cb=None, on_status=None, strategy=None):
-    """下载更新文件，返回本地 Path。"""
+    """下载更新文件并强制校验 SHA-256，返回校验通过的本地 Path。
+
+    v7.7.1：
+    - 官方未提供 SHA-256 → 删除下载文件并抛 UpdateHashMissingError；
+    - 哈希不一致 → 删除下载文件并抛 UpdateHashMismatchError。
+    """
     asset_url = (info or {}).get("asset_url") or ""
     if not asset_url:
         raise RuntimeError("该版本未提供可下载的 exe 文件")
     from .downloader import download
-    return download(
+    path = download(
         asset_url,
         update_temp_dir(),
         progress_callback=progress_cb,
         on_status=on_status,
         strategy=strategy,
     )
+
+    expected = str((info or {}).get("sha256") or "").strip().lower()
+    if not expected:
+        _remove_safely(path)
+        raise UpdateHashMissingError(
+            "⚠️ 安全警告：无法获取官方 SHA-256 哈希值，已中止自动更新。"
+        )
+
+    actual = _sha256_of(path)
+    if actual != expected:
+        _remove_safely(path)
+        raise UpdateHashMismatchError(
+            "⚠️ 安全警告：更新包哈希校验失败，可能已被篡改！"
+        )
+
+    return path
 
 
 def can_replace(current_exe=None):

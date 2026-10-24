@@ -16,13 +16,13 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            output_name: FileSyncTool_v7.7_Windows.exe
+            output_name: FileSyncTool_v7.7.1_Windows.exe
           - os: macos-14
-            output_name: FileSyncTool_v7.7_macOS_ARM64
+            output_name: FileSyncTool_v7.7.1_macOS_ARM64
           - os: macos-15-intel
-            output_name: FileSyncTool_v7.7_macOS_Intel
+            output_name: FileSyncTool_v7.7.1_macOS_Intel
           - os: ubuntu-latest
-            output_name: FileSyncTool_v7.7_Linux
+            output_name: FileSyncTool_v7.7.1_Linux
 
     steps:
       - uses: actions/checkout@v4
@@ -98,7 +98,7 @@ jobs:
           path: artifacts
 
       - name: Create Gitee Release
-        id: create_release  # ⚠️ 必须加这一行，下面才能拿到 ID
+        id: create_release
         uses: nICEnnnnnnnLee/action-gitee-release@v2.0.0
         with:
           gitee_action: create_release
@@ -108,7 +108,8 @@ jobs:
           gitee_tag_name: ${{ github.ref_name }}
           gitee_release_name: ${{ github.ref_name }}
           gitee_release_body: "Release ${{ github.ref_name }}"
-
+          gitee_target_commitish: master  # ⚠️ 补上这一行，解决 Gitee 报错
+          
       - name: Upload Assets to Gitee
         uses: nICEnnnnnnnLee/action-gitee-release@v2.0.0
         with:

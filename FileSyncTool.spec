@@ -33,16 +33,12 @@ plyer_extra_imports = [
     'plyer.platforms.macos',
 ]
 
-# 数据文件：多语言、帮助文档、图标、加速下载工具
+# 数据文件：多语言、帮助文档、图标
 ctk_datas = [
     (str(project_root / 'translations'), 'translations'),
     (str(project_root / 'docs'), 'docs'),
     (str(project_root / 'FileSyncTool.ico'), '.'),
 ]
-# v7.7: 打包 aria2c 以支持多线程下载（fastgithub 目录过大，不打包）
-_aria2_exe = project_root / 'tools' / 'aria2' / 'aria2c.exe'
-if _aria2_exe.is_file():
-    ctk_datas.append((str(_aria2_exe), 'tools/aria2'))
 
 # 尝试收集 CustomTkinter 的主题数据
 try:

@@ -5,6 +5,7 @@
 
 import sys
 import os
+import re
 import locale
 from pathlib import Path
 
@@ -52,6 +53,35 @@ def get_log_file_path() -> Path:
         日志文件 Path 对象
     """
     return get_default_config_dir() / "filesynctool.log"
+
+
+_USER_NAME_IN_PATH_WIN = re.compile(r"(?i)([A-Z]:\\Users\\)([^\\/\s\"']+)")
+_USER_NAME_IN_PATH_POSIX = re.compile(r"(/home/|/Users/)([^/\s\"']+)")
+
+
+def sanitize_path_text(text) -> str:
+    """
+    v7.7.1：日志/控制台路径脱敏。
+
+    把用户主目录中的用户名替换为 ***，例如：
+        C:\\Users\\alice\\Desktop\\sync -> C:\\Users\\***\\Desktop\\sync
+        /home/alice/sync           -> /home/***/sync
+
+    仅做展示层脱敏，不改变任何实际文件路径或同步逻辑。
+    """
+    if not isinstance(text, str) or not text:
+        return text
+    try:
+        text = _USER_NAME_IN_PATH_WIN.sub(r"\1***", text)
+        text = _USER_NAME_IN_PATH_POSIX.sub(r"\1***", text)
+        home = os.path.expanduser("~")
+        if home and home not in ("~", "/"):
+            masked_home = sanitize_path_text(home)
+            if masked_home != home:
+                text = text.replace(home, masked_home)
+    except Exception:  # noqa: BLE001
+        return text
+    return text
 
 
 def detect_system_language() -> str:

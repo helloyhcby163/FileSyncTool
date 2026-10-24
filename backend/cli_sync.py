@@ -10,7 +10,6 @@
 """
 
 import os
-import subprocess
 from typing import Callable, Dict, Optional
 
 from .config_manager import ConfigManager
@@ -19,36 +18,54 @@ from .sync_engine import FileSyncEngine as SyncEngine
 from .task_manager import TaskManager
 
 
-def run_post_sync_command(
-    command: str,
+def run_post_sync_action(
+    action: str,
     task_name: str = "",
-    cwd: Optional[str] = None,
+    config_manager: Optional[ConfigManager] = None,
     log: Callable[[str], None] = print,
-) -> Optional[int]:
+) -> None:
     """
-    同步成功后执行用户在任务中配置的命令（可选，留空不执行）。
+    v7.7.1：执行同步后的内置安全动作。
 
-    非阻塞启动，命令的退出结果不影响同步本身；返回启动的子进程 PID，
-    启动失败返回 None。
-
-    Args:
-        command: 用户配置的命令行字符串
-        task_name: 任务名（仅用于日志）
-        cwd: 命令工作目录（默认取任务源目录）
-        log: 日志函数
+    仅允许 none / notify / shutdown 三种内置动作，
+    绝不接受、也绝不执行任何用户自定义命令（无 shell=True）。
     """
-    command = (command or "").strip()
-    if not command:
-        return None
+    action = str(action or "none").strip().lower()
+    if action in ("", "none"):
+        return
 
-    try:
-        process = subprocess.Popen(command, shell=True, cwd=cwd)
-    except Exception as e:
-        log(f"⚠️ 同步后命令启动失败（任务「{task_name}」）：{e}")
-        return None
+    if action == "notify":
+        try:
+            from .notification_manager import NotificationManager
 
-    log(f"▶️ 已启动同步后命令（任务「{task_name}」，PID {process.pid}）：{command}")
-    return process.pid
+            NotificationManager().send_notification(
+                "✅ 同步完成", f"任务「{task_name}」已完成"
+            )
+        except Exception as e:  # noqa: BLE001
+            log(f"⚠️ 同步完成通知发送失败（任务「{task_name}」）：{e}")
+        return
+
+    if action == "shutdown":
+        delay = 60
+        try:
+            if config_manager is not None:
+                delay = int(
+                    config_manager.get_settings().get("auto_shutdown_delay", 60) or 60
+                )
+        except Exception:  # noqa: BLE001
+            delay = 60
+        try:
+            from .platform_utils import schedule_shutdown
+
+            if schedule_shutdown(delay):
+                log(f"⏻ 任务「{task_name}」已完成，系统将在 {delay} 秒后关机")
+            else:
+                log(f"⚠️ 任务「{task_name}」关机指令未能执行")
+        except Exception as e:  # noqa: BLE001
+            log(f"⚠️ 关机指令执行失败（任务「{task_name}」）：{e}")
+        return
+
+    log(f"⚠️ 未知的同步后动作「{action}」，已忽略")
 
 
 def _format_size(num_bytes: float) -> str:
@@ -132,6 +149,17 @@ def run_task_once(
     source_dir = task.get("source", "")
     target_dir = task.get("target", "")
     direction = task.get("sync_direction", "both")
+
+    # v7.7.1: 控制台/日志输出统一做绝对路径脱敏
+    _raw_log = log
+
+    def log(message):  # noqa: F811
+        try:
+            from .platform_utils import sanitize_path_text
+
+            _raw_log(sanitize_path_text(message))
+        except Exception:  # noqa: BLE001
+            _raw_log(message)
 
     config_dir = config_manager.get_config_dir()
 
@@ -222,13 +250,14 @@ def run_task_once(
         if blocked > 10:
             log(f"  ……另有 {blocked - 10} 个文件被拦截")
 
-    # 同步成功后执行用户配置的命令（失败不影响同步结果）
-    run_post_sync_command(
-        task.get("post_sync_command", ""),
-        task_name=task_name,
-        cwd=source_dir,
-        log=log,
-    )
+    # v7.7.1: 同步成功且无错误时，执行内置安全动作（通知/关机/无操作）
+    if len(stats.errors) == 0:
+        run_post_sync_action(
+            task.get("post_sync_action", "none"),
+            task_name=task_name,
+            config_manager=config_manager,
+            log=log,
+        )
 
     # 监听模式：同步结束后清除进度记录
     if watch_mode:

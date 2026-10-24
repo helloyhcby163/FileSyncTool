@@ -12,7 +12,11 @@ import json
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
-from .config_manager import ConfigManager
+from .config_manager import (
+    ConfigManager,
+    normalize_post_sync_action,
+    sanitize_task_dict,
+)
 
 
 class TaskManager:
@@ -37,7 +41,7 @@ class TaskManager:
                    root_included: bool = False, root_strategy: str = "conservative",
                    use_multithreading_scan: bool = False, use_multithreading_copy: bool = False,
                    last_snapshot: Optional[Dict] = None,
-                   post_sync_command: str = "",
+                   post_sync_action: str = "none",
                    usb_auto_sync: bool = False,
                    usb_binding: Optional[Dict] = None) -> Dict:
         """
@@ -76,7 +80,7 @@ class TaskManager:
             "root_strategy": root_strategy,
             "use_multithreading_scan": use_multithreading_scan,
             "use_multithreading_copy": use_multithreading_copy,
-            "post_sync_command": post_sync_command or "",
+            "post_sync_action": normalize_post_sync_action(post_sync_action),
             # v7.7: 插入指定 U 盘时自动同步
             "usb_auto_sync": bool(usb_auto_sync),
             "usb_binding": dict(usb_binding or {}),
@@ -118,6 +122,16 @@ class TaskManager:
             更新后的任务，如果任务不存在则返回 None
         """
         tasks = self.config_manager.get_tasks()
+
+        # v7.7.1: 旧字段 post_sync_command 一律丢弃，绝不写入配置
+        updates = dict(updates or {})
+        if "post_sync_command" in updates:
+            updates.pop("post_sync_command", None)
+            print("⚠️ 已忽略旧字段 post_sync_command：v7.7.1 起不再执行用户自定义命令")
+        if "post_sync_action" in updates:
+            updates["post_sync_action"] = normalize_post_sync_action(
+                updates.get("post_sync_action")
+            )
         
         for i, task in enumerate(tasks):
             if task.get("id") == task_id:
@@ -523,6 +537,8 @@ class TaskManager:
                 new_task.setdefault("status", "active")
                 # 清空运行时快照（跨电脑无意义）
                 new_task.pop("last_snapshot", None)
+                # v7.7.1: 丢弃旧版任意命令字段，归一化同步后动作
+                sanitize_task_dict(new_task)
                 
                 # 处理同名任务
                 name = new_task.get("name", "未命名任务")

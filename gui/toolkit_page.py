@@ -36,7 +36,7 @@ from backend.ai_config import (
     parse_ai_config,
     to_task_prefill,
 )
-from backend.version import APP_VERSION
+from backend.version import APP_VERSION, format_app_title
 
 if TYPE_CHECKING:
     from .app import FileSyncApp
@@ -195,7 +195,10 @@ class _ToolkitSection(ctk.CTkFrame):
         """更新本分区卡片标题（页面切换语言时会整体重建，此处保底）"""
         for label, text_key, default in self._section_titles:
             try:
-                label.configure(text=self.app.get_text(text_key, default))
+                text = self.app.get_text(text_key, default)
+                if text_key == "app_title":
+                    text = format_app_title(text)
+                label.configure(text=text)
             except Exception:
                 pass
 
@@ -621,15 +624,17 @@ class SystemInfoToolkitFrame(_ToolkitSection):
         """系统信息分区"""
         frame = self._make_section(0, "system_info", "系统信息")
 
-        # v7.7: 标题与内部文本保持一致（文件同步工具 v7.7）
-        title_text = self.app.get_text("app_title", "文件同步工具 v7.7")
+        # v7.7.1: 标题与内部文本保持一致，版本号自动读取 APP_VERSION
+        title_text = format_app_title(
+            self.app.get_text("app_title", "文件同步工具 v{version}")
+        )
         if self._section_titles:
             title_label, _title_key, _default = self._section_titles[-1]
             try:
                 title_label.configure(text=title_text)
                 frame._section_title_text = title_text
                 self._section_titles[-1] = (
-                    title_label, "app_title", "文件同步工具 v7.7"
+                    title_label, "app_title", "文件同步工具 v{version}"
                 )
             except Exception:
                 pass
@@ -687,7 +692,7 @@ class SystemInfoToolkitFrame(_ToolkitSection):
     def _collect_system_info(self) -> str:
         """收集系统信息文本"""
         lines = [
-            f"{self.app.get_text('app_title', '文件同步工具')}",
+            f"{format_app_title(self.app.get_text('app_title', '文件同步工具 v{version}'))}",
             f"{self.app.get_text('info_version', '版本')}: {APP_VERSION}",
             f"{self.app.get_text('info_os', '操作系统')}: {platform.platform()}",
             f"{self.app.get_text('info_python', 'Python 版本')}: {platform.python_version()}",

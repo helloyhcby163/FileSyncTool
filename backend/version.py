@@ -3,12 +3,24 @@
 
 import re
 
-APP_VERSION = "7.7"
+APP_VERSION = "7.7.1"
 GITHUB_REPO = "helloyhcby163/FileSyncTool"
 RELEASES_LATEST_API = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 RELEASES_PAGE = f"https://github.com/{GITHUB_REPO}/releases/latest"
 
 _VERSION_RE = re.compile(r"\d+")
+
+
+def format_app_title(text):
+    """把界面标题文案中的 {version} 占位符替换为当前 APP_VERSION。
+
+    兼容不含占位符的旧译文（原样返回）；格式化异常时也原样返回，避免崩溃。
+    """
+    raw = str(text or "")
+    try:
+        return raw.format(version=APP_VERSION)
+    except (KeyError, IndexError, ValueError):
+        return raw
 
 
 def parse_version(value):

@@ -627,6 +627,12 @@ class FileSyncEngine:
         """
         if self.quiet and level == "info":
             return
+        # v7.7.1: 日志与控制台输出统一做绝对路径脱敏
+        try:
+            from .platform_utils import sanitize_path_text
+            message = sanitize_path_text(message)
+        except Exception:  # noqa: BLE001
+            pass
         if self._log_callback:
             self._log_callback(message)
         else:
@@ -1154,6 +1160,17 @@ class FileSyncEngine:
                 continue
 
             for entry in entries:
+                # v7.7.1: 跳过符号链接（防止路径穿越/链接逃逸），不读取、不复制、不删除
+                try:
+                    if entry.is_symlink():
+                        self._log(
+                            f"⚠️ 检测到符号链接，已跳过：{entry.path}",
+                            level="warning"
+                        )
+                        continue
+                except OSError:
+                    continue
+
                 try:
                     is_dir = entry.is_dir(follow_symlinks=False)
                 except OSError:
