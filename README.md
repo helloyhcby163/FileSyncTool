@@ -8,78 +8,30 @@
 
 # FileSyncTool / 文件同步工具
 
-一个专注 U 盘与文件夹同步的跨平台文件同步工具，注重性能与跨平台兼容。
+一个专注 U 盘与文件夹同步的跨平台文件同步工具，注重性能与跨平台兼容。具有自动化。同时也擅长通用文件同步。
 
-A cross-platform file synchronization tool focused on U disk and folder sync, built for performance and cross-platform compatibility.
+A cross-platform file synchronization tool that focuses on U-disk and folder synchronization, emphasizing performance and cross-platform compatibility. It features automation and excels in general file synchronization.
 
----
+## 🚀 v7.7.1 Security & Hardening Release
 
-## 中文
+This release fixes critical security vulnerabilities present in v7.6 - v7.7 and brings major updates:
 
-### 核心特性
+- 🛡️ **Security Refactoring**: Completely removed the "execute arbitrary command" feature and replaced it with built-in safe actions. Added SHA-256 hash verification for auto-updates. Filtered system symlinks to prevent path traversal attacks.
+- 🤖 **Brand New CLI Support**: Added `--config`, `--source`, `--target`, and `--silent` parameters, perfectly supporting script orchestration and automated pipelines.
+- ⚡ **Pure Python Multi-threaded Download**: Completely removed external dependencies (aria2c/FastGithub), natively supporting multi-threaded chunked downloading with a 3-tier fallback (GitHub/Gitee/Mirror).
+- 🎨 **Experience Optimization**: Path log sanitization, and network acceleration status display.
 
-- **性能优先**：多线程扫描与复制、大文件分块传输、断点续传、块级寿命保护
-- **跨平台**：完整支持 Windows / macOS / Linux
-- **U 盘优化**：写入寿命保护、可移动磁盘检测、U 盘脱落处理
-- **GUI 美观好用**：基于 CustomTkinter，支持明暗主题
-- **纯本地**：无云服务依赖，所有数据在用户设备上
-
-### 下载
-
-- 国内用户：[Gitee Releases](https://gitee.com/hello-yhc/FileSyncTool/releases)
-- 国际用户：[GitHub Releases](https://github.com/helloyhcby163/FileSyncTool/releases)
-
-### 源码
-
-- Gitee: https://gitee.com/hello-yhc/FileSyncTool
-- GitHub: https://github.com/helloyhcby163/FileSyncTool
-
-### 多语言支持
-
-当前支持：中文、English、繁體中文
-
-想贡献新语言？请查看 [贡献指南](docs/TRANSLATING.md)。
-
-### 许可证
-
-MIT
-
-### 维护状态
-
-本项目功能已完整，当前处于稳定维护期。新功能开发节奏较慢，但会持续修复关键 bug。欢迎提交 Issue 和 Pull Request。
+**⚠️ It is strongly recommended that all users of older versions upgrade to this version immediately!**
 
 ---
 
-## English
+## 🚀 v7.7.1 安全加固版发布
 
-### Features
+本版本修复了 v7.6 - v7.7 中的高危安全问题，并带来了重大更新：
 
-- **Performance-first**: Multi-threaded scanning and copying, chunked transfer for large files, resume support, block-level write life protection
-- **Cross-platform**: Full support for Windows / macOS / Linux
-- **U disk optimized**: Write life protection, removable disk detection, U disk disconnect handling
-- **Beautiful GUI**: Based on CustomTkinter, supports light/dark themes
-- **Fully local**: No cloud service dependency, all data stays on the user's device
+- 🛡️ **安全重构**：彻底移除“任意命令执行”功能，改为内置安全动作。加入自动更新 SHA-256 哈希校验。过滤系统软链接，防止路径穿越。
+- 🤖 **全新 CLI 支持**：新增 `--config`、`--source`、`--target`、`--silent` 参数，完美支持脚本编排与自动化流水线。
+- ⚡ **纯 Python 多线程下载**：彻底移除外部依赖（aria2c/FastGithub），原生支持多线程分块下载与 GitHub/Gitee/镜像三层降级。
+- 🎨 **体验优化**：路径日志脱敏、网络加速状态显示。
 
-### Download
-
-- For users in China: [Gitee Releases](https://gitee.com/hello-yhc/FileSyncTool/releases)
-- For international users: [GitHub Releases](https://github.com/helloyhcby163/FileSyncTool/releases)
-
-### Source
-
-- Gitee: https://gitee.com/hello-yhc/FileSyncTool
-- GitHub: https://github.com/helloyhcby163/FileSyncTool
-
-### Multi-language Support
-
-Currently supported: 中文, English, 繁體中文
-
-Want to contribute a new language? See [Contributing Guide](docs/TRANSLATING.md).
-
-### License
-
-MIT
-
-### Maintenance Status
-
-This project is feature-complete and currently in stable maintenance. New features may be developed slowly, but critical bugs will be fixed. Issues and Pull Requests are welcome.
+**⚠️ 强烈建议所有旧版本用户立即升级至此版本！**
