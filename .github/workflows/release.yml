@@ -16,7 +16,7 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            output_name: FileSyncTool_v7.8.0_Windows.exe
+            output_name: FileSyncTool_v7.8.0_Windows
             artifact_name: Windows
           - os: macos-15-intel
             output_name: FileSyncTool_v7.8.0_macOS_Intel
@@ -46,43 +46,64 @@ jobs:
         run: |
           pyinstaller FileSyncTool.spec || { echo "❌ PyInstaller Build Failed!"; ls -la dist; exit 1; }
 
-      # ---------- Windows / Linux 重命名 ----------
-      - name: Package Artifacts (Windows/Linux)
-        if: matrix.os == 'windows-latest' || matrix.os == 'ubuntu-latest'
+      # ---------- 全平台自动识别与重命名打包 ----------
+      - name: Package Artifacts
         shell: bash
         run: |
           cd dist
-          if [ -f "main.exe" ]; then mv "main.exe" "${{ matrix.output_name }}"; fi
-          if [ -f "main" ]; then mv "main" "${{ matrix.output_name }}"; fi
+          echo "--- 打包前的 dist 目录 ---"
           ls -la
-
-      # ---------- macOS 打包 ----------
-      - name: Package Artifacts (macOS)
-        if: matrix.os == 'macos-15-intel' || matrix.os == 'macos-latest'
-        shell: bash
-        run: |
-          cd dist
-          if [ -d "main.app" ]; then
-            ditto -c -k --sequesterRsrc --keepParent "main.app" "${{ matrix.output_name }}.zip"
-          elif [ -f "main" ]; then
-            mv "main" "${{ matrix.output_name }}"
+          
+          if [[ "${{ matrix.os }}" == macos* ]]; then
+            # macOS: 查找任何 .app 目录（无论叫什么名字）进行压缩
+            APP_DIR=$(find . -maxdepth 1 -name "*.app" -print -quit)
+            if [ -n "$APP_DIR" ]; then
+              APP_NAME=$(basename "$APP_DIR")
+              echo "找到 Mac App: $APP_NAME"
+              ditto -c -k --sequesterRsrc --keepParent "$APP_NAME" "${{ matrix.output_name }}.zip"
+            else
+              # 如果没有 .app，可能是单文件模式（找 main 或 FileSyncTool）
+              if [ -f "main" ]; then
+                mv "main" "${{ matrix.output_name }}"
+              elif [ -f "FileSyncTool" ]; then
+                mv "FileSyncTool" "${{ matrix.output_name }}"
+              else
+                echo "❌ 未找到 macOS 产物"
+                exit 1
+              fi
+            fi
           else
-            echo "❌ 未找到打包产物"
-            ls -la
-            exit 1
+            # Windows / Linux: 查找主要的可执行文件
+            if [ -f "main.exe" ]; then
+              mv "main.exe" "${{ matrix.output_name }}.exe"
+            elif [ -f "FileSyncTool.exe" ]; then
+              mv "FileSyncTool.exe" "${{ matrix.output_name }}.exe"
+            elif [ -f "main" ]; then
+              mv "main" "${{ matrix.output_name }}"
+            elif [ -f "FileSyncTool" ]; then
+              mv "FileSyncTool" "${{ matrix.output_name }}"
+            else
+              echo "❌ 未找到 Windows/Linux 产物"
+              exit 1
+            fi
           fi
+          
+          echo "--- 打包后的 dist 目录 ---"
           ls -la
 
-      # ---------- 🚨 自动 Ed25519 签名 ----------
+      # ---------- 🚨 自动 Ed25519 签名 (智能匹配) ----------
       - name: Sign Artifacts
         shell: bash
         env:
           PRIVATE_KEY: ${{ secrets.ED25519_PRIVATE_KEY }}
         run: |
           cd dist
-          TARGET_FILE="${{ matrix.output_name }}"
-          if [[ "${{ matrix.os }}" == macos* ]]; then
-             TARGET_FILE="${{ matrix.output_name }}.zip"
+          # 智能匹配要签名的文件（排除 .sig 文件）
+          TARGET_FILE=$(ls ${{ matrix.output_name }}* 2>/dev/null | grep -v '\.sig$' | head -n 1)
+          
+          if [ -z "$TARGET_FILE" ]; then
+              echo "❌ 无法在当前目录找到任何要签名的文件！"
+              exit 1
           fi
           
           python -c "
@@ -98,10 +119,6 @@ jobs:
           private_key = serialization.load_pem_private_key(pem_data.encode(), password=None)
           target_file = '$TARGET_FILE'
           
-          if not os.path.exists(target_file):
-              print(f'❌ 找不到要签名的文件: {target_file}')
-              exit(1)
-              
           print(f'正在签名文件: {target_file}')
           with open(target_file, 'rb') as f:
               data = f.read()
@@ -112,7 +129,6 @@ jobs:
           print('✅ 签名文件生成成功')
           "
 
-      # ---------- 上传 Artifact ----------
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}
