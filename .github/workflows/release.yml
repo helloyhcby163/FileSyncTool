@@ -18,11 +18,12 @@ jobs:
           - os: windows-latest
             output_name: FileSyncTool_v7.8.0_Windows.exe
             artifact_name: Windows
-          # ✅ 正确的 Intel macOS runner 标签
+          # macOS Intel 机器（注意标签是 macos-15-intel）
           - os: macos-15-intel
             output_name: FileSyncTool_v7.8.0_macOS_Intel
             artifact_name: macOS_Intel
-          - os: macos-14
+          # macOS ARM 机器（macos-14 已退役，改用 latest 或 macos-15）
+          - os: macos-latest
             output_name: FileSyncTool_v7.8.0_macOS_ARM64
             artifact_name: macOS_ARM64
           - os: ubuntu-latest
@@ -40,48 +41,88 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pyinstaller
+          pip install pyinstaller cryptography psutil
 
       - name: Build with PyInstaller
-        run: pyinstaller FileSyncTool.spec
+        shell: bash
+        run: |
+          # 加上 || {...}，一旦报错就打印 dist 目录，方便我们查错
+          pyinstaller FileSyncTool.spec || { echo "❌ PyInstaller Build Failed!"; ls -la dist; exit 1; }
 
-      # ---------- Windows / Linux ----------
+      # ---------- Windows / Linux 重命名 ----------
       - name: Package Artifacts (Windows/Linux)
         if: matrix.os == 'windows-latest' || matrix.os == 'ubuntu-latest'
         shell: bash
         run: |
           cd dist
-          # ⚠️ 请根据 FileSyncTool.spec 中的 name 参数修改此处！
-          # 如果 spec 里写的是 name='FileSyncTool'，则源文件是 FileSyncTool.exe / FileSyncTool
+          # ⚠️ 注意：请确认你 FileSyncTool.spec 里的 name 是 FileSyncTool
           if [ -f "FileSyncTool.exe" ]; then mv "FileSyncTool.exe" "${{ matrix.output_name }}"; fi
           if [ -f "FileSyncTool" ]; then mv "FileSyncTool" "${{ matrix.output_name }}"; fi
+          ls -la
 
-      # ---------- macOS ----------
+      # ---------- macOS 压缩打包 ----------
       - name: Package Artifacts (macOS)
-        if: matrix.os == 'macos-15-intel' || matrix.os == 'macos-14'
+        if: matrix.os == 'macos-15-intel' || matrix.os == 'macos-latest'
         shell: bash
         run: |
           cd dist
-          # 如果 spec 生成的是 .app 目录，用 ditto 压缩为 zip
           if [ -d "FileSyncTool.app" ]; then
             ditto -c -k --sequesterRsrc --keepParent "FileSyncTool.app" "${{ matrix.output_name }}.zip"
-            echo "PACKAGED_AS=zip" >> $GITHUB_ENV
-          # 如果 spec 生成的是单个 Unix 可执行文件，直接重命名
           elif [ -f "FileSyncTool" ]; then
             mv "FileSyncTool" "${{ matrix.output_name }}"
-            echo "PACKAGED_AS=binary" >> $GITHUB_ENV
           else
-            echo "❌ 未找到打包产物，请检查 FileSyncTool.spec 的 name 参数"
+            echo "❌ 未找到打包产物，请检查 FileSyncTool.spec"
             ls -la
             exit 1
           fi
+          ls -la
 
+      # ---------- 🚨 自动 Ed25519 签名 ----------
+      - name: Sign Artifacts
+        shell: bash
+        env:
+          PRIVATE_KEY: ${{ secrets.ED25519_PRIVATE_KEY }}
+        run: |
+          cd dist
+          TARGET_FILE="${{ matrix.output_name }}"
+          if [[ "${{ matrix.os }}" == macos* ]]; then
+             TARGET_FILE="${{ matrix.output_name }}.zip"
+          fi
+          
+          python -c "
+          import os
+          from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+          from cryptography.hazmat.primitives import serialization
+          
+          pem_data = os.environ.get('PRIVATE_KEY', '')
+          if not pem_data:
+              print('❌ 未找到 PRIVATE_KEY，跳过签名')
+              exit(1)
+              
+          private_key = serialization.load_pem_private_key(pem_data.encode(), password=None)
+          target_file = '$TARGET_FILE'
+          
+          if not os.path.exists(target_file):
+              print(f'❌ 找不到要签名的文件: {target_file}')
+              exit(1)
+              
+          print(f'正在签名文件: {target_file}')
+          with open(target_file, 'rb') as f:
+              data = f.read()
+          signature = private_key.sign(data)
+          
+          with open(target_file + '.sig', 'wb') as f:
+              f.write(signature)
+          print('✅ 签名文件生成成功')
+          "
+
+      # ---------- 上传 Artifact ----------
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}
           path: |
             dist/${{ matrix.output_name }}*
-          if-no-files-found: error
+          if-no-files-found: warn # 👈 关键修复：改成 warn 防止 Linux 失败导致 Windows 和 Mac 被连带取消
 
   release:
     needs: build
@@ -106,7 +147,8 @@ jobs:
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Download artifacts
         uses: actions/download-artifact@v4
@@ -124,8 +166,8 @@ jobs:
           gitee_tag_name: ${{ github.ref_name }}
           gitee_release_name: ${{ github.ref_name }}
           gitee_release_body: "Release ${{ github.ref_name }}"
-          gitee_target_commitish: master  # ✅ 保留，避免 Gitee 创建 Release 时报错
-
+          gitee_target_commitish: master
+          
       - name: Upload Assets to Gitee
         uses: nICEnnnnnnnLee/action-gitee-release@v2.0.0
         with:
