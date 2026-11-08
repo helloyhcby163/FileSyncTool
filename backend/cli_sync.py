@@ -1,6 +1,6 @@
 
 """
-文件同步工具 v7.7 - 无界面同步执行
+文件同步工具 v7.8.0 - 无界面同步执行
 
 供命令行模式使用：
 - --task "任务名" --silent：执行一次同步后退出
@@ -86,6 +86,7 @@ def build_engine_for_task(
     config_manager: ConfigManager,
     recycle_manager: RecycleManager,
     quiet: bool = False,
+    notification_manager=None,
 ) -> SyncEngine:
     """
     根据任务配置与全局设置构造同步引擎（参数口径与 GUI 手动同步一致）。
@@ -94,6 +95,14 @@ def build_engine_for_task(
     scan_workers = settings.get("scan_workers", settings.get("max_workers", 4))
     sync_workers = settings.get(
         "sync_workers", max(2, settings.get("max_workers", 4) // 2)
+    )
+
+    # v7.8.0：为本次同步建立事务备份（支持首页一键回滚）
+    from .transaction_backup import TransactionBackup
+
+    transaction_backup = TransactionBackup(
+        config_manager.get_config_dir(),
+        task_name=task.get("name", ""),
     )
 
     engine = SyncEngine(
@@ -115,6 +124,11 @@ def build_engine_for_task(
         folder_filters=task.get("folder_filters", {}),
         quiet=quiet,
         prevent_sleep_during_sync=settings.get("prevent_sleep_during_sync", True),
+        sync_hidden_files=bool(
+            task.get("sync_hidden_files", settings.get("default_sync_hidden_files", False))
+        ),
+        notification_manager=notification_manager,
+        transaction_backup=transaction_backup,
     )
     engine.config_manager = config_manager
     return engine
@@ -198,7 +212,21 @@ def run_task_once(
     if recycle_manager is None:
         recycle_manager = RecycleManager(config_manager)
 
-    engine = build_engine_for_task(task, config_manager, recycle_manager, quiet=silent)
+    # v7.8.0：资源守护高占用提示使用系统通知（无 GUI 场景也能提示）
+    try:
+        from .notification_manager import NotificationManager
+
+        notification_manager = NotificationManager()
+    except Exception:  # noqa: BLE001
+        notification_manager = None
+
+    engine = build_engine_for_task(
+        task,
+        config_manager,
+        recycle_manager,
+        quiet=silent,
+        notification_manager=notification_manager,
+    )
     if watch_mode:
         engine.set_progress_callback(_progress_callback)
     if silent:
@@ -214,12 +242,12 @@ def run_task_once(
     log(f"目标目录：{target_dir}")
 
     try:
-        engine.sync_directories(
+        sync_success = bool(engine.sync_directories(
             source_dir=source_dir,
             target_dir=target_dir,
             direction=direction,
             last_snapshot=task.get("last_snapshot"),
-        )
+        ))
     except Exception as e:
         log(f"❌ 任务「{task_name}」同步异常：{e}")
         if watch_mode:
@@ -251,7 +279,17 @@ def run_task_once(
             log(f"  ……另有 {blocked - 10} 个文件被拦截")
 
     # v7.7.1: 同步成功且无错误时，执行内置安全动作（通知/关机/无操作）
-    if len(stats.errors) == 0:
+    if sync_success and len(stats.errors) == 0:
+        # v7.8.0: 记录最近完成任务（失败/中断不写入）
+        try:
+            from .recent_tasks import RecentTasksManager
+            RecentTasksManager(config_manager).add_record(
+                task_name,
+                int(stats.files_copied + stats.files_updated),
+                transaction_id=str(getattr(engine, "transaction_id", "") or ""),
+            )
+        except Exception as e:
+            log(f"⚠️ 记录最近完成任务失败：{e}")
         run_post_sync_action(
             task.get("post_sync_action", "none"),
             task_name=task_name,

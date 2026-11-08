@@ -1,5 +1,5 @@
 """
-文件同步工具 v7.5 - 任务管理器
+文件同步工具 v7.8.0 - 任务管理器
 负责任务的创建、编辑、删除、复制、重命名、导入导出等操作
 
 v7.5 新增：
@@ -7,11 +7,13 @@ v7.5 新增：
 - 目录冲突检测（防止同目录并发同步）
 """
 
+import copy
 import uuid
 import json
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
+from .ai_config import is_dangerous_path
 from .config_manager import (
     ConfigManager,
     normalize_post_sync_action,
@@ -43,7 +45,8 @@ class TaskManager:
                    last_snapshot: Optional[Dict] = None,
                    post_sync_action: str = "none",
                    usb_auto_sync: bool = False,
-                   usb_binding: Optional[Dict] = None) -> Dict:
+                   usb_binding: Optional[Dict] = None,
+                   sync_hidden_files: bool = False) -> Dict:
         """
         创建新任务
 
@@ -81,6 +84,8 @@ class TaskManager:
             "use_multithreading_scan": use_multithreading_scan,
             "use_multithreading_copy": use_multithreading_copy,
             "post_sync_action": normalize_post_sync_action(post_sync_action),
+            # v7.8.0: 是否同步隐藏文件（默认 False）
+            "sync_hidden_files": bool(sync_hidden_files),
             # v7.7: 插入指定 U 盘时自动同步
             "usb_auto_sync": bool(usb_auto_sync),
             "usb_binding": dict(usb_binding or {}),
@@ -212,8 +217,8 @@ class TaskManager:
         if original_task is None:
             return None
         
-        # 创建新任务
-        new_task = original_task.copy()
+        # 创建新任务（深拷贝：避免副本与原任务共享 folder_strategies / usb_binding 等嵌套对象）
+        new_task = copy.deepcopy(original_task)
         new_task["id"] = str(uuid.uuid4())
         new_task["name"] = new_name or f"{original_task['name']}_副本"
         new_task["created_at"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
@@ -527,10 +532,14 @@ class TaskManager:
             
             imported_count = 0
             skipped_count = 0
+            blocked_tasks = []
             
             for task in imported_tasks:
-                # 重新生成 ID，避免跨电脑冲突
-                new_task = task.copy()
+                if not isinstance(task, dict):
+                    skipped_count += 1
+                    continue
+                # 重新生成 ID，避免跨电脑冲突（深拷贝避免共享嵌套对象）
+                new_task = copy.deepcopy(task)
                 new_task["id"] = str(uuid.uuid4())
                 new_task["created_at"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
                 new_task["last_used"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
@@ -539,6 +548,23 @@ class TaskManager:
                 new_task.pop("last_snapshot", None)
                 # v7.7.1: 丢弃旧版任意命令字段，归一化同步后动作
                 sanitize_task_dict(new_task)
+                
+                # v7.8.0 修复：导入通道同样执行高危路径审查，命中即阻断该任务
+                blocked_reason = ""
+                for path_key in ("source", "target"):
+                    path_value = str(new_task.get(path_key, "") or "").strip()
+                    if not path_value:
+                        continue
+                    is_dangerous, hit = is_dangerous_path(path_value)
+                    if is_dangerous:
+                        blocked_reason = f"{path_key} 命中高危目录 {hit}"
+                        break
+                if blocked_reason:
+                    skipped_count += 1
+                    blocked_tasks.append(
+                        f"{new_task.get('name', '未命名任务')}（{blocked_reason}）"
+                    )
+                    continue
                 
                 # 处理同名任务
                 name = new_task.get("name", "未命名任务")
@@ -564,11 +590,17 @@ class TaskManager:
             self.config_manager.config["tasks"] = existing_tasks
             self.config_manager.save_config()
             
+            message = f"成功导入 {imported_count} 个任务"
+            if blocked_tasks:
+                message += (
+                    f"；已阻断 {len(blocked_tasks)} 个高危路径任务："
+                    + "、".join(blocked_tasks)
+                )
             return {
-                "success": True,
+                "success": imported_count > 0,
                 "imported": imported_count,
                 "skipped": skipped_count,
-                "message": f"成功导入 {imported_count} 个任务"
+                "message": message
             }
         except json.JSONDecodeError:
             return {"success": False, "imported": 0, "skipped": 0, "message": "JSON 格式错误"}

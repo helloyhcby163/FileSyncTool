@@ -908,8 +908,43 @@ class SyncSettingsFrame(_SettingsSection):
         )
         self.prevent_sleep_hint.grid(row=2, column=0, padx=10, pady=(0, 12), sticky="w")
 
+        # v7.8.0: 新建任务默认是否同步隐藏文件
+        self.default_hidden_files_enabled = bool(
+            self.settings.get("default_sync_hidden_files", False)
+        )
+        self.default_hidden_files_switch = ctk.CTkSwitch(
+            self.sync_behavior_frame,
+            text=self.language_manager.get_text(
+                "settings_default_sync_hidden_files", "新建任务默认同步隐藏文件"
+            ),
+            font=get_font(size=14),
+            command=self._on_default_hidden_files_switch_change,
+        )
+        if self.default_hidden_files_enabled:
+            self.default_hidden_files_switch.select()
+        else:
+            self.default_hidden_files_switch.deselect()
+        self.default_hidden_files_switch.grid(
+            row=3, column=0, padx=10, pady=(0, 6), sticky="w"
+        )
+
+        self.default_hidden_files_hint = ctk.CTkLabel(
+            self.sync_behavior_frame,
+            text=self.language_manager.get_text(
+                "task_sync_hidden_files_desc",
+                "默认关闭。开启后会同步 . 开头的隐藏项，内置临时文件始终忽略。"
+            ),
+            font=get_font(size=12),
+            text_color="gray",
+            wraplength=600,
+            justify="left"
+        )
+        self.default_hidden_files_hint.grid(
+            row=4, column=0, padx=10, pady=(0, 12), sticky="w"
+        )
+
         self.register_search(
-            ["休眠", "阻止休眠", "sleep", "同步行为", "prevent sleep"],
+            ["休眠", "阻止休眠", "sleep", "同步行为", "prevent sleep", "隐藏文件", "hidden"],
             self.sync_behavior_frame
         )
 
@@ -917,6 +952,12 @@ class SyncSettingsFrame(_SettingsSection):
         """阻止系统休眠开关变化：写入设置"""
         self.prevent_sleep_enabled = bool(self.prevent_sleep_switch.get())
         self.settings["prevent_sleep_during_sync"] = self.prevent_sleep_enabled
+        self.config_manager.update_settings(self.settings)
+
+    def _on_default_hidden_files_switch_change(self):
+        """v7.8.0：新建任务默认同步隐藏文件开关变化"""
+        self.default_hidden_files_enabled = bool(self.default_hidden_files_switch.get())
+        self.settings["default_sync_hidden_files"] = self.default_hidden_files_enabled
         self.config_manager.update_settings(self.settings)
 
     # ===================== 刷新与语言 =====================
@@ -956,6 +997,14 @@ class SyncSettingsFrame(_SettingsSection):
             self.prevent_sleep_switch.select()
         else:
             self.prevent_sleep_switch.deselect()
+        # v7.8.0: 新建任务默认同步隐藏文件
+        self.default_hidden_files_enabled = bool(
+            self.settings.get("default_sync_hidden_files", False)
+        )
+        if self.default_hidden_files_enabled:
+            self.default_hidden_files_switch.select()
+        else:
+            self.default_hidden_files_switch.deselect()
 
     def update_language(self):
         """更新界面语言"""
@@ -1023,6 +1072,18 @@ class SyncSettingsFrame(_SettingsSection):
                 "prevent_sleep_hint",
                 "同步全过程（含寿命保护暂停期间）阻止电脑进入休眠；"
                 "同步结束后自动恢复。同步结束（成功/失败/中断）后恢复系统休眠。",
+            )
+        )
+        # v7.8.0: 新建任务默认同步隐藏文件
+        self.default_hidden_files_switch.configure(
+            text=self.language_manager.get_text(
+                "settings_default_sync_hidden_files", "新建任务默认同步隐藏文件"
+            )
+        )
+        self.default_hidden_files_hint.configure(
+            text=self.language_manager.get_text(
+                "task_sync_hidden_files_desc",
+                "默认关闭。开启后会同步 . 开头的隐藏项，内置临时文件始终忽略。"
             )
         )
 

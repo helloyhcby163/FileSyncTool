@@ -1,5 +1,5 @@
 """
-文件同步工具 v7.0 - 创建任务页面
+文件同步工具 v7.8.0 - 创建任务页面
 用于创建新的同步任务，配置源目录、目标目录、同步模式等
 """
 
@@ -70,6 +70,19 @@ class CreateTaskPage(ctk.CTkFrame):
         self.usb_auto_sync = False
         self.usb_binding: Dict = {}
         self._usb_devices: list = []
+        # v7.8.0: 是否同步隐藏文件（新建任务默认取全局设置）
+        try:
+            self.sync_hidden_files = bool(
+                self.config_manager.get_settings().get("default_sync_hidden_files", False)
+            )
+        except Exception:
+            self.sync_hidden_files = False
+        # 文件夹级配置（编辑已有任务时从任务载入，避免保存时被清空）
+        self.folder_strategies: Dict = {}
+        self.folder_filters: Dict = {}
+        self.root_included = False
+        self.root_strategy = self.default_strategy
+        self.folders: list = []
         # v7.7: AI 配置导入的筛选模板（由文件夹配置页套用到子文件夹）
         self.ai_filter_template: Dict = {}
         # v7.7: AI 配置导入的任务名称（可为空）
@@ -354,6 +367,9 @@ class CreateTaskPage(ctk.CTkFrame):
 
         # ========== v7.7: 插入指定 U 盘时自动同步 ==========
         self._create_usb_bind_section()
+
+        # ========== v7.8.0: 隐藏文件同步开关 ==========
+        self._create_sync_hidden_files_section()
 
         # ========== 底部按钮区域 ==========
         self.bottom_frame = ctk.CTkFrame(self)
@@ -666,6 +682,50 @@ class CreateTaskPage(ctk.CTkFrame):
                     border_color=("#3B8ED0", "#1F6AA5")
                 )
     
+    def _create_sync_hidden_files_section(self):
+        """v7.8.0：是否同步隐藏文件（以 . 开头的文件和文件夹），默认关闭"""
+        self.hidden_files_frame = ctk.CTkFrame(self.content_frame)
+        self.hidden_files_frame.grid(
+            row=10, column=0, columnspan=2, padx=5, pady=10, sticky="ew"
+        )
+        self.hidden_files_frame.grid_columnconfigure(0, weight=1)
+
+        self.hidden_files_switch = ctk.CTkSwitch(
+            self.hidden_files_frame,
+            text=self.language_manager.get_text(
+                "task_sync_hidden_files", "同步隐藏文件（以 . 开头的文件和文件夹）"
+            ),
+            font=get_font(size=13),
+            command=self._on_hidden_files_switch_change,
+        )
+        if self.sync_hidden_files:
+            self.hidden_files_switch.select()
+        else:
+            self.hidden_files_switch.deselect()
+        self.hidden_files_switch.grid(row=0, column=0, padx=10, pady=(10, 4), sticky="w")
+
+        self.hidden_files_hint = ctk.CTkLabel(
+            self.hidden_files_frame,
+            text=self.language_manager.get_text(
+                "task_sync_hidden_files_desc",
+                "默认关闭。开启后会同步 . 开头的隐藏项，内置临时文件始终忽略。"
+            ),
+            font=get_font(size=12),
+            text_color="gray",
+            anchor="w",
+            justify="left",
+            wraplength=700,
+        )
+        self.hidden_files_hint.grid(row=1, column=0, padx=10, pady=(0, 10), sticky="w")
+
+    def _on_hidden_files_switch_change(self):
+        """隐藏文件同步开关切换"""
+        self.sync_hidden_files = bool(self.hidden_files_switch.get())
+
+    def _read_sync_hidden_files(self) -> bool:
+        """读取隐藏文件同步开关"""
+        return bool(self.sync_hidden_files)
+
     def _create_post_sync_action_section(self):
         """v7.7.1：同步完成后的内置安全动作（仅下拉选择，不接受任意命令）"""
         self.post_sync_frame = ctk.CTkFrame(self.content_frame)
@@ -892,10 +952,25 @@ class CreateTaskPage(ctk.CTkFrame):
         """补齐 v7.7 新增字段（U 盘绑定 / AI 筛选模板 / AI 任务名）。"""
         config["usb_auto_sync"] = bool(self.usb_auto_sync)
         config["usb_binding"] = self._build_usb_binding()
+        # v7.8.0: 隐藏文件同步开关
+        config["sync_hidden_files"] = self._read_sync_hidden_files()
+        # 文件夹级配置：调用方未显式提供时沿用当前状态（编辑模式为原任务值）
+        config.setdefault("folder_strategies", dict(self.folder_strategies))
+        config.setdefault("folder_filters", dict(self.folder_filters))
+        config.setdefault("root_included", self.root_included)
+        config.setdefault("root_strategy", self.root_strategy)
+        config.setdefault("folders", list(self.folders))
         if self.ai_filter_template:
             config["ai_filter_template"] = dict(self.ai_filter_template)
         if self.task_name:
             config["name"] = self.task_name
+        # v7.8.0: 编辑已有任务时携带标记与 ID，供确认页走 update_task 分支
+        if self.edit_mode and self.task_id:
+            config["is_editing"] = True
+            config["task_id"] = self.task_id
+            existing = self.task_manager.get_task_by_id(self.task_id) if self.task_manager else None
+            if existing and not config.get("name"):
+                config["name"] = existing.get("name", "")
         return config
 
     def _apply_prefill(self, cfg: Dict):
@@ -921,6 +996,11 @@ class CreateTaskPage(ctk.CTkFrame):
             self._set_scan_thread_mode(True)
         if cfg.get("use_multithreading_copy"):
             self._set_copy_thread_mode(True)
+        # v7.8.0: 隐藏文件同步开关
+        if cfg.get("sync_hidden_files"):
+            self.sync_hidden_files = True
+            if hasattr(self, "hidden_files_switch"):
+                self.hidden_files_switch.select()
         if cfg.get("ai_filter_template"):
             self.ai_filter_template = dict(cfg["ai_filter_template"])
         if cfg.get("usb_auto_sync"):
@@ -1001,9 +1081,12 @@ class CreateTaskPage(ctk.CTkFrame):
         # 构建更新后的配置
         task_config = self.get_task_config()
         
-        # 更新任务
+        # 更新任务（编辑标记仅用于页面间传递，不写入任务数据）
         if self.task_manager and self.task_id:
-            self.task_manager.update_task(self.task_id, task_config)
+            updates = dict(task_config)
+            updates.pop("is_editing", None)
+            updates.pop("task_id", None)
+            self.task_manager.update_task(self.task_id, updates)
         
         # 返回任务管理页面
         if self.on_save:
@@ -1044,10 +1127,10 @@ class CreateTaskPage(ctk.CTkFrame):
             "use_multithreading_copy": self.use_multithreading_copy,
             "mode": self.run_mode,
             "default_strategy": self.default_strategy,
-            "folders": [],
-            "folder_strategies": {},
-            "root_included": False,
-            "root_strategy": self.default_strategy,
+            "folders": list(self.folders),
+            "folder_strategies": dict(self.folder_strategies),
+            "root_included": self.root_included,
+            "root_strategy": self.root_strategy,
             "post_sync_action": self._read_post_sync_action()
         })
 
@@ -1089,6 +1172,7 @@ class CreateTaskPage(ctk.CTkFrame):
             "default_strategy": self.default_strategy,
             "folders": [],
             "folder_strategies": {},  # 空字典，使用全局默认策略
+            "folder_filters": {},  # 跳过配置时一并清除按文件夹筛选
             "root_included": True,
             "root_strategy": self.default_strategy,
             "post_sync_action": self._read_post_sync_action()
@@ -1152,6 +1236,12 @@ class CreateTaskPage(ctk.CTkFrame):
         
         self.run_mode = task.get("mode", task.get("run_mode", "safe"))
         self.default_strategy = task.get("default_strategy", "conservative")
+        # 载入文件夹级配置，编辑保存时原样保留（除非在文件夹配置页修改）
+        self.folder_strategies = dict(task.get("folder_strategies") or {})
+        self.folder_filters = dict(task.get("folder_filters") or {})
+        self.root_included = bool(task.get("root_included", False))
+        self.root_strategy = task.get("root_strategy", self.default_strategy)
+        self.folders = list(task.get("folders") or [])
         # v7.7.1: 仅加载内置安全动作；旧版 post_sync_command 由配置层丢弃
         from backend.config_manager import normalize_post_sync_action
         self.post_sync_action = normalize_post_sync_action(
@@ -1160,6 +1250,13 @@ class CreateTaskPage(ctk.CTkFrame):
         # v7.7: U 盘绑定
         self.usb_auto_sync = bool(task.get("usb_auto_sync", False))
         self.usb_binding = dict(task.get("usb_binding") or {})
+        # v7.8.0: 隐藏文件同步开关（旧任务缺失时默认 False）
+        self.sync_hidden_files = bool(task.get("sync_hidden_files", False))
+        if hasattr(self, "hidden_files_switch"):
+            if self.sync_hidden_files:
+                self.hidden_files_switch.select()
+            else:
+                self.hidden_files_switch.deselect()
         
         # 更新UI显示
         if hasattr(self, 'source_entry'):
@@ -1219,6 +1316,18 @@ class CreateTaskPage(ctk.CTkFrame):
         self.task_name = ""
         if hasattr(self, "usb_bind_var"):
             self.usb_bind_var.set(False)
+        # v7.8.0: 重置隐藏文件同步开关（回到全局默认）
+        try:
+            self.sync_hidden_files = bool(
+                self.config_manager.get_settings().get("default_sync_hidden_files", False)
+            )
+        except Exception:
+            self.sync_hidden_files = False
+        if hasattr(self, "hidden_files_switch"):
+            if self.sync_hidden_files:
+                self.hidden_files_switch.select()
+            else:
+                self.hidden_files_switch.deselect()
 
         # 清空输入框
         self.source_entry.delete(0, "end")
@@ -1321,6 +1430,20 @@ class CreateTaskPage(ctk.CTkFrame):
                 text=self.language_manager.get_text(
                     "post_sync_action_hint",
                     "仅支持内置安全动作，不执行任何外部命令"
+                )
+            )
+
+        # v7.8.0: 隐藏文件同步开关
+        if hasattr(self, 'hidden_files_switch'):
+            self.hidden_files_switch.configure(
+                text=self.language_manager.get_text(
+                    "task_sync_hidden_files", "同步隐藏文件（以 . 开头的文件和文件夹）"
+                )
+            )
+            self.hidden_files_hint.configure(
+                text=self.language_manager.get_text(
+                    "task_sync_hidden_files_desc",
+                    "默认关闭。开启后会同步 . 开头的隐藏项，内置临时文件始终忽略。"
                 )
             )
 

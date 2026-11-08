@@ -1,5 +1,5 @@
 """
-文件同步工具 v7.3 - 同步引擎
+文件同步工具 v7.8.0 - 同步引擎
 提供核心文件同步功能，支持进度回调、中断恢复、多线程复制和写入寿命保护
 v7.3 性能优化：大文件分块复制（可配置块大小、内部断点续传）、批量预创建目录、块级寿命保护
 """
@@ -255,6 +255,8 @@ class FileSyncEngine:
         protection_strength: str = "balanced",
         sync_delete_enabled: bool = False,
         recycle_manager=None,
+        # ===== v7.8.0 事务备份（覆盖/删除前备份旧文件，支持一键回滚）=====
+        transaction_backup=None,
         chunk_size: int = 8 * 1024 * 1024,
         # ===== v7.5 筛选策略（任务级配置：每个文件夹独立，未配置的文件夹不启用筛选）=====
         folder_filters: Optional[Dict[str, Dict]] = None,
@@ -262,6 +264,11 @@ class FileSyncEngine:
         quiet: bool = False,
         # ===== v7.6 同步期间阻止系统休眠（含寿命保护暂停期间）=====
         prevent_sleep_during_sync: bool = True,
+        # ===== v7.8.0 是否同步隐藏文件（以 . 开头的文件和文件夹），默认 False =====
+        sync_hidden_files: bool = False,
+        # ===== v7.8.0 系统资源守护（psutil 缺失时自动禁用，不影响同步）=====
+        resource_guard_enabled: bool = True,
+        notification_manager=None,
     ):
         """
         初始化同步引擎
@@ -308,6 +315,9 @@ class FileSyncEngine:
         self.sync_delete_enabled = sync_delete_enabled
 
         self.recycle_manager = recycle_manager
+        # v7.8.0：事务备份管理器（None 表示不记录回滚快照）
+        self.transaction_backup = transaction_backup
+        self._transaction_committed = False
         
         # 分块复制块大小（字节）
         self.chunk_size = max(1024, chunk_size)  # 最小 1KB
@@ -319,6 +329,15 @@ class FileSyncEngine:
         self.quiet = quiet
         # v7.6：同步全程阻止系统休眠（寿命保护暂停期间同样保持，结束后在 finally 恢复）
         self.prevent_sleep_during_sync = prevent_sleep_during_sync
+        # v7.8.0：是否同步隐藏文件（默认 False；内置临时文件始终忽略）
+        self.sync_hidden_files = bool(sync_hidden_files)
+        # v7.8.0：系统资源守护（后台线程采样，主循环只做轻量 tick 读取）
+        from .resource_guard import ResourceGuard
+        self.resource_guard = ResourceGuard(
+            enabled=resource_guard_enabled,
+            notification_manager=notification_manager,
+        )
+        self._guard_file_counter = 0
         # v7.6：逐文件日志节流状态（每 100 个文件或每 2 秒最多输出一条汇总）
         self._file_log_pending = 0
         self._file_log_last_emit = 0.0
@@ -719,6 +738,22 @@ class FileSyncEngine:
         """检查是否已暂停"""
         return self._paused
     
+    def _guard_tick(self):
+        """
+        v7.8.0：每处理约 100 个文件检查一次系统资源。
+
+        仅读取后台线程缓存的采样状态（O(1)），高占用时 sleep(0.5) 降速；
+        任何异常静默跳过，绝不影响同步主流程。
+        """
+        try:
+            self._guard_file_counter += 1
+            if self._guard_file_counter % 100 != 0:
+                return
+            if self.resource_guard.tick():
+                time.sleep(0.5)
+        except Exception:
+            pass
+
     def _wait_if_paused(self):
         """如果暂停则等待"""
         while self._paused and not self._interrupted:
@@ -946,8 +981,16 @@ class FileSyncEngine:
                 self.actual_speeds.append(speed)
                 self._current_progress.speed = speed
             
+            # v7.8.0：覆盖前先备份目标旧文件（供一键回滚）
+            if dst_exists:
+                self._transaction_backup_overwrite(dst)
+            
             # 原子重命名：用 os.replace() 确保重命名成功
             os.replace(temp_dst, dst)
+            
+            # v7.8.0：新建文件登记到事务清单（回滚时删除）
+            if not dst_exists:
+                self._transaction_record_created(dst)
             
             # 保留源文件元数据（权限、时间戳等），替代 shutil.copy2 的行为
             try:
@@ -955,14 +998,20 @@ class FileSyncEngine:
             except (OSError, PermissionError):
                 pass  # 元数据复制失败不影响文件内容
             
-            # 更新统计
-            self.stats.files_copied += 1
+            # 更新统计：目标已存在 → 计为“更新”，否则计为“新增复制”
+            if dst_exists:
+                self.stats.files_updated += 1
+            else:
+                self.stats.files_copied += 1
             self.stats.total_size_copied += src_size
             self._current_progress.copied_size += src_size
             self._current_progress.completed_files += 1
             
             # 添加到已完成文件集合
             self.completed_files.add(dst)
+
+            # v7.8.0：每处理约 100 个文件检查系统资源（高占用时自动降速）
+            self._guard_tick()
             
             # 检查是否需要保存进度
             if self.progress_manager and self.progress_manager.should_save():
@@ -1171,24 +1220,26 @@ class FileSyncEngine:
                 except OSError:
                     continue
 
+                # v7.8.0: 内置临时文件/进度文件始终忽略，不受隐藏文件开关影响
+                if entry.name == PROGRESS_FILE or entry.name.endswith(TEMP_FILE_SUFFIX):
+                    continue
+
+                # v7.8.0: 关闭隐藏文件同步时，在 os.scandir 入口直接跳过 . 开头的文件和文件夹，
+                # 禁止进入目录后再判断（避免无效 IO）
+                if not self.sync_hidden_files and entry.name.startswith('.'):
+                    continue
+
                 try:
                     is_dir = entry.is_dir(follow_symlinks=False)
                 except OSError:
                     continue
 
                 if is_dir:
-                    # 过滤隐藏目录
-                    if not entry.name.startswith('.'):
-                        child_rel = (
-                            entry.name if rel_dir == "."
-                            else os.path.join(rel_dir, entry.name)
-                        )
-                        stack.append((Path(entry.path), child_rel))
-                    continue
-
-                # 过滤隐藏文件
-                if entry.name.startswith('.'):
-                    self.stats.skipped_system_files.append(entry.name)
+                    child_rel = (
+                        entry.name if rel_dir == "."
+                        else os.path.join(rel_dir, entry.name)
+                    )
+                    stack.append((Path(entry.path), child_rel))
                     continue
 
                 filepath = Path(entry.path)
@@ -1206,6 +1257,9 @@ class FileSyncEngine:
                 rel_path = filepath.relative_to(base)
                 files[str(rel_path)] = info
                 self.stats.files_scanned += 1
+
+                # v7.8.0：每处理约 100 个文件检查系统资源（高占用时自动降速）
+                self._guard_tick()
 
         return files
 
@@ -1462,6 +1516,8 @@ class FileSyncEngine:
         sleep_prevented = False
         if getattr(self, "prevent_sleep_during_sync", True):
             sleep_prevented = prevent_sleep()
+        # v7.8.0：资源守护后台线程与同步生命周期一致
+        self.resource_guard.start()
         try:
             return self._sync_directories_impl(
                 source_dir=source_dir,
@@ -1473,10 +1529,41 @@ class FileSyncEngine:
                 last_snapshot=last_snapshot,
             )
         finally:
+            self.resource_guard.stop()
             if sleep_prevented:
                 allow_sleep()
 
     def _sync_directories_impl(
+        self,
+        source_dir: str,
+        target_dir: str,
+        direction: str = "both",
+        start_date: Optional[datetime.date] = None,
+        end_date: Optional[datetime.date] = None,
+        dry_run: bool = False,
+        last_snapshot: Optional[Dict] = None
+    ) -> bool:
+        """同步主流程：无论中断、异常还是正常返回，都必须释放并发锁目录。
+
+        任何路径（用户中断、扫描报错、保存历史失败等）离开本方法时，
+        `_release_sync_dirs()` 都会被调用，避免目录被永久标记为“正在同步”。
+        """
+        try:
+            return self._sync_directories_body(
+                source_dir=source_dir,
+                target_dir=target_dir,
+                direction=direction,
+                start_date=start_date,
+                end_date=end_date,
+                dry_run=dry_run,
+                last_snapshot=last_snapshot,
+            )
+        finally:
+            self._release_sync_dirs()
+            # v7.8.0：未正常提交的事务一律清理，避免残留无用备份
+            self._abort_transaction_if_uncommitted()
+
+    def _sync_directories_body(
         self,
         source_dir: str,
         target_dir: str,
@@ -1508,6 +1595,8 @@ class FileSyncEngine:
         self.stats = SyncStats()
         self.actual_speeds = []
         self.completed_files = set()
+        # v7.8.0：重置资源守护计数，确保每 100 个文件触发一次检测
+        self._guard_file_counter = 0
         
         # 检查目录是否存在
         if not os.path.exists(source_dir):
@@ -1532,8 +1621,10 @@ class FileSyncEngine:
         
         # ===== v7.5: 同目录并发同步检测 =====
         # 防止多个任务同时操作同一目录导致 I/O 异常（Invalid argument 等）
-        src_norm = os.path.normcase(os.path.abspath(source_dir))
-        tgt_norm = os.path.normcase(os.path.abspath(target_dir))
+        # v7.8.0 修复：用 resolve() 归一化（解析符号链接 / junction / subst / ..），
+        # 避免同一物理目录以不同路径字符串绕过并发检测
+        src_norm = os.path.normcase(str(Path(source_dir).resolve()))
+        tgt_norm = os.path.normcase(str(Path(target_dir).resolve()))
         with FileSyncEngine._active_sync_dirs_lock:
             if src_norm in FileSyncEngine._active_sync_dirs or tgt_norm in FileSyncEngine._active_sync_dirs:
                 self._log("❌ 同步中断：该目录正在被其他任务同步，禁止并发操作同一目录", level="error")
@@ -1547,6 +1638,9 @@ class FileSyncEngine:
             FileSyncEngine._active_sync_dirs.add(src_norm)
             FileSyncEngine._active_sync_dirs.add(tgt_norm)
         self._acquired_sync_dirs = (src_norm, tgt_norm)
+        
+        # v7.8.0：开启事务备份（模拟运行不产生备份）
+        self._begin_transaction(enabled=not dry_run)
         
         # 初始化进度管理器
         self.progress_manager = ProgressManager(target_dir)
@@ -1803,6 +1897,8 @@ class FileSyncEngine:
         }
         
         self._flush_file_log()
+        # v7.8.0：事务正常结束 → 写清单并清理该任务超过 5 次的旧备份
+        self._commit_transaction()
         self._release_sync_dirs()
         return True
 
@@ -1815,7 +1911,70 @@ class FileSyncEngine:
             for d in acquired:
                 FileSyncEngine._active_sync_dirs.discard(d)
         self._acquired_sync_dirs = None
-    
+
+    # ===== v7.8.0 事务备份钩子（回滚能力，失败只告警不阻断同步）=====
+    @property
+    def transaction_id(self) -> str:
+        """本次同步的事务 ID（未开启事务时为空串）"""
+        backup = getattr(self, "transaction_backup", None)
+        return getattr(backup, "transaction_id", "") if backup else ""
+
+    def _begin_transaction(self, enabled: bool = True):
+        backup = getattr(self, "transaction_backup", None)
+        self._transaction_committed = False
+        if backup is None or not enabled:
+            return
+        try:
+            backup.start()
+        except Exception as exc:  # noqa: BLE001
+            self._log(f"⚠️ 事务备份初始化失败（本次同步不可回滚）：{exc}", level="warning")
+
+    def _transaction_backup_overwrite(self, path: str):
+        backup = getattr(self, "transaction_backup", None)
+        if backup is None:
+            return
+        try:
+            backup.backup_file(path, "overwrite")
+        except Exception as exc:  # noqa: BLE001
+            self._log(f"⚠️ 事务备份失败（回滚可能不完整）：{exc}", level="warning")
+
+    def _transaction_backup_delete(self, path: str):
+        backup = getattr(self, "transaction_backup", None)
+        if backup is None:
+            return
+        try:
+            backup.backup_file(path, "delete")
+        except Exception as exc:  # noqa: BLE001
+            self._log(f"⚠️ 事务备份失败（回滚可能不完整）：{exc}", level="warning")
+
+    def _transaction_record_created(self, path: str):
+        backup = getattr(self, "transaction_backup", None)
+        if backup is None:
+            return
+        try:
+            backup.record_created(path)
+        except Exception:  # noqa: BLE001
+            pass
+
+    def _commit_transaction(self):
+        backup = getattr(self, "transaction_backup", None)
+        if backup is None:
+            return
+        try:
+            if backup.commit():
+                self._transaction_committed = True
+        except Exception as exc:  # noqa: BLE001
+            self._log(f"⚠️ 事务清单写入失败（本次同步不可回滚）：{exc}", level="warning")
+
+    def _abort_transaction_if_uncommitted(self):
+        backup = getattr(self, "transaction_backup", None)
+        if backup is None or self._transaction_committed:
+            return
+        try:
+            backup.abort()
+        except Exception:  # noqa: BLE001
+            pass
+
     def _create_all_directories(
         self,
         source_dir: str,
@@ -2029,22 +2188,24 @@ class FileSyncEngine:
                     completed_files=len(self.completed_files)
                 )
                 
+                # v7.8.0：删除前备份文件内容（供一键回滚）
+                self._transaction_backup_delete(file_path)
+                
+                # v7.8.0 修复：移入回收站失败时绝不回退硬删（避免用户以为可恢复却已永久丢失）
                 if self.recycle_manager:
                     deleted_info = self.recycle_manager.add_deleted_file(file_path)
                     if deleted_info:
                         self._log_file(f"  ✅ 已将 {rel_path} 移入最近删除")
                     else:
-                        try:
-                            os.remove(file_path)
-                            self._log_file(f"  ✅ 已删除 {rel_path}")
-                        except Exception as e:
-                            self._log(f"  ❌ 删除 {rel_path} 失败: {e}", level="error")
+                        self._log(
+                            f"  ❌ 删除失败（无法移入最近删除，文件已保留）: {rel_path}",
+                            level="error",
+                        )
                 else:
-                    try:
-                        os.remove(file_path)
-                        self._log_file(f"  ✅ 已删除 {rel_path}")
-                    except Exception as e:
-                        self._log(f"  ❌ 删除 {rel_path} 失败: {e}", level="error")
+                    self._log(
+                        f"  ❌ 删除失败（未配置最近删除管理器，文件已保留）: {rel_path}",
+                        level="error",
+                    )
                 
                 self.completed_files.add(f"delete_source_{rel_path}")
         
@@ -2062,22 +2223,24 @@ class FileSyncEngine:
                     completed_files=len(self.completed_files)
                 )
                 
+                # v7.8.0：删除前备份文件内容（供一键回滚）
+                self._transaction_backup_delete(file_path)
+                
+                # v7.8.0 修复：移入回收站失败时绝不回退硬删（避免用户以为可恢复却已永久丢失）
                 if self.recycle_manager:
                     deleted_info = self.recycle_manager.add_deleted_file(file_path)
                     if deleted_info:
                         self._log_file(f"  ✅ 已将 {rel_path} 移入最近删除")
                     else:
-                        try:
-                            os.remove(file_path)
-                            self._log_file(f"  ✅ 已删除 {rel_path}")
-                        except Exception as e:
-                            self._log(f"  ❌ 删除 {rel_path} 失败: {e}", level="error")
+                        self._log(
+                            f"  ❌ 删除失败（无法移入最近删除，文件已保留）: {rel_path}",
+                            level="error",
+                        )
                 else:
-                    try:
-                        os.remove(file_path)
-                        self._log_file(f"  ✅ 已删除 {rel_path}")
-                    except Exception as e:
-                        self._log(f"  ❌ 删除 {rel_path} 失败: {e}", level="error")
+                    self._log(
+                        f"  ❌ 删除失败（未配置最近删除管理器，文件已保留）: {rel_path}",
+                        level="error",
+                    )
                 
                 self.completed_files.add(f"delete_target_{rel_path}")
         

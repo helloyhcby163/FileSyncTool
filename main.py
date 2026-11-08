@@ -1,10 +1,10 @@
 """
-文件同步工具 v7.7 - 程序入口
+文件同步工具 v7.8.0 - 程序入口
 基于 CustomTkinter 的图形界面版本
 继承 v7.6 的所有功能，v7.7 新增：
 - 插入 U 盘自动同步（后台独立线程监听，任务级设备绑定 + 全局开关）
 - 自动版本更新（24 小时检查、镜像加速下载、Windows 临时 .bat 替换）
-- AI 帮我配置（预置 Prompt 一键复制 + JSON 导入预填新建任务）
+- AI 帮我配置（环境感知 Prompt + 分段输出解析 + 高危路径审核预览）
 
 历史版本：
 - v7.4：全局异常捕获、打包资源路径、跨平台配置目录、系统语言检测
@@ -33,8 +33,15 @@ if not IS_FROZEN:
         """检查并使用虚拟环境中的 Python"""
         venv_python = program_dir / ".venv" / "Scripts" / "python.exe"
 
+        # 仅当解释器恰好位于 .venv/Scripts 目录内才算已在虚拟环境中，
+        # 避免 .venv2 / .venv_backup 等前缀目录被误判为虚拟环境
+        try:
+            exe_dir = Path(sys.executable).resolve().parent
+        except OSError:
+            exe_dir = Path(sys.executable).parent
+
         # 如果当前 Python 不是虚拟环境中的，且虚拟环境存在，则重新启动
-        if not str(sys.executable).startswith(str(program_dir / ".venv")):
+        if exe_dir != venv_python.parent.resolve():
             if venv_python.exists():
                 print(f"检测到虚拟环境，正在使用 {venv_python} 重新启动...")
                 subprocess.run([str(venv_python), str(program_dir / "main.py")] + sys.argv[1:], check=True)
@@ -591,6 +598,11 @@ def run_cli(args) -> int:
             # 每次触发重新读取任务，确保用户在 GUI 中修改的配置（含快照）生效
             config_manager.reload_config()
             latest = task_manager.get_task_by_name(task_name)
+            if latest is not None:
+                # 隐藏文件开关随任务配置实时生效（与同步逻辑保持一致）
+                manager.sync_hidden_files = bool(
+                    latest.get("sync_hidden_files", False)
+                )
             if latest is None:
                 # 任务已被删除：自动停止监听
                 print(f"⚠️ 任务「{task_name}」已被删除，自动停止监听")
@@ -623,6 +635,7 @@ def run_cli(args) -> int:
             source_dir,
             idle_seconds=idle_seconds,
             on_trigger=trigger_sync,
+            sync_hidden_files=bool(task.get("sync_hidden_files", False)),
         )
         if not manager.start():
             return CLI_EXIT_FAIL

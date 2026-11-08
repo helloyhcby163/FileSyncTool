@@ -16,20 +16,25 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            output_name: FileSyncTool_v7.7.1_Windows.exe
-          - os: macos-14
-            output_name: FileSyncTool_v7.7.1_macOS_ARM64
+            output_name: FileSyncTool_v7.8.0_Windows.exe
+            artifact_name: Windows
+          # ✅ 正确的 Intel macOS runner 标签
           - os: macos-15-intel
-            output_name: FileSyncTool_v7.7.1_macOS_Intel
+            output_name: FileSyncTool_v7.8.0_macOS_Intel
+            artifact_name: macOS_Intel
+          - os: macos-14
+            output_name: FileSyncTool_v7.8.0_macOS_ARM64
+            artifact_name: macOS_ARM64
           - os: ubuntu-latest
-            output_name: FileSyncTool_v7.7.1_Linux
+            output_name: FileSyncTool_v7.8.0_Linux
+            artifact_name: Linux
 
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.11'
 
       - name: Install dependencies
         run: |
@@ -37,34 +42,46 @@ jobs:
           pip install -r requirements.txt
           pip install pyinstaller
 
-      - name: Build with PyInstaller (spec file)
-        run: |
-          pyinstaller FileSyncTool.spec
+      - name: Build with PyInstaller
+        run: pyinstaller FileSyncTool.spec
 
-      - name: Rename output
-        run: |
-          if [ -f "dist/main.exe" ]; then mv dist/main.exe "dist/${{ matrix.output_name }}"; fi
-          if [ -f "dist/main" ]; then mv dist/main "dist/${{ matrix.output_name }}"; fi
+      # ---------- Windows / Linux ----------
+      - name: Package Artifacts (Windows/Linux)
+        if: matrix.os == 'windows-latest' || matrix.os == 'ubuntu-latest'
         shell: bash
-
-      - name: Create ZIP
         run: |
           cd dist
-          if [ -f "${{ matrix.output_name }}" ]; then
-            if command -v 7z &> /dev/null; then
-              7z a "${{ matrix.output_name }}.zip" "${{ matrix.output_name }}"
-            else
-              zip -r "${{ matrix.output_name }}.zip" "${{ matrix.output_name }}"
-            fi
-          fi
+          # ⚠️ 请根据 FileSyncTool.spec 中的 name 参数修改此处！
+          # 如果 spec 里写的是 name='FileSyncTool'，则源文件是 FileSyncTool.exe / FileSyncTool
+          if [ -f "FileSyncTool.exe" ]; then mv "FileSyncTool.exe" "${{ matrix.output_name }}"; fi
+          if [ -f "FileSyncTool" ]; then mv "FileSyncTool" "${{ matrix.output_name }}"; fi
+
+      # ---------- macOS ----------
+      - name: Package Artifacts (macOS)
+        if: matrix.os == 'macos-15-intel' || matrix.os == 'macos-14'
         shell: bash
+        run: |
+          cd dist
+          # 如果 spec 生成的是 .app 目录，用 ditto 压缩为 zip
+          if [ -d "FileSyncTool.app" ]; then
+            ditto -c -k --sequesterRsrc --keepParent "FileSyncTool.app" "${{ matrix.output_name }}.zip"
+            echo "PACKAGED_AS=zip" >> $GITHUB_ENV
+          # 如果 spec 生成的是单个 Unix 可执行文件，直接重命名
+          elif [ -f "FileSyncTool" ]; then
+            mv "FileSyncTool" "${{ matrix.output_name }}"
+            echo "PACKAGED_AS=binary" >> $GITHUB_ENV
+          else
+            echo "❌ 未找到打包产物，请检查 FileSyncTool.spec 的 name 参数"
+            ls -la
+            exit 1
+          fi
 
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.os }}
+          name: ${{ matrix.artifact_name }}
           path: |
-            dist/${{ matrix.output_name }}
-            dist/${{ matrix.output_name }}.zip
+            dist/${{ matrix.output_name }}*
+          if-no-files-found: error
 
   release:
     needs: build
@@ -89,8 +106,7 @@ jobs:
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Download artifacts
         uses: actions/download-artifact@v4
@@ -108,8 +124,8 @@ jobs:
           gitee_tag_name: ${{ github.ref_name }}
           gitee_release_name: ${{ github.ref_name }}
           gitee_release_body: "Release ${{ github.ref_name }}"
-          gitee_target_commitish: master  # ⚠️ 补上这一行，解决 Gitee 报错
-          
+          gitee_target_commitish: master  # ✅ 保留，避免 Gitee 创建 Release 时报错
+
       - name: Upload Assets to Gitee
         uses: nICEnnnnnnnLee/action-gitee-release@v2.0.0
         with:

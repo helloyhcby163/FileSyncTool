@@ -1,5 +1,5 @@
 """
-文件同步工具 v7.5 - 配置管理器
+文件同步工具 v7.8.0 - 配置管理器
 负责配置文件的加载、保存和版本升级
 
 v7.5 新增：
@@ -10,6 +10,7 @@ v7.5 新增：
 """
 
 import os
+import copy
 import json
 import shutil
 from datetime import datetime
@@ -53,6 +54,8 @@ def sanitize_task_dict(task: Any) -> Any:
             )
 
     task["post_sync_action"] = normalize_post_sync_action(task.get("post_sync_action"))
+    # v7.8.0: 隐藏文件同步开关，旧任务缺失时静默补 False
+    task["sync_hidden_files"] = bool(task.get("sync_hidden_files", False))
     return task
 
 
@@ -71,6 +74,10 @@ def sanitize_config_tasks(config: Any) -> Any:
             if isinstance(item, dict) and isinstance(item.get("task_config"), dict):
                 sanitize_task_dict(item["task_config"])
     return config
+
+
+class ConfigCorruptError(RuntimeError):
+    """配置文件损坏且无法从备份恢复时抛出，避免静默重置为空配置。"""
 
 
 class ConfigManager:
@@ -105,6 +112,8 @@ class ConfigManager:
             "auto_shutdown_delay": 60,
             "prevent_sleep_during_sync": True,
             "user_translations_dir": "",
+            # v7.8.0: 新建任务默认是否同步隐藏文件（以 . 开头的项），默认关闭
+            "default_sync_hidden_files": False,
             # v7.7: 插入 U 盘时自动同步总开关 / 上次更新检查时间（UTC ISO）
             "usb_auto_sync_enabled": True,
             "last_update_check": "",
@@ -255,19 +264,26 @@ class ConfigManager:
         """
         # 检查是否存在当前版本配置文件
         if self.config_file.exists():
+            config = None
             try:
                 with open(self.config_file, 'r', encoding='utf-8') as f:
                     config = json.load(f)
-                
-                # 检查版本号
-                if config.get("version") == self.CURRENT_VERSION:
-                    return sanitize_config_tasks(config)
-                else:
-                    # 版本不匹配，尝试升级
-                    return sanitize_config_tasks(self._upgrade_config(config))
+                if not isinstance(config, dict):
+                    raise ValueError("配置文件顶层结构不是 JSON 对象")
             except Exception as e:
                 print(f"加载配置文件失败: {e}")
-                return self.DEFAULT_CONFIG.copy()
+                # v7.8.0 修复：禁止静默重置为空配置，先尝试从 .bak 备份恢复
+                config = self._recover_config_from_backup()
+                if config is None:
+                    raise ConfigCorruptError(
+                        f"配置文件已损坏且无法从备份恢复：{self.config_file}"
+                    ) from e
+
+            # 检查版本号
+            if config.get("version") == self.CURRENT_VERSION:
+                return sanitize_config_tasks(config)
+            # 版本不匹配，尝试升级
+            return sanitize_config_tasks(self._upgrade_config(config))
         
         # 扫描目录查找所有旧版本配置文件
         old_files = self._scan_old_config_files()
@@ -281,7 +297,7 @@ class ConfigManager:
                     return sanitize_config_tasks(self._upgrade_from_old_version(selected_file))
         
         # 没有任何配置文件，首次运行：检测系统语言并保存初始配置
-        config = self.DEFAULT_CONFIG.copy()
+        config = copy.deepcopy(self.DEFAULT_CONFIG)
         try:
             from .platform_utils import detect_system_language
             detected_lang = detect_system_language()
@@ -294,6 +310,69 @@ class ConfigManager:
         self.save_config(config)
         return config
     
+    def _recover_config_from_backup(self) -> Optional[Dict[str, Any]]:
+        """
+        主配置文件损坏时，从同级 .bak 备份恢复。
+
+        恢复步骤：隔离损坏文件（改名 `.corrupt_<时间戳>`）→ 用备份内容原子写回主配置。
+
+        Returns:
+            恢复出的配置字典；无可用备份或备份同样损坏时返回 None
+        """
+        backup_file = self.config_file.parent / (
+            self.config_file.name + self.BACKUP_SUFFIX
+        )
+        if not backup_file.exists():
+            print(f"未找到配置备份文件: {backup_file}")
+            return None
+
+        try:
+            with open(backup_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+        except Exception as e:
+            print(f"配置备份文件同样无法读取: {e}")
+            return None
+        if not isinstance(data, dict):
+            print("配置备份文件顶层结构不是 JSON 对象")
+            return None
+
+        # 隔离损坏文件，避免后续保存把坏数据覆盖回去
+        try:
+            stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            corrupt_file = self.config_file.parent / (
+                self.config_file.name + f".corrupt_{stamp}"
+            )
+            os.replace(self.config_file, corrupt_file)
+            print(f"已隔离损坏的配置文件: {corrupt_file}")
+        except Exception as e:
+            print(f"隔离损坏配置文件失败: {e}")
+
+        # 用备份内容原子恢复主配置
+        tmp_file = self.config_file.parent / (self.config_file.name + ".tmp")
+        try:
+            with open(tmp_file, 'w', encoding='utf-8') as f:
+                json.dump(data, f, indent=2, ensure_ascii=False)
+            os.replace(tmp_file, self.config_file)
+            print(f"⚠️ 配置已从备份恢复: {backup_file}")
+        except Exception as e:
+            print(f"从备份恢复配置失败: {e}")
+            try:
+                if tmp_file.exists():
+                    tmp_file.unlink()
+            except OSError:
+                pass
+        return data
+
+    def _is_config_file_valid(self) -> bool:
+        """当前配置文件是否存在且为合法 JSON 对象（用于保护 .bak 不被坏数据覆盖）。"""
+        if not self.config_file.exists():
+            return False
+        try:
+            with open(self.config_file, 'r', encoding='utf-8') as f:
+                return isinstance(json.load(f), dict)
+        except Exception:
+            return False
+
     def _scan_old_config_files(self) -> List[Path]:
         """
         扫描配置目录，查找所有旧版本配置文件
@@ -446,7 +525,7 @@ class ConfigManager:
             print(f"正在从 v{old_version} 升级到 v{self.CURRENT_VERSION}...")
             
             # 创建新版本配置
-            new_config = self.DEFAULT_CONFIG.copy()
+            new_config = copy.deepcopy(self.DEFAULT_CONFIG)
             
             # 通用升级逻辑：复制所有可识别的字段
             if "recent_paths" in old_config:
@@ -500,7 +579,7 @@ class ConfigManager:
             
         except Exception as e:
             print(f"配置升级失败: {e}")
-            return self.DEFAULT_CONFIG.copy()
+            return copy.deepcopy(self.DEFAULT_CONFIG)
     
     def _convert_old_tasks(self, old_tasks: List[Dict]) -> List[Dict]:
         """
@@ -549,7 +628,7 @@ class ConfigManager:
                 v6_config = json.load(f)
             
             # 创建 v7 配置
-            v7_config = self.DEFAULT_CONFIG.copy()
+            v7_config = copy.deepcopy(self.DEFAULT_CONFIG)
             
             # 转换 recent_paths
             if "recent_paths" in v6_config:
@@ -582,7 +661,7 @@ class ConfigManager:
             
         except Exception as e:
             print(f"配置升级失败: {e}")
-            return self.DEFAULT_CONFIG.copy()
+            return copy.deepcopy(self.DEFAULT_CONFIG)
     
     def _convert_v6_tasks_to_v7(self, v6_tasks: List[Dict]) -> List[Dict]:
         """
@@ -648,7 +727,7 @@ class ConfigManager:
             return upgraded
         
         # 未知版本，使用默认配置
-        return self.DEFAULT_CONFIG.copy()
+        return copy.deepcopy(self.DEFAULT_CONFIG)
     
     def _upgrade_from_v7_0(self, v7_0_config: Dict) -> Dict:
         """
@@ -660,7 +739,7 @@ class ConfigManager:
         Returns:
             升级后的 v7.3 配置字典
         """
-        v7_3_config = self.DEFAULT_CONFIG.copy()
+        v7_3_config = copy.deepcopy(self.DEFAULT_CONFIG)
         
         # 复制所有现有配置
         for key, value in v7_0_config.items():
@@ -710,7 +789,7 @@ class ConfigManager:
         Returns:
             升级后的 v7.3 配置字典
         """
-        v7_3_config = self.DEFAULT_CONFIG.copy()
+        v7_3_config = copy.deepcopy(self.DEFAULT_CONFIG)
         
         # 复制所有现有配置
         for key, value in v7_1_config.items():
@@ -752,7 +831,7 @@ class ConfigManager:
         Returns:
             升级后的 v7.5 配置字典
         """
-        v7_5_config = self.DEFAULT_CONFIG.copy()
+        v7_5_config = copy.deepcopy(self.DEFAULT_CONFIG)
         
         # 复制所有现有配置
         for key, value in v7_2_config.items():
@@ -786,7 +865,7 @@ class ConfigManager:
         Returns:
             升级后的 v7.5 配置字典
         """
-        v7_5_config = self.DEFAULT_CONFIG.copy()
+        v7_5_config = copy.deepcopy(self.DEFAULT_CONFIG)
         
         # 复制所有现有配置
         for key, value in v7_3_config.items():
@@ -817,7 +896,7 @@ class ConfigManager:
         Returns:
             v7.1 配置字典
         """
-        v7_config = self.DEFAULT_CONFIG.copy()
+        v7_config = copy.deepcopy(self.DEFAULT_CONFIG)
         
         # 转换各个字段
         if "recent_paths" in v6_config:
@@ -845,12 +924,31 @@ class ConfigManager:
         """
         if config is None:
             config = self.config
-        
+
+        # v7.8.0 修复：临时文件 + os.replace 原子替换，避免写入中途崩溃损坏配置；
+        # 替换前把当前合法配置备份为 .bak，供损坏时恢复
+        tmp_file = self.config_file.parent / (self.config_file.name + ".tmp")
+        backup_file = self.config_file.parent / (
+            self.config_file.name + self.BACKUP_SUFFIX
+        )
         try:
-            with open(self.config_file, 'w', encoding='utf-8') as f:
+            self.config_file.parent.mkdir(parents=True, exist_ok=True)
+            with open(tmp_file, 'w', encoding='utf-8') as f:
                 json.dump(config, f, indent=2, ensure_ascii=False)
+            # 仅当现有配置文件可正常解析时才刷新备份，防止坏数据覆盖好备份
+            if self._is_config_file_valid():
+                try:
+                    shutil.copy2(self.config_file, backup_file)
+                except OSError as e:
+                    print(f"更新配置备份失败: {e}")
+            os.replace(tmp_file, self.config_file)
         except Exception as e:
             print(f"保存配置文件失败: {e}")
+            try:
+                if tmp_file.exists():
+                    tmp_file.unlink()
+            except OSError:
+                pass
     
     def _generate_uuid(self) -> str:
         """
@@ -882,7 +980,14 @@ class ConfigManager:
     
     def get_settings(self) -> Dict:
         """获取设置"""
-        return self.config.get("settings", self.DEFAULT_CONFIG["settings"])
+        settings = self.config.get("settings", {})
+        if not isinstance(settings, dict):
+            settings = {}
+            self.config["settings"] = settings
+        # v7.8.0: 旧配置缺少新增设置键时静默补齐默认值（不触发版本迁移）
+        for key, value in self.DEFAULT_CONFIG["settings"].items():
+            settings.setdefault(key, value)
+        return settings
     
     def update_settings(self, settings: Dict):
         """更新设置"""
@@ -985,7 +1090,9 @@ class ConfigManager:
         deleted_files / sync_history / recent_paths 等业务数据。
         """
         self.config["version"] = self.CURRENT_VERSION
-        self.config["settings"] = dict(self.DEFAULT_CONFIG.get("settings", {}))
+        self.config["settings"] = copy.deepcopy(
+            self.DEFAULT_CONFIG.get("settings", {})
+        )
         self.save_config()
     
     def get_theme(self) -> str:

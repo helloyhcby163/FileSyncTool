@@ -1,6 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 """
-文件同步工具 v7.7 - PyInstaller 打包配置文件
+文件同步工具 v7.8.0 - PyInstaller 打包配置文件
 
 修复要点：
 - hiddenimports 包含 plyer 各平台通知模块，防止打包后通知功能失效
@@ -22,6 +22,7 @@ plyer_notification_imports = [
     'plyer.platforms.win.notification',
     'plyer.platforms.linux.notification',
     'plyer.platforms.macos.notification',
+    'plyer.platforms.macosx.notification',
 ]
 
 # plyer 其他常用模块（防止打包后 plyer 子模块缺失）
@@ -31,6 +32,15 @@ plyer_extra_imports = [
     'plyer.platforms.win',
     'plyer.platforms.linux',
     'plyer.platforms.macos',
+    'plyer.platforms.macosx',
+]
+
+# v7.8.0: 更新包 Ed25519 验签依赖（backend/signature_verifier.py）
+crypto_imports = [
+    'cryptography',
+    'cryptography.exceptions',
+    'cryptography.hazmat.primitives.asymmetric.ed25519',
+    'cryptography.hazmat.primitives.serialization',
 ]
 
 # 数据文件：多语言、帮助文档、图标
@@ -61,7 +71,7 @@ a = Analysis(
     pathex=[str(project_root)],
     binaries=[],
     datas=ctk_datas,
-    hiddenimports=plyer_notification_imports + plyer_extra_imports,
+    hiddenimports=plyer_notification_imports + plyer_extra_imports + crypto_imports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

@@ -381,12 +381,16 @@ def open_log_in_terminal(log_path) -> bool:
 
     try:
         if is_windows():
-            # start 的第一个引号参数是窗口标题；"" 用于转义路径中的引号
-            command = (
-                f'start "FileSyncTool" cmd /k '
-                f'"chcp 65001 >nul & type ""{log_path}""" '
-            )
-            subprocess.Popen(command, shell=True)
+            # 参数列表形式启动 PowerShell 窗口（禁止 shell=True），
+            # 使用 -LiteralPath 避免路径被当作通配符或注入额外命令
+            ps_quoted = "'" + log_path.replace("'", "''") + "'"
+            subprocess.Popen([
+                "powershell",
+                "-NoExit",
+                "-Command",
+                "$OutputEncoding=[Console]::OutputEncoding=[Text.Encoding]::UTF8; "
+                f"Get-Content -LiteralPath {ps_quoted} -Wait"
+            ])
             return True
 
         if is_macos():

@@ -1,5 +1,5 @@
 """
-文件同步工具 v7.7 - 工具包页面
+文件同步工具 v7.8.0 - 工具包页面
 
 收纳非同步功能：
 1. 后台监听：以独立进程启动/停止 --watch，GUI 关闭后继续运行
@@ -33,8 +33,9 @@ from backend import watch_process
 from backend.ai_config import (
     AIConfigError,
     DEFAULT_AI_PROMPT,
-    parse_ai_config,
-    to_task_prefill,
+    build_ai_prompt,
+    build_filter_template,
+    parse_ai_response,
 )
 from backend.version import APP_VERSION, format_app_title
 
@@ -1701,7 +1702,10 @@ class AIConfigDialog(ctk.CTkToplevel):
 
         self.prompt_box = ctk.CTkTextbox(self, font=get_font(size=12), wrap="word")
         self.prompt_box.grid(row=1, column=0, padx=16, pady=(0, 6), sticky="nsew")
-        self.prompt_text = app.get_text("ai_prompt_template", DEFAULT_AI_PROMPT)
+        # v7.8.0：Prompt 注入当前操作系统与脱敏后的主目录，并要求四段结构化输出
+        self.prompt_text = build_ai_prompt(
+            app.get_text("ai_prompt_template", DEFAULT_AI_PROMPT)
+        )
         self.prompt_box.insert("1.0", self.prompt_text)
         self.prompt_box.configure(state="disabled")
 
@@ -1806,16 +1810,17 @@ class AIConfigDialog(ctk.CTkToplevel):
     def _on_import(self):
         text = self.json_box.get("1.0", "end").strip()
         try:
-            config = parse_ai_config(text)
+            result = parse_ai_response(text)
         except AIConfigError:
             self.error_label.configure(
                 text=self.app.get_text(
-                    "ai_json_error", "JSON 格式错误，请重新生成"
+                    "ai_json_error", "AI 返回格式错误，请重试"
                 )
             )
             return
         self._close()
-        self.app.show_page("create_task", prefill_config=to_task_prefill(config))
+        # v7.8.0：先进入审核预览，绝不直接创建任务
+        AIConfigPreviewDialog(self.app, result, self.app)
 
     def _close(self):
         try:
@@ -1823,3 +1828,219 @@ class AIConfigDialog(ctk.CTkToplevel):
         except Exception:
             pass
         self.destroy()
+
+
+class AIConfigPreviewDialog(ctk.CTkToplevel):
+    """v7.8.0: AI 配置审核预览弹窗（模态）。
+
+    顶部展示需求分析与安全风险提示，中部展示解析后的配置项；
+    命中系统高危路径时以红色警告并禁用“确认创建”按钮。
+    """
+
+    def __init__(self, app, result, master=None):
+        super().__init__(master or app)
+        self.app = app
+        self.result = result if isinstance(result, dict) else {}
+        self.config = self.result.get("config") or {}
+        self._title_text = app.get_text(
+            "ai_preview_title", "AI 配置预览与确认"
+        )
+        self.title(self._title_text)
+        self.geometry("860x780")
+        self.minsize(720, 600)
+        try:
+            self.transient(app)
+            self.grab_set()
+        except Exception:
+            pass
+        self.protocol("WM_DELETE_WINDOW", self._close)
+
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
+
+        dangerous = bool(self.config.get("is_dangerous"))
+        if dangerous:
+            warning = app.get_text(
+                "ai_preview_danger_warning",
+                "⚠️ 警告：检测到系统高危路径，为防止数据丢失，已禁止创建此任务！",
+            )
+            hit_paths = self.config.get("dangerous_paths") or []
+            if hit_paths:
+                warning += "\n" + "、".join(str(p) for p in hit_paths)
+            ctk.CTkLabel(
+                self,
+                text=warning,
+                font=get_font(size=16, weight="bold"),
+                text_color="#D32F2F",
+                justify="left",
+                anchor="w",
+                wraplength=800,
+            ).grid(row=0, column=0, padx=16, pady=(14, 8), sticky="ew")
+
+        body = ctk.CTkScrollableFrame(self)
+        body.grid(row=1, column=0, padx=12, pady=(0, 8), sticky="nsew")
+        body.grid_columnconfigure(0, weight=1)
+
+        self._create_section(
+            body, 0, "ai_preview_analysis_title", "需求分析",
+            self.result.get("analysis", ""),
+        )
+        self._create_section(
+            body, 2, "ai_preview_risk_title", "安全风险提示",
+            self.result.get("risk", ""),
+        )
+
+        ctk.CTkLabel(
+            body,
+            text=app.get_text("ai_preview_config_title", "配置详情"),
+            font=get_font(size=14, weight="bold"),
+            anchor="w",
+        ).grid(row=4, column=0, padx=8, pady=(12, 6), sticky="w")
+
+        fields = [
+            ("ai_preview_field_name", "任务名称", self.config.get("name", "")),
+            ("ai_preview_field_source", "源路径", self.config.get("source", "")),
+            ("ai_preview_field_target", "目标路径", self.config.get("target", "")),
+            ("ai_preview_field_direction", "同步方向", self.config.get("sync_direction", "")),
+            ("ai_preview_field_mode", "同步模式", self.config.get("mode", "")),
+            ("ai_preview_field_strategy", "冲突策略", self.config.get("default_strategy", "")),
+            ("ai_preview_field_hidden", "同步隐藏文件",
+             app.get_text("ai_preview_yes", "是") if self.config.get("sync_hidden_files")
+             else app.get_text("ai_preview_no", "否")),
+            ("ai_preview_field_filters", "扩展名/日期筛选", self._format_filters()),
+        ]
+        for index, (key, default, value) in enumerate(fields):
+            ctk.CTkLabel(
+                body,
+                text=app.get_text(key, default),
+                font=get_font(size=12, weight="bold"),
+                anchor="w",
+            ).grid(row=5 + index, column=0, padx=(12, 8), pady=2, sticky="w")
+            ctk.CTkLabel(
+                body,
+                text=str(value or "—"),
+                font=get_font(size=12),
+                anchor="w",
+                justify="left",
+                wraplength=760,
+            ).grid(row=5 + index, column=1, padx=(0, 12), pady=2, sticky="w")
+        body.grid_columnconfigure(1, weight=1)
+
+        btn_row = ctk.CTkFrame(self, fg_color="transparent")
+        btn_row.grid(row=2, column=0, padx=16, pady=(0, 14), sticky="ew")
+        btn_row.grid_columnconfigure((0, 1), weight=1)
+
+        self.confirm_btn = ctk.CTkButton(
+            btn_row,
+            text=app.get_text("ai_preview_confirm", "确认创建"),
+            height=42,
+            font=get_font(size=14, weight="bold"),
+            fg_color="#2E7D32",
+            hover_color="#1B5E20",
+            command=self._on_confirm,
+        )
+        self.confirm_btn.grid(row=0, column=0, padx=(0, 6), sticky="ew")
+        if dangerous:
+            self.confirm_btn.configure(state="disabled")
+
+        ctk.CTkButton(
+            btn_row,
+            text=app.get_text("cancel", "取消"),
+            height=42,
+            font=get_font(size=14),
+            fg_color="transparent",
+            text_color=("black", "white"),
+            hover_color=("gray85", "gray25"),
+            border_width=2,
+            border_color=("gray70", "gray30"),
+            command=self._close,
+        ).grid(row=0, column=1, padx=(6, 0), sticky="ew")
+
+    def _create_section(self, parent, row, title_key, title_default, content):
+        """创建只读段落（需求分析 / 安全风险提示）。"""
+        ctk.CTkLabel(
+            parent,
+            text=self.app.get_text(title_key, title_default),
+            font=get_font(size=14, weight="bold"),
+            anchor="w",
+        ).grid(row=row, column=0, columnspan=2, padx=8, pady=(10, 4), sticky="w")
+        box = ctk.CTkTextbox(parent, height=90, font=get_font(size=12), wrap="word")
+        box.grid(row=row + 1, column=0, columnspan=2, padx=8, pady=(0, 6), sticky="ew")
+        box.insert(
+            "1.0",
+            str(content or "").strip()
+            or self.app.get_text("ai_preview_missing", "（AI 未提供）"),
+        )
+        box.configure(state="disabled")
+
+    def _format_filters(self):
+        """把扩展名/日期筛选格式化为可读文本。"""
+        extensions = self.config.get("extensions") or []
+        parts = []
+        if extensions:
+            parts.append(" / ".join(str(ext) for ext in extensions))
+        if self.config.get("date_enabled"):
+            parts.append(
+                f"{self.config.get('date_from') or '…'} ~ "
+                f"{self.config.get('date_to') or '…'}"
+            )
+        return "；".join(parts)
+
+    def _build_folder_filters(self):
+        """把 AI 的扩展名/日期筛选应用到源目录的所有顶层文件夹。"""
+        template = build_filter_template(self.config)
+        if not template:
+            return {}
+        filters = {}
+        try:
+            with os.scandir(self.config.get("source", "")) as entries:
+                for entry in entries:
+                    try:
+                        if entry.is_dir(follow_symlinks=False):
+                            filters[entry.name] = dict(template)
+                    except OSError:
+                        continue
+        except OSError:
+            return {}
+        return filters
+
+    def _on_confirm(self):
+        """安全路径下创建任务并刷新任务列表。"""
+        if self.config.get("is_dangerous"):
+            return
+        from tkinter import messagebox
+
+        name = str(self.config.get("name") or "").strip() or "AI 配置任务"
+        try:
+            self.app.task_manager.create_task(
+                name=name,
+                source=self.config.get("source", ""),
+                target=self.config.get("target", ""),
+                mode=self.config.get("mode", "safe"),
+                sync_direction=self.config.get("sync_direction", "both"),
+                default_strategy=self.config.get("default_strategy", "conservative"),
+                folder_filters=self._build_folder_filters(),
+                sync_hidden_files=bool(self.config.get("sync_hidden_files", False)),
+            )
+        except Exception as exc:  # noqa: BLE001
+            messagebox.showerror(
+                self._title_text, f"创建任务失败：{exc}", parent=self
+            )
+            return
+        self._close()
+        self.app.show_page("task_manage")
+        messagebox.showinfo(
+            self._title_text,
+            self.app.get_text(
+                "ai_preview_created", "任务「{name}」已创建"
+            ).format(name=name),
+            parent=self.app,
+        )
+
+    def _close(self):
+        try:
+            self.grab_release()
+        except Exception:
+            pass
+        self.destroy()
+

@@ -1,5 +1,5 @@
 """
-文件同步工具 v7.0 - 最近删除管理器
+文件同步工具 v7.8.0 - 最近删除管理器
 负责已删除文件的备份和管理
 """
 
@@ -156,14 +156,11 @@ class RecycleManager:
             # 获取文件类型
             file_type = original_file.suffix
             
-            # 创建备份路径（保持原目录结构）
-            # 例如：原路径 E:\folder\file.txt → 备份路径 .recycle\E_folder_file.txt
-            from backend.platform_utils import get_path_identifier
-            relative_backup_path = get_path_identifier(original_file)
-            backup_path = self.recycle_dir / relative_backup_path
-            
-            # 确保备份目录存在
-            backup_path.parent.mkdir(parents=True, exist_ok=True)
+            # v7.8.0 修复：每次删除使用唯一 UUID 子目录，防止同名文件二次删除
+            # 覆盖前一次的备份（此前用扁平化路径，第二次删除会静默覆盖旧备份）
+            backup_dir = self.recycle_dir / uuid.uuid4().hex
+            backup_dir.mkdir(parents=True, exist_ok=True)
+            backup_path = backup_dir / (original_file.name or "deleted_file")
             
             # 移动文件到回收站
             shutil.move(str(original_file), str(backup_path))
@@ -187,6 +184,17 @@ class RecycleManager:
             print(f"添加已删除文件失败: {e}")
             return None
     
+    def _remove_backup_file(self, backup_path: Path):
+        """删除备份文件，并清理它所属的 UUID 子目录（失败静默）。"""
+        try:
+            if backup_path.exists():
+                os.remove(str(backup_path))
+            parent = backup_path.parent
+            if parent != self.recycle_dir:
+                parent.rmdir()
+        except OSError:
+            pass
+
     def get_all_deleted_files(self) -> List[Dict]:
         """获取所有已删除文件列表"""
         return self.config_manager.get_deleted_files()
@@ -252,8 +260,7 @@ class RecycleManager:
             backup_path = Path(file_info["backup_path"])
             
             # 删除备份文件
-            if backup_path.exists():
-                os.remove(str(backup_path))
+            self._remove_backup_file(backup_path)
             
             # 从配置中移除记录
             self.config_manager.remove_deleted_file(file_id)
@@ -279,7 +286,7 @@ class RecycleManager:
                 backup_path = Path(file_info["backup_path"])
                 
                 if backup_path.exists():
-                    os.remove(str(backup_path))
+                    self._remove_backup_file(backup_path)
                     deleted_count += 1
             except Exception:
                 pass

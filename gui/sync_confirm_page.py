@@ -1,5 +1,5 @@
 """
-文件同步工具 v7.3 - 同步确认页面
+文件同步工具 v7.8.0 - 同步确认页面
 显示同步预估信息、任务配置摘要和策略配置，供用户确认后开始同步
 支持快速模式警告对话框
 """
@@ -128,7 +128,10 @@ class SyncConfirmPage(ctk.CTkFrame):
     def __init__(self, master, app, task_config: Dict = None,
                  on_save_and_start: Optional[Callable] = None,
                  on_start_without_save: Optional[Callable] = None,
-                 on_cancel: Optional[Callable] = None):
+                 on_cancel: Optional[Callable] = None,
+                 on_save_only: Optional[Callable] = None,
+                 is_editing: bool = False,
+                 task_id: Optional[str] = None):
         """
         初始化同步确认页面
         
@@ -139,6 +142,9 @@ class SyncConfirmPage(ctk.CTkFrame):
             on_save_and_start: 保存任务并开始同步回调
             on_start_without_save: 开始同步（不保存）回调
             on_cancel: 取消回调
+            on_save_only: 仅保存修改回调（编辑模式）
+            is_editing: 是否为编辑已有任务
+            task_id: 编辑模式下的任务 ID
         """
         super().__init__(master)
         
@@ -146,10 +152,21 @@ class SyncConfirmPage(ctk.CTkFrame):
         self.language_manager = app.language_manager
         self.config_manager = app.config_manager
         self.task_config = task_config or {}
+
+        self.is_editing = bool(
+            is_editing
+            or self.task_config.get("is_editing")
+        )
+        self.task_id = (
+            task_id
+            or self.task_config.get("task_id")
+            or (self.task_config.get("id") if self.is_editing else None)
+        )
         
         self.on_save_and_start = on_save_and_start
         self.on_start_without_save = on_start_without_save
         self.on_cancel = on_cancel
+        self.on_save_only = on_save_only
         
         # 同步预估数据（默认值）
         self.file_count = 0
@@ -208,11 +225,13 @@ class SyncConfirmPage(ctk.CTkFrame):
         self.bottom_frame = ctk.CTkFrame(self)
         self.bottom_frame.grid(row=2, column=0, padx=10, pady=(0, 10), sticky="ew")
         self.bottom_frame.grid_columnconfigure((0, 1, 2), weight=1)
-        
-        # 保存任务并开始同步按钮
+
+        # 绿色主按钮：新建任务 / 编辑已有任务文案不同
+        main_text_key = "save_edit_and_start" if self.is_editing else "save_and_start"
+        main_default = "保存修改并开始同步" if self.is_editing else "保存任务并开始同步"
         self.save_and_start_btn = ctk.CTkButton(
             self.bottom_frame,
-            text=self.language_manager.get_text("save_and_start", "保存任务并开始同步"),
+            text=self.language_manager.get_text(main_text_key, main_default),
             height=45,
             font=get_font(size=15, weight="bold"),
             command=self._on_save_and_start_click,
@@ -220,19 +239,34 @@ class SyncConfirmPage(ctk.CTkFrame):
             hover_color="#229E6A"
         )
         self.save_and_start_btn.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
-        
-        # 开始同步（不保存）按钮
-        self.start_without_save_btn = ctk.CTkButton(
-            self.bottom_frame,
-            text=self.language_manager.get_text("start_without_save", "开始同步（不保存）"),
-            height=45,
-            font=get_font(size=15, weight="bold"),
-            command=self._on_start_without_save_click,
-            fg_color="#3B8ED0",
-            hover_color="#36719F"
-        )
-        self.start_without_save_btn.grid(row=0, column=1, padx=10, pady=10, sticky="ew")
-        
+
+        if self.is_editing:
+            # 编辑模式：隐藏「开始同步（不保存）」，改为「仅保存修改」
+            self.start_without_save_btn = None
+            self.save_only_btn = ctk.CTkButton(
+                self.bottom_frame,
+                text=self.language_manager.get_text("save_edit_only", "仅保存修改"),
+                height=45,
+                font=get_font(size=15, weight="bold"),
+                command=self._on_save_only_click,
+                fg_color="#3B8ED0",
+                hover_color="#36719F"
+            )
+            self.save_only_btn.grid(row=0, column=1, padx=10, pady=10, sticky="ew")
+        else:
+            # 新建任务：保留原有「开始同步（不保存）」
+            self.save_only_btn = None
+            self.start_without_save_btn = ctk.CTkButton(
+                self.bottom_frame,
+                text=self.language_manager.get_text("start_without_save", "开始同步（不保存）"),
+                height=45,
+                font=get_font(size=15, weight="bold"),
+                command=self._on_start_without_save_click,
+                fg_color="#3B8ED0",
+                hover_color="#36719F"
+            )
+            self.start_without_save_btn.grid(row=0, column=1, padx=10, pady=10, sticky="ew")
+
         # 取消按钮
         self.cancel_btn = ctk.CTkButton(
             self.bottom_frame,
@@ -795,7 +829,8 @@ class SyncConfirmPage(ctk.CTkFrame):
                 folder_strategies=folder_strategies,
                 root_included=root_included,
                 root_strategy=root_strategy,
-                folder_filters=folder_filters
+                folder_filters=folder_filters,
+                sync_hidden_files=bool(self.task_config.get("sync_hidden_files", False)),
             )
             preview = preview_engine.preview_sync(
                 source_dir=source_dir,
@@ -918,6 +953,11 @@ class SyncConfirmPage(ctk.CTkFrame):
         if self.on_start_without_save:
             self.on_start_without_save(self.task_config)
     
+    def _on_save_only_click(self):
+        """仅保存修改按钮点击事件（编辑模式，不触发同步）"""
+        if self.on_save_only:
+            self.on_save_only(self.task_config)
+
     def _on_cancel_click(self):
         """取消按钮点击事件"""
         if self.on_cancel:
@@ -1037,13 +1077,27 @@ class SyncConfirmPage(ctk.CTkFrame):
                 text=self.language_manager.get_text("excluded", "已排除")
             )
         
-        # 更新底部按钮
-        self.save_and_start_btn.configure(
-            text=self.language_manager.get_text("save_and_start", "保存任务并开始同步")
-        )
-        self.start_without_save_btn.configure(
-            text=self.language_manager.get_text("start_without_save", "开始同步（不保存）")
-        )
+        # 更新底部按钮（编辑模式与新建任务文案不同）
+        if self.is_editing:
+            self.save_and_start_btn.configure(
+                text=self.language_manager.get_text(
+                    "save_edit_and_start", "保存修改并开始同步"
+                )
+            )
+            if self.save_only_btn is not None:
+                self.save_only_btn.configure(
+                    text=self.language_manager.get_text("save_edit_only", "仅保存修改")
+                )
+        else:
+            self.save_and_start_btn.configure(
+                text=self.language_manager.get_text("save_and_start", "保存任务并开始同步")
+            )
+            if self.start_without_save_btn is not None:
+                self.start_without_save_btn.configure(
+                    text=self.language_manager.get_text(
+                        "start_without_save", "开始同步（不保存）"
+                    )
+                )
         self.cancel_btn.configure(
             text=self.language_manager.get_text("cancel", "取消")
         )

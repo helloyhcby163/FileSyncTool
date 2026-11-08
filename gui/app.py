@@ -1,5 +1,5 @@
 """
-文件同步工具 v7.3 - 主窗口
+文件同步工具 v7.8.0 - 主窗口
 基于 CustomTkinter 的主应用程序窗口
 """
 
@@ -18,6 +18,7 @@ from backend.language_manager import (
 )
 from backend.task_manager import TaskManager
 from backend.recycle_manager import RecycleManager
+from backend.recent_tasks import RecentTasksManager
 from backend.sync_engine import FileSyncEngine as SyncEngine
 from backend.notification_manager import NotificationManager
 from backend.theme_manager import ThemeManager
@@ -205,6 +206,9 @@ class FileSyncApp(ctk.CTk):
         
         # 回收站管理器
         self.recycle_manager = RecycleManager(self.config_manager)
+
+        # v7.8.0: 最近完成任务管理器
+        self.recent_tasks_manager = RecentTasksManager(self.config_manager)
         
         # 同步引擎
         self.sync_engine = SyncEngine()
@@ -1372,13 +1376,20 @@ class FileSyncApp(ctk.CTk):
         
         elif page_name == "sync_confirm":
             from .sync_confirm_page import SyncConfirmPage
+            task_config = kwargs.get("task_config") or {}
+            is_editing = bool(
+                kwargs.get("is_editing") or task_config.get("is_editing")
+            )
             return SyncConfirmPage(
                 self.main_container,
                 self,
                 task_config=kwargs.get("task_config"),
                 on_save_and_start=self._on_save_and_start_sync,
                 on_start_without_save=self._on_start_sync_without_save,
-                on_cancel=self._on_sync_confirm_cancel
+                on_cancel=self._on_sync_confirm_cancel,
+                on_save_only=self._on_save_only_sync,
+                is_editing=is_editing,
+                task_id=kwargs.get("task_id") or task_config.get("task_id")
             )
         
         elif page_name == "sync_progress":
@@ -1469,30 +1480,65 @@ class FileSyncApp(ctk.CTk):
         """文件夹配置取消回调"""
         self.show_page("sync")
     
-    def _on_save_and_start_sync(self, task_config):
-        """保存任务并开始同步回调"""
-        task_name = task_config.get("name", "未命名任务")
-        self.task_manager.create_task(
-            name=task_name,
-            source=task_config.get("source", ""),
-            target=task_config.get("target", ""),
-            mode=task_config.get("mode", task_config.get("run_mode", "fast")),
-            sync_direction=task_config.get("sync_direction", "both"),
-            folders=task_config.get("folders", []),
-            default_strategy=task_config.get("default_strategy", "conservative"),
-            folder_strategies=task_config.get("folder_strategies", {}),
-            folder_filters=task_config.get("folder_filters", {}),
-            root_included=task_config.get("root_included", False),
-            root_strategy=task_config.get("root_strategy", "conservative"),
-            use_multithreading_scan=task_config.get("use_multithreading_scan", False),
-            use_multithreading_copy=task_config.get("use_multithreading_copy", False),
-            last_snapshot=task_config.get("last_snapshot"),
-            post_sync_action=task_config.get("post_sync_action", "none"),
+    def _task_payload(self, task_config: Dict[str, Any]) -> Dict[str, Any]:
+        """从确认页配置提取任务字段（create_task / update_task 共用）"""
+        return {
+            "source": task_config.get("source", ""),
+            "target": task_config.get("target", ""),
+            "mode": task_config.get("mode", task_config.get("run_mode", "fast")),
+            "sync_direction": task_config.get("sync_direction", "both"),
+            "folders": task_config.get("folders", []),
+            "default_strategy": task_config.get("default_strategy", "conservative"),
+            "folder_strategies": task_config.get("folder_strategies", {}),
+            "folder_filters": task_config.get("folder_filters", {}),
+            "root_included": task_config.get("root_included", False),
+            "root_strategy": task_config.get("root_strategy", "conservative"),
+            "use_multithreading_scan": task_config.get("use_multithreading_scan", False),
+            "use_multithreading_copy": task_config.get("use_multithreading_copy", False),
+            "post_sync_action": task_config.get("post_sync_action", "none"),
             # v7.7: U 盘自动同步绑定
-            usb_auto_sync=task_config.get("usb_auto_sync", False),
-            usb_binding=task_config.get("usb_binding") or {}
-        )
+            "usb_auto_sync": task_config.get("usb_auto_sync", False),
+            "usb_binding": task_config.get("usb_binding") or {},
+            # v7.8.0: 任务级隐藏文件同步
+            "sync_hidden_files": bool(task_config.get("sync_hidden_files", False)),
+        }
+
+    def _resolve_edit_task_id(self, task_config: Dict[str, Any]) -> Optional[str]:
+        """获取编辑模式下的任务 ID（非编辑模式返回 None）"""
+        if not task_config.get("is_editing"):
+            return None
+        return task_config.get("task_id") or task_config.get("id")
+
+    def _update_payload(self, task_config: Dict[str, Any]) -> Dict[str, Any]:
+        """编辑模式更新字段：仅在配置确实携带时才覆盖名称与快照基线"""
+        payload = self._task_payload(task_config)
+        name = task_config.get("name")
+        if name:
+            payload["name"] = name
+        if "last_snapshot" in task_config:
+            payload["last_snapshot"] = task_config.get("last_snapshot")
+        return payload
+
+    def _on_save_and_start_sync(self, task_config):
+        """保存任务并开始同步回调（编辑已有任务时走 update_task）"""
+        task_id = self._resolve_edit_task_id(task_config)
+        if task_id:
+            self.task_manager.update_task(task_id, self._update_payload(task_config))
+        else:
+            self.task_manager.create_task(
+                name=task_config.get("name", "未命名任务"),
+                last_snapshot=task_config.get("last_snapshot"),
+                **self._task_payload(task_config)
+            )
         self._start_sync(task_config)
+
+    def _on_save_only_sync(self, task_config):
+        """仅保存修改回调（编辑模式，不触发同步）"""
+        task_id = self._resolve_edit_task_id(task_config)
+        if not task_id:
+            return
+        self.task_manager.update_task(task_id, self._update_payload(task_config))
+        self.show_page("task_manage")
     
     def _on_start_sync_without_save(self, task_config):
         """开始同步（不保存）回调"""
@@ -1580,6 +1626,22 @@ class FileSyncApp(ctk.CTk):
         
         # v7.5: 筛选策略为任务级配置（按文件夹独立，未配置的文件夹不启用筛选）
         folder_filters = task_config.get("folder_filters", {})
+
+        # v7.8.0: 隐藏文件同步开关（任务级优先，缺失回落全局默认）
+        sync_hidden_files = bool(
+            task_config.get(
+                "sync_hidden_files",
+                self.config_manager.get_settings().get("default_sync_hidden_files", False),
+            )
+        )
+
+        # v7.8.0: 为本次同步建立事务备份（供首页一键回滚）
+        from backend.transaction_backup import TransactionBackup
+
+        transaction_backup = TransactionBackup(
+            self.config_manager.get_config_dir(),
+            task_name=task_config.get("name", ""),
+        )
         
         # 先执行预扫描获取预估信息（使用带筛选配置的引擎）
         preview_engine = SyncEngine(
@@ -1588,7 +1650,8 @@ class FileSyncApp(ctk.CTk):
             folder_strategies=folder_strategies,
             root_included=root_included,
             root_strategy=root_strategy,
-            folder_filters=folder_filters
+            folder_filters=folder_filters,
+            sync_hidden_files=sync_hidden_files,
         )
         preview = preview_engine.preview_sync(
             source_dir=source_dir,
@@ -1646,6 +1709,9 @@ class FileSyncApp(ctk.CTk):
             chunk_size=chunk_size,
             folder_filters=folder_filters,
             prevent_sleep_during_sync=settings.get("prevent_sleep_during_sync", True),
+            sync_hidden_files=sync_hidden_files,
+            notification_manager=self.notification_manager,
+            transaction_backup=transaction_backup,
         )
         sync_engine.config_manager = self.config_manager
         
@@ -1748,13 +1814,15 @@ class FileSyncApp(ctk.CTk):
         has_errors = False
         if sync_progress_page:
             task_name = sync_progress_page.task_info.get("name", "同步任务")
-            file_count = sync_progress_page.current_file
+            file_count = 0
             task_config = sync_progress_page.task_info.get("config", {}) or {}
 
             # 检查是否有错误
             if sync_progress_page.sync_engine:
                 stats = sync_progress_page.sync_engine.get_stats()
                 has_errors = len(stats.errors) > 0 or len(stats.permission_denied) > 0
+                # v7.8.0: 同步文件数 = 复制 + 更新（用于通知与最近完成任务）
+                file_count = int(stats.files_copied + stats.files_updated)
                 # v7.6: 记录被安全软件（如 Defender）拦截的文件，稍后弹窗列出
                 blocked_files = list(stats.permission_denied)
 
@@ -1770,6 +1838,13 @@ class FileSyncApp(ctk.CTk):
                 self.task_manager.stop_task(task_id, "failed")
             self._mark_sync_outcome(task_id, final_success)
 
+        # v7.8.0: 捕获事务 ID（供首页一键回滚，随后引擎引用会被清除）
+        transaction_id = ""
+        if self.current_sync_engine is not None:
+            transaction_id = str(
+                getattr(self.current_sync_engine, "transaction_id", "") or ""
+            )
+
         # v7.5: 清除当前运行引擎引用
         self.current_sync_engine = None
 
@@ -1779,6 +1854,13 @@ class FileSyncApp(ctk.CTk):
 
         # v7.7.1: 同步成功后执行任务选择的内置安全动作（无 shell、无自定义命令）
         if final_success and sync_progress_page:
+            # v7.8.0: 记录最近完成任务（失败/中断不写入）+ 事务 ID 供一键回滚
+            try:
+                self.recent_tasks_manager.add_record(
+                    task_name, file_count, transaction_id=transaction_id
+                )
+            except Exception as e:
+                print(f"⚠️ 记录最近完成任务失败：{e}")
             try:
                 from backend.cli_sync import run_post_sync_action
                 run_post_sync_action(

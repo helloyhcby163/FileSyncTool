@@ -32,6 +32,25 @@ class UpdateHashMismatchError(UpdateIntegrityError):
     """下载文件的 SHA-256 与官方值不一致，可能被篡改。"""
 
 
+class UpdateSignatureError(UpdateIntegrityError):
+    """下载文件的 Ed25519 签名校验失败，已中止自动更新（v7.8.0）。"""
+
+
+# 拼进 update.bat 的路径必须排除这些字符，否则会破坏批处理的引号/变量/命令结构
+_BAT_UNSAFE_CHARS = ('"', "%", "&", "|", "<", ">", "^", "\r", "\n")
+
+
+def _assert_bat_safe_path(value, label):
+    """校验路径可直接写入 update.bat；不安全时抛出 ValueError（交由上层引导手动更新）。"""
+    text = str(value)
+    for char in _BAT_UNSAFE_CHARS:
+        if char in text:
+            raise ValueError(
+                f"更新脚本拒绝生成：{label} 路径包含不安全字符 {char!r}（{text}）"
+            )
+    return text
+
+
 def _sha256_of(path):
     """计算文件 SHA-256（分块读取，避免大文件占满内存）。"""
     digest = hashlib.sha256()
@@ -87,6 +106,17 @@ def download_update(info, progress_cb=None, on_status=None, strategy=None):
             "⚠️ 安全警告：更新包哈希校验失败，可能已被篡改！"
         )
 
+    # v7.8.0：SHA-256 与包同源，无法抵御发布端被篡改，追加 Ed25519 验签。
+    # 公钥为空（开发阶段）时 verify_signature 打印警告并放行；
+    # 公钥非空时缺 .sig / 依赖缺失 / 签名不匹配一律返回 False → 阻断更新。
+    from .signature_verifier import verify_signature
+
+    if not verify_signature(path):
+        _remove_safely(path)
+        raise UpdateSignatureError(
+            "⚠️ 安全警告：更新包签名校验失败，可能已被篡改，已中止自动更新。"
+        )
+
     return path
 
 
@@ -105,11 +135,15 @@ def write_windows_update_script(new_exe, current_exe=None):
     exe = Path(current_exe).resolve() if current_exe else Path(sys.executable).resolve()
     bat_path = update_temp_dir() / "update.bat"
 
+    # v7.8.0：路径参数先做批处理安全校验，避免引号/变量展开破坏脚本结构
+    new_exe_text = _assert_bat_safe_path(new_exe, "新程序")
+    exe_text = _assert_bat_safe_path(exe, "当前程序")
+
     lines = [
         "@echo off",
         "chcp 65001 >nul",
-        f'set "NEW={new_exe}"',
-        f'set "OLD={exe}"',
+        f'set "NEW={new_exe_text}"',
+        f'set "OLD={exe_text}"',
         'set "FAILFILE=%TEMP%\\FileSyncTool_update_failed.txt"',
         "set /a TRIES=0",
         "timeout /t 2 /nobreak >nul",

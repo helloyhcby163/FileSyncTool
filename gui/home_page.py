@@ -1,5 +1,5 @@
 """
-文件同步工具 v7.0 - 首页
+文件同步工具 v7.8.0 - 首页
 显示主要功能入口和最近打断的任务
 """
 
@@ -286,12 +286,16 @@ class HomePage(ctk.CTkFrame):
         # 右列容器
         self.right_panel = ctk.CTkFrame(self)
         self.right_panel.grid(row=0, column=1, sticky="nsew", padx=10, pady=10)
-        self.right_panel.grid_rowconfigure(0, weight=2)  # 上方区域（打断任务列表）
-        self.right_panel.grid_rowconfigure(1, weight=1)  # 下方区域（提示信息）
+        self.right_panel.grid_rowconfigure(0, weight=3)  # 上方（被打断的任务）
+        self.right_panel.grid_rowconfigure(1, weight=2)  # 中部（最近完成的任务，约 40%）
+        self.right_panel.grid_rowconfigure(2, weight=1)  # 下方（提示信息）
         self.right_panel.grid_columnconfigure(0, weight=1)
         
         # 上方：最近打断的任务列表
         self._create_interrupted_tasks_panel()
+
+        # 中部：v7.8.0 最近完成的任务列表
+        self._create_recent_tasks_panel()
         
         # 下方：提示信息区域
         self._create_tips_panel()
@@ -375,11 +379,412 @@ class HomePage(ctk.CTkFrame):
         )
         self.btn_view.grid(row=0, column=2, padx=5, sticky="ew")
     
+    # ===================== v7.8.0: 最近完成的任务 =====================
+
+    def _create_recent_tasks_panel(self):
+        """创建「最近完成的任务」面板（高度约父容器 40%）"""
+        self.recent_panel = ctk.CTkFrame(self.right_panel)
+        self.recent_panel.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
+        self.recent_panel.grid_rowconfigure(1, weight=1)
+        self.recent_panel.grid_columnconfigure(0, weight=1)
+
+        header = ctk.CTkFrame(self.recent_panel, fg_color="transparent")
+        header.grid(row=0, column=0, sticky="ew", padx=10, pady=(10, 5))
+        header.grid_columnconfigure(1, weight=1)
+
+        self.recent_title = ctk.CTkLabel(
+            header,
+            text=self.app.get_text("home_recent_tasks_title", "最近完成的任务"),
+            font=get_font(size=16, weight="bold"),
+        )
+        self.recent_title.grid(row=0, column=0, padx=(0, 10), sticky="w")
+
+        self.recent_search_var = ctk.StringVar()
+        self.recent_search_entry = ctk.CTkEntry(
+            header,
+            placeholder_text=self.app.get_text("home_recent_search_placeholder", "搜索任务名…"),
+            textvariable=self.recent_search_var,
+            width=180,
+        )
+        self.recent_search_entry.grid(row=0, column=1, sticky="e", padx=(0, 8))
+        self.recent_search_entry.bind("<KeyRelease>", self._on_recent_search_change)
+
+        self.recent_clear_btn = ctk.CTkButton(
+            header,
+            text=self.app.get_text("home_recent_clear_btn", "清空列表"),
+            width=90,
+            height=28,
+            font=get_font(size=12),
+            command=self._on_clear_recent_click,
+        )
+        self.recent_clear_btn.grid(row=0, column=2, sticky="e")
+
+        self.recent_frame = ctk.CTkScrollableFrame(self.recent_panel)
+        self.recent_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=(0, 10))
+
+        self._recent_records: List[Dict[str, Any]] = []
+        # 已展开历史记录的任务名（刷新列表后保持展开状态）
+        self._recent_expanded: set = set()
+        # 当前列表中的操作按钮（回滚期间统一禁用）
+        self._recent_action_buttons: List[Any] = []
+
+    def _load_recent_tasks(self):
+        """加载最近完成任务记录"""
+        try:
+            records = self.app.recent_tasks_manager.get_records()
+        except Exception:
+            records = []
+        self._recent_records = list(records or [])
+        self._render_recent_records()
+
+    def _render_recent_records(self):
+        """按搜索词过滤并渲染记录"""
+        for widget in self.recent_frame.winfo_children():
+            widget.destroy()
+        self._recent_action_buttons = []
+
+        keyword = (self.recent_search_var.get() or "").strip().lower()
+        records = self._recent_records
+        if keyword:
+            records = [
+                r for r in records
+                if keyword in str(r.get("task_name", "")).lower()
+            ]
+
+        if not records:
+            empty = ctk.CTkLabel(
+                self.recent_frame,
+                text=self.app.get_text("home_recent_empty", "暂无最近完成的任务"),
+                font=get_font(size=12),
+                text_color="gray",
+            )
+            empty.pack(pady=20)
+            return
+
+        # v7.8.0: 按任务分组展示，同一任务的多条历史可展开
+        groups: Dict[str, List[Dict[str, Any]]] = {}
+        task_order: List[str] = []
+        for record in records:
+            name = str(record.get("task_name", "未命名任务"))
+            if name not in groups:
+                groups[name] = []
+                task_order.append(name)
+            groups[name].append(record)
+
+        for name in task_order:
+            self._create_recent_group(name, groups[name])
+
+    def _create_recent_group(self, task_name: str,
+                             records: List[Dict[str, Any]]):
+        """创建任务分组卡片（含最新一条 + 可展开的历史版本）"""
+        group = ctk.CTkFrame(self.recent_frame)
+        group.pack(fill="x", pady=3, padx=3)
+        group.grid_columnconfigure(0, weight=1)
+
+        latest = records[0]
+        name_label = ctk.CTkLabel(
+            group,
+            text=task_name,
+            font=get_font(size=13, weight="bold"),
+            anchor="w",
+        )
+        name_label.grid(row=0, column=0, padx=10, pady=(6, 0), sticky="w")
+
+        info_text = self.app.language_manager.format_text(
+            "home_recent_item_info",
+            time=self._format_recent_time(str(latest.get("time", ""))),
+            count=int(latest.get("file_count", 0) or 0),
+        )
+        info_label = ctk.CTkLabel(
+            group,
+            text=info_text,
+            font=get_font(size=11),
+            text_color="gray",
+            anchor="w",
+        )
+        info_label.grid(row=1, column=0, padx=10, pady=(0, 6), sticky="w")
+
+        buttons = ctk.CTkFrame(group, fg_color="transparent")
+        buttons.grid(row=0, column=1, rowspan=2, padx=10, pady=6, sticky="e")
+
+        if len(records) > 1:
+            history_btn = ctk.CTkButton(
+                buttons,
+                text=self.app.language_manager.format_text(
+                    "home_recent_history_btn", count=len(records)
+                ),
+                width=80,
+                height=26,
+                font=get_font(size=11),
+                fg_color="transparent",
+                text_color=("black", "white"),
+                hover_color=("gray85", "gray25"),
+                border_width=1,
+                border_color=("gray60", "gray40"),
+                command=lambda n=task_name, r=list(records): self._toggle_recent_history(n, r),
+            )
+            history_btn.pack(side="left", padx=(0, 6))
+            self._recent_action_buttons.append(history_btn)
+
+        undo_btn = ctk.CTkButton(
+            buttons,
+            text=self.app.get_text("home_recent_undo_btn", "撤销同步"),
+            width=90,
+            height=26,
+            font=get_font(size=11),
+            fg_color="transparent",
+            text_color=("black", "white"),
+            hover_color=("gray85", "gray25"),
+            border_width=1,
+            border_color=("#3B8ED0", "#1F6AA5"),
+            command=lambda n=task_name, r=list(records): self._on_undo_sync_click(n, r),
+        )
+        undo_btn.pack(side="left")
+        self._recent_action_buttons.append(undo_btn)
+
+        if len(records) > 1 and task_name in self._recent_expanded:
+            history_frame = ctk.CTkFrame(group, fg_color=("#F2F2F2", "#2B2B2B"))
+            history_frame.grid(row=2, column=0, columnspan=2, sticky="ew",
+                               padx=10, pady=(0, 8))
+            history_frame.grid_columnconfigure(0, weight=1)
+            for index, record in enumerate(records[1:], start=1):
+                row = ctk.CTkFrame(history_frame, fg_color="transparent")
+                row.grid(row=index - 1, column=0, sticky="ew", pady=2)
+                row.grid_columnconfigure(0, weight=1)
+                label = ctk.CTkLabel(
+                    row,
+                    text=self.app.language_manager.format_text(
+                        "home_recent_version_item",
+                        time=self._format_recent_time(str(record.get("time", ""))),
+                        count=int(record.get("file_count", 0) or 0),
+                    ),
+                    font=get_font(size=11),
+                    anchor="w",
+                )
+                label.grid(row=0, column=0, padx=8, sticky="w")
+                row_undo_btn = ctk.CTkButton(
+                    row,
+                    text=self.app.get_text("home_recent_undo_btn", "撤销同步"),
+                    width=70,
+                    height=24,
+                    font=get_font(size=11),
+                    fg_color="transparent",
+                    text_color=("black", "white"),
+                    hover_color=("gray85", "gray25"),
+                    border_width=1,
+                    border_color="#3B8ED0",
+                    command=lambda n=task_name, all_r=list(records):
+                        self._on_undo_sync_click(n, all_r),
+                )
+                row_undo_btn.grid(row=0, column=1, padx=8, sticky="e")
+                self._recent_action_buttons.append(row_undo_btn)
+
+    def _toggle_recent_history(self, task_name: str,
+                               records: List[Dict[str, Any]]):
+        """展开 / 收起某任务的历史同步记录"""
+        if task_name in self._recent_expanded:
+            self._recent_expanded.discard(task_name)
+        else:
+            self._recent_expanded.add(task_name)
+        self._render_recent_records()
+
+    @staticmethod
+    def _format_recent_time(raw: str) -> str:
+        """把 ISO8601 时间转为本地可读格式，解析失败时原样返回"""
+        try:
+            from datetime import datetime
+            return datetime.fromisoformat(raw).strftime("%Y-%m-%d %H:%M")
+        except (ValueError, TypeError):
+            return raw
+
+    def _on_recent_search_change(self, event=None):
+        """搜索框输入：实时过滤"""
+        self._render_recent_records()
+
+    def _on_clear_recent_click(self):
+        """清空最近完成任务列表"""
+        from tkinter import messagebox
+        if not messagebox.askyesno(
+            self.app.get_text("home_recent_clear_btn", "清空列表"),
+            self.app.get_text("home_recent_clear_confirm", "确定清空最近完成任务列表？"),
+            parent=self.app,
+        ):
+            return
+        try:
+            self.app.recent_tasks_manager.clear()
+        except Exception:
+            pass
+        self._load_recent_tasks()
+
+    def _on_undo_sync_click(self, task_name: str, records: List[Dict[str, Any]]):
+        """撤销同步：先选择回滚版本，再二次确认，最后后台执行"""
+        if not records:
+            return
+        selected = self._choose_rollback_version(records)
+        if not selected:
+            return
+
+        from tkinter import messagebox
+        time_text = self._format_recent_time(str(selected.get("time", "")))
+        if not messagebox.askyesno(
+            self.app.get_text("home_recent_undo_btn", "撤销同步"),
+            self.app.language_manager.format_text(
+                "home_recent_undo_confirm",
+                task=task_name,
+                time=time_text,
+            ),
+            parent=self.app,
+        ):
+            return
+        self._start_rollback(selected)
+
+    def _choose_rollback_version(
+        self, records: List[Dict[str, Any]]
+    ) -> Optional[Dict[str, Any]]:
+        """版本选择对话框：下拉列表默认选中最新一条"""
+        dialog = ctk.CTkToplevel(self.app)
+        dialog.title(self.app.get_text("home_recent_version_title", "选择回滚版本"))
+        dialog.geometry("460x240")
+        dialog.resizable(False, False)
+        dialog.transient(self.app)
+
+        labels = []
+        for index, record in enumerate(records):
+            labels.append(
+                f"{index + 1}. " + self.app.language_manager.format_text(
+                    "home_recent_version_item",
+                    time=self._format_recent_time(str(record.get("time", ""))),
+                    count=int(record.get("file_count", 0) or 0),
+                )
+            )
+
+        hint = ctk.CTkLabel(
+            dialog,
+            text=self.app.get_text(
+                "home_recent_version_hint",
+                "选择要回滚到的同步版本（默认最新）：",
+            ),
+            font=get_font(size=12),
+            anchor="w",
+            justify="left",
+        )
+        hint.pack(fill="x", padx=20, pady=(20, 10))
+
+        selected_var = ctk.StringVar(value=labels[0])
+        option = ctk.CTkOptionMenu(
+            dialog,
+            values=labels,
+            variable=selected_var,
+            font=get_font(size=12),
+            width=380,
+        )
+        option.pack(padx=20, pady=(0, 16))
+
+        result: Dict[str, Any] = {"record": None}
+
+        def confirm():
+            try:
+                index = labels.index(selected_var.get())
+            except ValueError:
+                index = 0
+            result["record"] = records[index]
+            dialog.destroy()
+
+        buttons = ctk.CTkFrame(dialog, fg_color="transparent")
+        buttons.pack(pady=(0, 16))
+        ctk.CTkButton(
+            buttons,
+            text=self.app.get_text("home_recent_rollback_btn", "确认回滚"),
+            width=120,
+            command=confirm,
+        ).pack(side="left", padx=8)
+        ctk.CTkButton(
+            buttons,
+            text=self.app.get_text("home_recent_cancel_btn", "取消"),
+            width=100,
+            fg_color="transparent",
+            text_color=("black", "white"),
+            hover_color=("gray85", "gray25"),
+            border_width=1,
+            border_color=("gray60", "gray40"),
+            command=dialog.destroy,
+        ).pack(side="left", padx=8)
+
+        dialog.grab_set()
+        self.app.wait_window(dialog)
+        return result["record"]
+
+    def _start_rollback(self, record: Dict[str, Any]):
+        """后台执行回滚，期间禁用入口并在完成后刷新列表"""
+        import threading
+
+        transaction_id = str(record.get("transaction_id", "") or "")
+        config_dir = self.app.config_manager.get_config_dir()
+
+        try:
+            self.recent_clear_btn.configure(state="disabled")
+            for button in self._recent_action_buttons:
+                button.configure(state="disabled")
+        except Exception:
+            pass
+
+        def worker():
+            try:
+                from backend.transaction_backup import rollback_transaction
+                result = rollback_transaction(config_dir, transaction_id)
+            except Exception as exc:  # noqa: BLE001
+                result = {
+                    "success": False,
+                    "restored": 0,
+                    "removed": 0,
+                    "failed": 1,
+                    "message": str(exc),
+                }
+            self.app.after(0, lambda: self._on_rollback_finished(result))
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _on_rollback_finished(self, result: Dict[str, Any]):
+        """回滚完成：提示结果并刷新最近完成任务列表"""
+        from tkinter import messagebox
+
+        restored = int(result.get("restored", 0) or 0)
+        removed = int(result.get("removed", 0) or 0)
+        failed = int(result.get("failed", 0) or 0)
+
+        if result.get("success"):
+            text = self.app.language_manager.format_text(
+                "home_recent_rollback_ok", restored=restored, removed=removed
+            )
+        elif restored or removed or failed:
+            text = self.app.language_manager.format_text(
+                "home_recent_rollback_partial",
+                restored=restored,
+                removed=removed,
+                failed=failed,
+            )
+        else:
+            text = self.app.get_text(
+                "home_recent_rollback_missing",
+                "无法回滚：该记录对应的快照缺失或已被新的同步记录顶掉。",
+            )
+
+        try:
+            self.recent_clear_btn.configure(state="normal")
+        except Exception:
+            pass
+        messagebox.showinfo(
+            self.app.get_text("home_recent_rollback_title", "回滚结果"),
+            text,
+            parent=self.app,
+        )
+        self._load_recent_tasks()
+
     def _create_tips_panel(self):
         """创建「你知道吗」轮播面板：5 张卡片依次显示，每张都可点击跳转"""
         # 下方容器
         self.tips_panel = ctk.CTkFrame(self.right_panel)
-        self.tips_panel.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
+        self.tips_panel.grid(row=2, column=0, sticky="nsew", padx=10, pady=10)
         self.tips_panel.grid_rowconfigure(1, weight=1)
         self.tips_panel.grid_columnconfigure(0, weight=1)
 
@@ -533,6 +938,8 @@ class HomePage(ctk.CTkFrame):
         """加载数据"""
         # 加载打断的任务列表
         self._load_interrupted_tasks()
+        # v7.8.0: 加载最近完成的任务
+        self._load_recent_tasks()
     
     def _load_interrupted_tasks(self):
         """加载打断的任务列表"""
@@ -732,13 +1139,15 @@ class HomePage(ctk.CTkFrame):
             print(f"打开创建任务页失败: {exc}")
 
     def _on_preset_guide_click(self):
-        """按钮 A：带一套均衡预设参数进入新建任务页"""
-        self._open_preset_task({
-            "mode": "safe",
-            "default_strategy": "newest_wins",
-            "use_multithreading_scan": True,
-            "use_multithreading_copy": True,
-        })
+        """按钮 A：跳转到设置页的参数预设/同步行为区域"""
+        try:
+            self.app.show_page("settings")
+            page = self.app.pages.get("settings")
+            if page is not None:
+                # 预设与同步参数位于「基础设置」分区，切过去并回到顶部
+                page._show_section("basic")
+        except Exception as exc:
+            print(f"打开设置页失败: {exc}")
 
     def _on_preset_usb_backup(self):
         """U 盘极速备份：单向、快速模式、多线程"""
@@ -876,6 +1285,10 @@ class HomePage(ctk.CTkFrame):
         
         # 清除旧的任务显示并重新加载
         self._load_interrupted_tasks()
+        # v7.8.0: 刷新最近完成任务
+        if hasattr(self, "recent_frame"):
+            self.recent_search_var.set("")
+            self._load_recent_tasks()
         
         # 重置选中状态
         self.selected_interrupted_task = None
@@ -951,6 +1364,20 @@ class HomePage(ctk.CTkFrame):
         self.interrupted_title.configure(text=self.app.get_text("interrupted_tasks"))
         self.interrupted_hint.configure(text=self.app.get_text("interrupted_tasks_hint"))
         self.search_entry.configure(placeholder_text=self.app.get_text("search"))
+
+        # v7.8.0: 最近完成任务区域
+        self.recent_title.configure(
+            text=self.app.get_text("home_recent_tasks_title", "最近完成的任务")
+        )
+        self.recent_search_entry.configure(
+            placeholder_text=self.app.get_text(
+                "home_recent_search_placeholder", "搜索任务名…"
+            )
+        )
+        self.recent_clear_btn.configure(
+            text=self.app.get_text("home_recent_clear_btn", "清空列表")
+        )
+        self._render_recent_records()
         
         # 更新底部按钮
         self.btn_continue.configure(text=self.app.get_text("continue_sync"))

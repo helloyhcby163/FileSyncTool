@@ -1,6 +1,12 @@
 """
-文件同步工具 v7.0 - 文件夹单独配置页面
+文件同步工具 v7.8.0 - 文件夹单独配置页面
 用于为每个子文件夹单独配置同步策略
+
+v7.8.0 重构：
+- 左右分栏：左侧文件夹列表，右侧「策略详情展示区」
+- 右侧顶部新增视图筛选下拉框（全部 / 已配置专属策略 / 未配置（全局策略））
+- 选中文件夹后右侧实时展示策略、运行模式、同步方向、扩展名/日期过滤详情
+- 未配置专属策略时醒目提示「未配置，依照全局策略」
 """
 
 import os
@@ -19,6 +25,19 @@ class FolderConfigPage(ctk.CTkFrame):
         ("source_wins", "strategy_source_wins", "源目录优先"),
         ("target_wins", "strategy_target_wins", "目标目录优先"),
         ("skip", "strategy_skip", "不同步")
+    ]
+
+    # v7.8.0: 左侧文件夹列表的视图筛选选项（覆盖全部 / 配置状态 / 同步方向 / 冲突策略）
+    VIEW_FILTERS = [
+        ("all", "folder_view_all", "全部"),
+        ("configured", "folder_view_configured", "已配置专属策略"),
+        ("unconfigured", "folder_view_unconfigured", "未配置（全局策略）"),
+        ("one_way", "folder_view_one_way", "仅看单向同步"),
+        ("two_way", "folder_view_two_way", "仅看双向同步"),
+        ("conservative", "folder_view_conservative", "仅看保守模式"),
+        ("newest_wins", "folder_view_newest_wins", "仅看时间优先"),
+        ("source_wins", "folder_view_source_wins", "仅看源目录优先"),
+        ("target_wins", "folder_view_target_wins", "仅看目标目录优先"),
     ]
     
     def __init__(self, master, app, task_config: Dict = None,
@@ -64,6 +83,18 @@ class FolderConfigPage(ctk.CTkFrame):
         # 界面组件
         self.folder_checkboxes: Dict[str, ctk.CTkCheckBox] = {}
         self.strategy_buttons: Dict[str, ctk.CTkButton] = {}
+
+        # v7.8.0: 左右分栏重构所需状态
+        self.folder_rows: Dict[int, ctk.CTkFrame] = {}
+        self.visible_indices: List[int] = []
+        self.detail_index: Optional[int] = None
+        self.view_filter_key = "all"
+        self._view_filter_labels: Dict[str, str] = {
+            key: self.language_manager.get_text(text_key, default_text)
+            for key, text_key, default_text in self.VIEW_FILTERS
+        }
+        self._list_placeholder = None
+        self._detail_row_counter = 0
         
         # 创建界面
         self._create_widgets()
@@ -88,17 +119,17 @@ class FolderConfigPage(ctk.CTkFrame):
         )
         self.title_label.pack(padx=10, pady=10)
         
-        # ========== 中间主内容区域 ==========
+        # ========== 中间主内容区域（左右分栏）==========
         self.content_frame = ctk.CTkFrame(self)
         self.content_frame.grid(row=1, column=0, padx=10, pady=(0, 10), sticky="nsew")
-        self.content_frame.grid_columnconfigure(0, weight=2)
-        self.content_frame.grid_columnconfigure(1, weight=1)
+        self.content_frame.grid_columnconfigure(0, weight=3)
+        self.content_frame.grid_columnconfigure(1, weight=2)
         self.content_frame.grid_rowconfigure(0, weight=1)
         
         # 左列：文件夹列表
         self._create_folder_list_section()
         
-        # 右列：策略按钮
+        # 右列：视图筛选 + 策略详情 + 策略操作
         self._create_strategy_buttons_section()
         
         # ========== 提示信息区域 ==========
@@ -134,9 +165,8 @@ class FolderConfigPage(ctk.CTkFrame):
         )
         self.prev_step_btn.grid(row=0, column=0, padx=(10, 5), pady=10, sticky="ew")
         
-        # 下一步按钮（根据是否为编辑模式显示不同文字）
-        is_edit_mode = "id" in self.task_config or "task_id" in self.task_config
-        next_btn_text = self.language_manager.get_text("save_config", "保存配置") if is_edit_mode else self.language_manager.get_text("next_step", "下一步")
+        # 下一步按钮：无论新建还是编辑，本按钮都只负责进入同步确认页
+        next_btn_text = self.language_manager.get_text("next_step", "下一步")
         
         self.next_step_btn = ctk.CTkButton(
             self.bottom_frame,
@@ -261,15 +291,101 @@ class FolderConfigPage(ctk.CTkFrame):
         self.deselect_all_btn.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
     
     def _create_strategy_buttons_section(self):
-        """创建策略按钮区域"""
-        # 右侧容器（可滚动：策略按钮 + 筛选策略区域内容较多，超出窗口高度时可滚动查看）
-        self.right_frame = ctk.CTkScrollableFrame(self.content_frame)
-        self.right_frame.grid(row=0, column=1, padx=5, pady=5, sticky="nsew")
+        """创建右侧区域：顶部视图筛选 + 策略详情展示区 + 策略操作区"""
+        # 右侧容器（非滚动；上下分区：策略详情 / 策略操作与筛选策略）
+        self.right_frame = ctk.CTkFrame(self.content_frame)
+        self.right_frame.grid(row=0, column=1, padx=(2, 5), pady=5, sticky="nsew")
         self.right_frame.grid_columnconfigure(0, weight=1)
-        
+        self.right_frame.grid_rowconfigure(0, weight=0)  # 顶部：视图筛选下拉框
+        self.right_frame.grid_rowconfigure(1, weight=6)  # 上半部分：策略详情
+        self.right_frame.grid_rowconfigure(2, weight=4)  # 下半部分：策略操作 / 筛选策略
+
+        # ---------- 顶部：文件夹视图筛选 ----------
+        self.filter_bar = ctk.CTkFrame(self.right_frame)
+        self.filter_bar.grid(row=0, column=0, padx=5, pady=(5, 4), sticky="ew")
+        self.filter_bar.grid_columnconfigure(1, weight=1)
+
+        self.view_filter_label = ctk.CTkLabel(
+            self.filter_bar,
+            text=self.language_manager.get_text("folder_policy_filter_label", "文件夹筛选"),
+            font=get_font(size=12)
+        )
+        self.view_filter_label.grid(row=0, column=0, padx=(10, 5), pady=8, sticky="w")
+
+        filter_values = [
+            self._view_filter_labels[key]
+            for key, _text_key, _default in self.VIEW_FILTERS
+        ]
+        self.view_filter_menu = ctk.CTkOptionMenu(
+            self.filter_bar,
+            values=filter_values,
+            width=190,
+            font=get_font(size=12),
+            command=self._on_view_filter_change
+        )
+        self.view_filter_menu.set(
+            self._view_filter_labels.get(self.view_filter_key, filter_values[0])
+        )
+        self.view_filter_menu.grid(row=0, column=1, padx=(0, 10), pady=8, sticky="ew")
+
+        # ---------- 上半部分：策略详情展示区（内容超出时可滚动）----------
+        self.detail_frame = ctk.CTkFrame(
+            self.right_frame,
+            border_width=1,
+            border_color=("gray70", "gray30")
+        )
+        self.detail_frame.grid(row=1, column=0, padx=5, pady=(2, 6), sticky="nsew")
+        self.detail_frame.grid_columnconfigure(0, weight=1)
+        self.detail_frame.grid_rowconfigure(4, weight=1)
+
+        self.detail_title_label = ctk.CTkLabel(
+            self.detail_frame,
+            text=self.language_manager.get_text("folder_policy_detail_title", "策略详情"),
+            font=get_font(size=15, weight="bold")
+        )
+        self.detail_title_label.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="w")
+
+        self.detail_folder_label = ctk.CTkLabel(
+            self.detail_frame,
+            text="",
+            font=get_font(size=13, weight="bold"),
+            anchor="w"
+        )
+        self.detail_folder_label.grid(row=1, column=0, padx=10, pady=(4, 0), sticky="ew")
+
+        self.detail_status_label = ctk.CTkLabel(
+            self.detail_frame,
+            text=self.language_manager.get_text("folder_policy_select_hint", "请选择左侧文件夹查看策略"),
+            font=get_font(size=13),
+            text_color=("gray50", "gray70"),
+            anchor="w",
+            justify="left",
+            wraplength=260
+        )
+        self.detail_status_label.grid(row=2, column=0, padx=10, pady=(2, 6), sticky="ew")
+
+        self.detail_sep = ctk.CTkFrame(
+            self.detail_frame, height=2, fg_color=("gray80", "gray40")
+        )
+        self.detail_sep.grid(row=3, column=0, padx=10, pady=(0, 4), sticky="ew")
+
+        # 详情行放进可滚动容器，避免文字过多撑爆上半部分
+        self.detail_rows_frame = ctk.CTkScrollableFrame(
+            self.detail_frame, fg_color="transparent", height=140
+        )
+        self.detail_rows_frame.grid(
+            row=4, column=0, padx=(6, 6), pady=(0, 8), sticky="nsew"
+        )
+        self.detail_rows_frame.grid_columnconfigure(1, weight=1)
+
+        # ---------- 下半部分：策略操作区 + 筛选策略区（可滚动）----------
+        self.right_actions = ctk.CTkScrollableFrame(self.right_frame, height=200)
+        self.right_actions.grid(row=2, column=0, padx=5, pady=(0, 5), sticky="nsew")
+        self.right_actions.grid_columnconfigure(0, weight=1)
+
         # 策略标题
         self.strategy_title_label = ctk.CTkLabel(
-            self.right_frame,
+            self.right_actions,
             text=self.language_manager.get_text("apply_strategy", "应用策略"),
             font=get_font(size=16, weight="bold")
         )
@@ -277,7 +393,7 @@ class FolderConfigPage(ctk.CTkFrame):
         
         # 策略提示
         self.strategy_hint_label = ctk.CTkLabel(
-            self.right_frame,
+            self.right_actions,
             text=self.language_manager.get_text("strategy_hint", "选中文件夹后点击下方按钮"),
             font=get_font(size=12),
             text_color="gray"
@@ -285,7 +401,7 @@ class FolderConfigPage(ctk.CTkFrame):
         self.strategy_hint_label.pack(padx=10, pady=(0, 15))
         
         # 策略按钮容器
-        self.strategy_buttons_frame = ctk.CTkFrame(self.right_frame)
+        self.strategy_buttons_frame = ctk.CTkFrame(self.right_actions)
         self.strategy_buttons_frame.pack(padx=10, pady=10, fill="x")
         
         # 创建5个策略按钮
@@ -306,7 +422,7 @@ class FolderConfigPage(ctk.CTkFrame):
             self.strategy_buttons[strategy_key] = btn
         
         # 当前选中数量显示
-        self.selection_info_frame = ctk.CTkFrame(self.right_frame)
+        self.selection_info_frame = ctk.CTkFrame(self.right_actions)
         self.selection_info_frame.pack(padx=10, pady=8, fill="x")
         
         self.selection_count_label = ctk.CTkLabel(
@@ -317,7 +433,7 @@ class FolderConfigPage(ctk.CTkFrame):
         self.selection_count_label.pack(padx=10, pady=6)
         
         # ========== v7.5: 筛选策略配置区域（每个文件夹独立配置）==========
-        self.filter_section_frame = ctk.CTkFrame(self.right_frame)
+        self.filter_section_frame = ctk.CTkFrame(self.right_actions)
         self.filter_section_frame.pack(padx=10, pady=(0, 15), fill="x")
         
         self.filter_section_title = ctk.CTkLabel(
@@ -369,15 +485,30 @@ class FolderConfigPage(ctk.CTkFrame):
         self.filter_clear_btn.pack(padx=5, pady=(4, 10), fill="x")
     
     def _load_subfolders(self):
-        """加载源目录的子文件夹列表"""
-        # 清除现有内容
-        for checkbox in self.folder_checkboxes.values():
-            checkbox.destroy()
+        """加载源目录的子文件夹列表（按当前视图筛选），并刷新右侧详情"""
+        # 清除现有列表项与占位控件
+        for row_frame in self.folder_rows.values():
+            try:
+                row_frame.destroy()
+            except Exception:
+                pass
+        self.folder_rows.clear()
         self.folder_checkboxes.clear()
         self.selected_indices.clear()
-        
+        self.visible_indices = []
+
+        if self._list_placeholder is not None:
+            try:
+                self._list_placeholder.destroy()
+            except Exception:
+                pass
+            self._list_placeholder = None
+
         if not self.source_dir or not os.path.isdir(self.source_dir):
-            self._show_empty_message()
+            self.detail_index = None
+            self._list_placeholder = self._show_empty_message()
+            self._update_selection_count()
+            self._render_policy_detail()
             return
         
         # 获取子文件夹列表
@@ -389,7 +520,10 @@ class FolderConfigPage(ctk.CTkFrame):
             ]
             self.subfolders.sort()  # 按名称排序
         except Exception as e:
-            self._show_error_message(str(e))
+            self.detail_index = None
+            self._list_placeholder = self._show_error_message(str(e))
+            self._update_selection_count()
+            self._render_policy_detail()
             return
         
         # v7.7: AI 配置导入的筛选模板套用到全部子文件夹（不覆盖已有配置）
@@ -400,27 +534,48 @@ class FolderConfigPage(ctk.CTkFrame):
                     self.folder_filters[folder_name] = dict(template)
         
         if not self.subfolders:
-            self._show_empty_message()
+            self.detail_index = None
+            self._list_placeholder = self._show_empty_message()
+            self._update_selection_count()
+            self._render_policy_detail()
             return
         
-        # 创建文件夹复选框列表
+        # 按视图筛选创建文件夹行（仅使用当前可见的索引）
+        display_row = 0
         for i, folder_name in enumerate(self.subfolders):
-            # 获取该文件夹的策略
-            folder_strategy = self.folder_strategies.get(folder_name, self.default_strategy)
-            
-            # 创建行框架
-            row_frame = ctk.CTkFrame(self.folder_scrollable)
-            row_frame.grid(row=i, column=0, padx=5, pady=3, sticky="ew")
+            if not self._should_show_folder(i):
+                continue
+
+            self.visible_indices.append(i)
+
+            folder_strategy = self.folder_strategies.get(folder_name)
+            strategy_text = (
+                self._get_strategy_display_name(folder_strategy)
+                if folder_strategy
+                else self.language_manager.get_text("folder_policy_global", "全局默认")
+            )
+
+            # 创建行框架（整行可点击，用于右侧详情展示）
+            row_frame = ctk.CTkFrame(self.folder_scrollable, fg_color="transparent")
+            row_frame.grid(row=display_row, column=0, padx=5, pady=3, sticky="ew")
             row_frame.grid_columnconfigure(1, weight=1)
+            row_frame.bind(
+                "<Button-1>",
+                lambda _event, idx=i: self._select_detail_folder(idx)
+            )
             
             # 序号标签
             index_label = ctk.CTkLabel(
                 row_frame,
-                text=f"{i + 1}",
+                text=f"{display_row + 1}",
                 font=get_font(size=13),
                 width=30
             )
             index_label.grid(row=0, column=0, padx=(5, 5), pady=5)
+            index_label.bind(
+                "<Button-1>",
+                lambda _event, idx=i: self._select_detail_folder(idx)
+            )
             
             # 复选框
             checkbox = ctk.CTkCheckBox(
@@ -436,11 +591,15 @@ class FolderConfigPage(ctk.CTkFrame):
             # 策略显示标签
             strategy_label = ctk.CTkLabel(
                 row_frame,
-                text=self._get_strategy_display_name(folder_strategy),
+                text=strategy_text,
                 font=get_font(size=11),
                 text_color=("gray50", "gray70")
             )
             strategy_label.grid(row=0, column=2, padx=5, pady=5, sticky="e")
+            strategy_label.bind(
+                "<Button-1>",
+                lambda _event, idx=i: self._select_detail_folder(idx)
+            )
             
             # v7.5: 筛选策略显示标签（未配置则不显示）
             filter_summary = self._get_filter_summary(folder_name)
@@ -452,8 +611,258 @@ class FolderConfigPage(ctk.CTkFrame):
                     text_color=("#1F6AA5", "#3B8ED0")
                 )
                 filter_label.grid(row=0, column=3, padx=(0, 5), pady=5, sticky="e")
+                filter_label.bind(
+                    "<Button-1>",
+                    lambda _event, idx=i: self._select_detail_folder(idx)
+                )
             
+            self.folder_rows[i] = row_frame
             self.folder_checkboxes[folder_name] = checkbox
+            display_row += 1
+
+        if not self.visible_indices:
+            self._list_placeholder = self._show_empty_message(
+                self.language_manager.get_text(
+                    "folder_view_empty", "没有符合筛选条件的文件夹"
+                )
+            )
+
+        # 详情索引若被当前筛选隐藏，则回到未选中状态
+        if self.detail_index is not None and self.detail_index not in self.visible_indices:
+            self.detail_index = None
+
+        self._highlight_rows()
+        self._update_selection_count()
+        self._render_policy_detail()
+
+    def _has_custom_policy(self, folder_name: str) -> bool:
+        """判断文件夹是否存在专属策略（自定义策略或专属筛选配置）"""
+        if folder_name in self.folder_strategies:
+            return True
+        cfg = self.folder_filters.get(folder_name)
+        return isinstance(cfg, dict) and bool(cfg)
+
+    def _task_is_one_way(self) -> bool:
+        """任务级同步方向是否为单向（源→目标 / 目标→源）"""
+        direction = self.task_config.get("sync_direction", "both")
+        return direction in ("source_to_target", "target_to_source")
+
+    def _should_show_folder(self, index: int) -> bool:
+        """按当前视图筛选判断文件夹是否显示（按配置状态 / 同步方向 / 冲突策略精准匹配）"""
+        key = self.view_filter_key
+        if key == "all":
+            return True
+
+        folder_name = self.subfolders[index]
+        has_custom = self._has_custom_policy(folder_name)
+
+        if key == "configured":
+            return has_custom
+        if key == "unconfigured":
+            return not has_custom
+        if key == "one_way":
+            return self._task_is_one_way()
+        if key == "two_way":
+            return not self._task_is_one_way()
+
+        # 冲突策略筛选：优先取文件夹专属策略，未配置时沿用全局默认策略
+        if key in ("conservative", "newest_wins", "source_wins", "target_wins"):
+            effective = self.folder_strategies.get(folder_name, self.default_strategy)
+            return effective == key
+
+        return True
+
+    def _on_view_filter_change(self, selected: str):
+        """视图筛选下拉框变化：重置详情与选中状态并刷新列表"""
+        self.view_filter_key = "all"
+        for key, text_key, default_text in self.VIEW_FILTERS:
+            if self._view_filter_labels.get(key) == selected:
+                self.view_filter_key = key
+                break
+        self.detail_index = None
+        self.selected_indices.clear()
+        self._load_subfolders()
+
+    def _select_detail_folder(self, index: int):
+        """点击文件夹行：选中该文件夹并在右侧展示其策略详情"""
+        if index not in self.visible_indices:
+            return
+        folder_name = self.subfolders[index]
+        checkbox = self.folder_checkboxes.get(folder_name)
+        if checkbox is not None and checkbox.get() == -1:
+            checkbox.select()
+            if index not in self.selected_indices:
+                self.selected_indices.append(index)
+
+        self.detail_index = index
+        self._update_selection_count()
+        self._highlight_rows()
+        self._render_policy_detail()
+
+    def _highlight_rows(self):
+        """高亮当前在右侧展示详情的文件夹行"""
+        for index, row_frame in self.folder_rows.items():
+            try:
+                row_frame.configure(
+                    fg_color=("#D6E6F5", "#1B3A52")
+                    if index == self.detail_index
+                    else "transparent"
+                )
+            except Exception:
+                pass
+
+    def _render_policy_detail(self):
+        """渲染右侧「策略详情展示区」"""
+        if not hasattr(self, "detail_rows_frame"):
+            return
+
+        for child in self.detail_rows_frame.winfo_children():
+            child.destroy()
+        self._detail_row_counter = 0
+
+        if (
+            self.detail_index is None
+            or self.detail_index >= len(self.subfolders)
+            or self.detail_index not in self.visible_indices
+        ):
+            if self.detail_index is not None:
+                self.detail_index = None
+            self.detail_folder_label.configure(text="")
+            self.detail_status_label.configure(
+                text=self.language_manager.get_text(
+                    "folder_policy_select_hint", "请选择左侧文件夹查看策略"
+                ),
+                text_color=("gray50", "gray70"),
+                font=get_font(size=13)
+            )
+            self.detail_frame.configure(border_color=("gray70", "gray30"))
+            return
+
+        folder_name = self.subfolders[self.detail_index]
+        self.detail_folder_label.configure(text=folder_name)
+
+        if self._has_custom_policy(folder_name):
+            self.detail_status_label.configure(
+                text=self.language_manager.get_text(
+                    "folder_policy_custom", "已配置专属策略"
+                ),
+                text_color=("#2E7D32", "#4CAF50"),
+                font=get_font(size=13, weight="bold")
+            )
+            self.detail_frame.configure(border_color=("#2E7D32", "#4CAF50"))
+        else:
+            # 醒目提示：未配置专属策略
+            self.detail_status_label.configure(
+                text=self.language_manager.get_text(
+                    "folder_policy_none", "未配置，依照全局策略"
+                ),
+                text_color="#E65100",
+                font=get_font(size=13, weight="bold")
+            )
+            self.detail_frame.configure(border_color=("#E65100", "#B26A00"))
+
+        self._add_detail_row(
+            self.language_manager.get_text("folder_policy_strategy_title", "策略"),
+            self._get_strategy_detail_text(folder_name)
+        )
+        self._add_detail_row(
+            self.language_manager.get_text("folder_policy_mode_title", "运行模式"),
+            self._get_mode_detail_text()
+        )
+        self._add_detail_row(
+            self.language_manager.get_text("folder_policy_direction_title", "同步方向"),
+            self._get_direction_detail_text()
+        )
+        self._add_detail_row(
+            self.language_manager.get_text("folder_policy_ext_title", "扩展名过滤"),
+            self._get_extension_detail_text(folder_name)
+        )
+        self._add_detail_row(
+            self.language_manager.get_text("folder_policy_date_title", "日期过滤"),
+            self._get_date_detail_text(folder_name)
+        )
+
+    def _add_detail_row(self, title: str, value: str):
+        """向策略详情区添加一行「标题: 值」"""
+        row = self._detail_row_counter
+        title_label = ctk.CTkLabel(
+            self.detail_rows_frame,
+            text=f"{title}:",
+            font=get_font(size=12),
+            text_color=("gray50", "gray70")
+        )
+        title_label.grid(row=row, column=0, padx=(10, 5), pady=2, sticky="nw")
+
+        value_label = ctk.CTkLabel(
+            self.detail_rows_frame,
+            text=value,
+            font=get_font(size=12),
+            anchor="w",
+            justify="left",
+            wraplength=240
+        )
+        value_label.grid(row=row, column=1, padx=(0, 10), pady=2, sticky="ew")
+        self._detail_row_counter += 1
+
+    def _get_strategy_detail_text(self, folder_name: str) -> str:
+        """获取详情的策略文本（优先专属策略，否则全局默认）"""
+        strategy = self.folder_strategies.get(folder_name)
+        if strategy:
+            return self._get_strategy_display_name(strategy)
+        global_label = self.language_manager.get_text("folder_policy_global", "全局默认")
+        return f"{global_label}: {self._get_strategy_display_name(self.default_strategy)}"
+
+    def _get_mode_detail_text(self) -> str:
+        """获取详情的运行模式文本"""
+        mode = self.task_config.get("mode", self.task_config.get("run_mode", "safe"))
+        if mode == "fast":
+            return self.language_manager.get_text("fast_mode", "快速模式")
+        return self.language_manager.get_text("safe_mode", "安全模式")
+
+    def _get_direction_detail_text(self) -> str:
+        """获取详情的同步方向文本"""
+        direction = self.task_config.get("sync_direction", "both")
+        if direction == "source_to_target":
+            return self.language_manager.get_text("sync_source_to_target", "源→目标")
+        if direction == "target_to_source":
+            return self.language_manager.get_text("sync_target_to_source", "目标→源")
+        return self.language_manager.get_text("sync_both", "双向同步")
+
+    def _get_extension_detail_text(self, folder_name: str) -> str:
+        """获取详情的扩展名过滤文本"""
+        cfg = self.folder_filters.get(folder_name)
+        all_files = self.language_manager.get_text(
+            "folder_policy_filter_all", "同步全部文件"
+        )
+        disabled = self.language_manager.get_text("folder_policy_disabled", "未启用")
+        if not isinstance(cfg, dict) or not cfg:
+            return all_files
+        if not cfg.get("extension_filter_enabled"):
+            return disabled
+        if cfg.get("extension_filter_mode") == "exclude":
+            mode_label = self.language_manager.get_text("exclude_mode", "排除（黑名单）")
+        else:
+            mode_label = self.language_manager.get_text("include_mode", "仅包含（白名单）")
+        items = cfg.get("extension_filter_list") or []
+        if not items:
+            return mode_label
+        return f"{mode_label}: {', '.join(items)}"
+
+    def _get_date_detail_text(self, folder_name: str) -> str:
+        """获取详情的日期过滤文本"""
+        cfg = self.folder_filters.get(folder_name)
+        all_files = self.language_manager.get_text(
+            "folder_policy_filter_all", "同步全部文件"
+        )
+        disabled = self.language_manager.get_text("folder_policy_disabled", "未启用")
+        if not isinstance(cfg, dict) or not cfg:
+            return all_files
+        if not cfg.get("date_filter_enabled"):
+            return disabled
+        unlimited = self.language_manager.get_text("folder_policy_unlimited", "不限")
+        start = cfg.get("date_filter_start") or unlimited
+        end = cfg.get("date_filter_end") or unlimited
+        return f"{start} ~ {end}"
     
     def _get_filter_summary(self, folder_name: str) -> str:
         """
@@ -479,18 +888,19 @@ class FolderConfigPage(ctk.CTkFrame):
             return ""
         return self.language_manager.get_text("filter_configured", "筛选") + ": " + "+".join(parts)
     
-    def _show_empty_message(self):
-        """显示空列表消息"""
+    def _show_empty_message(self, message: str = None):
+        """显示空列表消息，返回占位控件"""
         empty_label = ctk.CTkLabel(
             self.folder_scrollable,
-            text=self.language_manager.get_text("no_folders", "无文件夹"),
+            text=message or self.language_manager.get_text("no_folders", "无文件夹"),
             font=get_font(size=14),
             text_color="gray"
         )
         empty_label.grid(row=0, column=0, padx=10, pady=20)
+        return empty_label
     
     def _show_error_message(self, message: str):
-        """显示错误消息"""
+        """显示错误消息，返回占位控件"""
         error_label = ctk.CTkLabel(
             self.folder_scrollable,
             text=self.language_manager.format_text("error_with_message", message=message),
@@ -498,6 +908,7 @@ class FolderConfigPage(ctk.CTkFrame):
             text_color="red"
         )
         error_label.grid(row=0, column=0, padx=10, pady=20)
+        return error_label
     
     def _get_strategy_display_name(self, strategy: str) -> str:
         """
@@ -516,21 +927,27 @@ class FolderConfigPage(ctk.CTkFrame):
     
     def _on_folder_select(self, index: int):
         """
-        文件夹选择事件
+        文件夹复选框选择事件，同时更新右侧详情
         
         Args:
             index: 文件夹索引
         """
-        checkbox = self.folder_checkboxes.get(self.subfolders[index])
-        if checkbox and checkbox.get() != -1:
+        folder_name = self.subfolders[index]
+        checkbox = self.folder_checkboxes.get(folder_name)
+        checked = bool(checkbox.get() != -1) if checkbox is not None else False
+
+        if checked:
             if index not in self.selected_indices:
                 self.selected_indices.append(index)
+            self.detail_index = index
         else:
             if index in self.selected_indices:
                 self.selected_indices.remove(index)
         
-        # 更新选中数量显示
+        # 更新选中数量显示与详情
         self._update_selection_count()
+        self._highlight_rows()
+        self._render_policy_detail()
     
     def _on_root_checkbox_change(self):
         """根目录复选框变化事件"""
@@ -568,11 +985,11 @@ class FolderConfigPage(ctk.CTkFrame):
             self._on_root_checkbox_change()
     
     def _select_all_folders(self):
-        """全选所有文件夹"""
+        """全选当前筛选结果中的所有文件夹"""
         for folder_name, checkbox in self.folder_checkboxes.items():
             checkbox.select()
         
-        self.selected_indices = list(range(len(self.subfolders)))
+        self.selected_indices = list(self.visible_indices)
         self._update_selection_count()
     
     def _deselect_all_folders(self):
@@ -622,7 +1039,7 @@ class FolderConfigPage(ctk.CTkFrame):
         ).replace("{strategy}", strategy_name).replace("{count}", str(selected_count))
         self.tip_label.configure(text=tip_text, text_color=("green", "#2CC985"))
         
-        # 更新显示并清空选中
+        # 更新显示并清空选中（右侧详情与左侧筛选同步刷新）
         self.selected_indices.clear()
         self._load_subfolders()
         self._update_selection_count()
@@ -666,7 +1083,7 @@ class FolderConfigPage(ctk.CTkFrame):
         ).replace("{count}", str(len(self.selected_indices)))
         self.tip_label.configure(text=tip_text, text_color=("green", "#2CC985"))
         
-        # 刷新列表显示并清空选中
+        # 刷新列表显示并清空选中（右侧详情与左侧筛选同步刷新）
         self.selected_indices.clear()
         self._load_subfolders()
         self._update_selection_count()
@@ -783,6 +1200,28 @@ class FolderConfigPage(ctk.CTkFrame):
         self.deselect_all_btn.configure(
             text=self.language_manager.get_text("deselect_all", "取消全选")
         )
+
+        # 更新视图筛选下拉框
+        self._view_filter_labels = {
+            key: self.language_manager.get_text(text_key, default_text)
+            for key, text_key, default_text in self.VIEW_FILTERS
+        }
+        filter_values = [
+            self._view_filter_labels[key]
+            for key, _text_key, _default in self.VIEW_FILTERS
+        ]
+        self.view_filter_label.configure(
+            text=self.language_manager.get_text("folder_policy_filter_label", "文件夹筛选")
+        )
+        self.view_filter_menu.configure(values=filter_values)
+        self.view_filter_menu.set(
+            self._view_filter_labels.get(self.view_filter_key, filter_values[0])
+        )
+
+        # 更新策略详情标题
+        self.detail_title_label.configure(
+            text=self.language_manager.get_text("folder_policy_detail_title", "策略详情")
+        )
         
         # 更新策略区域
         self.strategy_title_label.configure(
@@ -824,15 +1263,15 @@ class FolderConfigPage(ctk.CTkFrame):
             text=self.language_manager.get_text("prev_step", "上一步")
         )
         
-        is_edit_mode = "id" in self.task_config or "task_id" in self.task_config
-        next_btn_text = self.language_manager.get_text("save_config", "保存配置") if is_edit_mode else self.language_manager.get_text("next_step", "下一步")
-        self.next_step_btn.configure(text=next_btn_text)
+        self.next_step_btn.configure(
+            text=self.language_manager.get_text("next_step", "下一步")
+        )
         
         self.cancel_btn.configure(
             text=self.language_manager.get_text("cancel", "取消")
         )
         
-        # 刷新文件夹列表显示
+        # 刷新文件夹列表与策略详情
         self._load_subfolders()
 
 
