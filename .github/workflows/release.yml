@@ -18,11 +18,9 @@ jobs:
           - os: windows-latest
             output_name: FileSyncTool_v7.8.0_Windows.exe
             artifact_name: Windows
-          # macOS Intel 机器（注意标签是 macos-15-intel）
           - os: macos-15-intel
             output_name: FileSyncTool_v7.8.0_macOS_Intel
             artifact_name: macOS_Intel
-          # macOS ARM 机器（macos-14 已退役，改用 latest 或 macos-15）
           - os: macos-latest
             output_name: FileSyncTool_v7.8.0_macOS_ARM64
             artifact_name: macOS_ARM64
@@ -46,7 +44,6 @@ jobs:
       - name: Build with PyInstaller
         shell: bash
         run: |
-          # 加上 || {...}，一旦报错就打印 dist 目录，方便我们查错
           pyinstaller FileSyncTool.spec || { echo "❌ PyInstaller Build Failed!"; ls -la dist; exit 1; }
 
       # ---------- Windows / Linux 重命名 ----------
@@ -55,23 +52,22 @@ jobs:
         shell: bash
         run: |
           cd dist
-          # ⚠️ 注意：请确认你 FileSyncTool.spec 里的 name 是 FileSyncTool
-          if [ -f "FileSyncTool.exe" ]; then mv "FileSyncTool.exe" "${{ matrix.output_name }}"; fi
-          if [ -f "FileSyncTool" ]; then mv "FileSyncTool" "${{ matrix.output_name }}"; fi
+          if [ -f "main.exe" ]; then mv "main.exe" "${{ matrix.output_name }}"; fi
+          if [ -f "main" ]; then mv "main" "${{ matrix.output_name }}"; fi
           ls -la
 
-      # ---------- macOS 压缩打包 ----------
+      # ---------- macOS 打包 ----------
       - name: Package Artifacts (macOS)
         if: matrix.os == 'macos-15-intel' || matrix.os == 'macos-latest'
         shell: bash
         run: |
           cd dist
-          if [ -d "FileSyncTool.app" ]; then
-            ditto -c -k --sequesterRsrc --keepParent "FileSyncTool.app" "${{ matrix.output_name }}.zip"
-          elif [ -f "FileSyncTool" ]; then
-            mv "FileSyncTool" "${{ matrix.output_name }}"
+          if [ -d "main.app" ]; then
+            ditto -c -k --sequesterRsrc --keepParent "main.app" "${{ matrix.output_name }}.zip"
+          elif [ -f "main" ]; then
+            mv "main" "${{ matrix.output_name }}"
           else
-            echo "❌ 未找到打包产物，请检查 FileSyncTool.spec"
+            echo "❌ 未找到打包产物"
             ls -la
             exit 1
           fi
@@ -122,7 +118,7 @@ jobs:
           name: ${{ matrix.artifact_name }}
           path: |
             dist/${{ matrix.output_name }}*
-          if-no-files-found: warn # 👈 关键修复：改成 warn 防止 Linux 失败导致 Windows 和 Mac 被连带取消
+          if-no-files-found: warn
 
   release:
     needs: build
