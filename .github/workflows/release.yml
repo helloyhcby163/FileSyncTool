@@ -91,11 +91,12 @@ jobs:
           echo "--- 打包后的 dist 目录 ---"
           ls -la
 
-      # ---------- 🚨 自动 Ed25519 签名 (智能匹配) ----------
+      # ---------- 🚨 自动 Ed25519 签名 (智能匹配 & 强制 UTF-8) ----------
       - name: Sign Artifacts
         shell: bash
         env:
           PRIVATE_KEY: ${{ secrets.ED25519_PRIVATE_KEY }}
+          PYTHONIOENCODING: utf-8
         run: |
           cd dist
           # 智能匹配要签名的文件（排除 .sig 文件）
@@ -106,8 +107,16 @@ jobs:
               exit 1
           fi
           
+          # 使用 Python 生成签名
           python -c "
           import os
+          import sys
+          
+          # 强制重定向 stdout 为 utf-8，防止 Windows 终端报错
+          if sys.stdout.encoding.lower() != 'utf-8':
+              import io
+              sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+          
           from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
           from cryptography.hazmat.primitives import serialization
           
